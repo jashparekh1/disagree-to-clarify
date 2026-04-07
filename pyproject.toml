@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends.build_meta"
+
+[project]
+name = "d2c"
+version = "0.1.0"
+description = "Disagree to Clarify — multi-agent dialogue for query disambiguation"
+requires-python = ">=3.10"
+dependencies = [
+    "requests",
+    "pydantic",
+    "tqdm",
+    "jsonlines",
+]
+
+[project.scripts]
+d2c-demo = "scripts.run_demo:main"
+d2c-batch = "scripts.run_batch:main"
