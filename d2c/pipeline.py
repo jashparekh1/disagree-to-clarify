@@ -39,14 +39,15 @@ class D2CResult:
 
 def run_d2c(
     query: str,
-    model: str = "qwen3:4b",
+    model: str = "qwen2.5:0.5b",
     num_rounds: int = 3,
+    max_tokens: int = 300,
 ) -> D2CResult:
     """Full pipeline: query -> agents -> dialogue -> synthesizer -> clarifying question."""
     llm = LLMClient(model=model)
-    agents = [Agent(role, llm) for role in AgentRole]
+    agents = [Agent(role, llm, max_tokens=max_tokens) for role in AgentRole]
     dialogue = run_dialogue(query, agents, num_rounds)
-    synth = synthesize(query, dialogue, llm)
+    synth = synthesize(query, dialogue, llm, max_tokens=max_tokens)
     return D2CResult(
         query=query,
         dialogue=dialogue,
@@ -60,14 +61,18 @@ def run_d2c(
 def run_d2c_batch(
     queries: list[dict],
     output_path: str,
-    model: str = "qwen3:4b",
+    model: str = "qwen2.5:0.5b",
     num_rounds: int = 3,
     resume: bool = False,
+    max_workers: int = 4,
+    max_tokens: int = 300,
 ) -> None:
     """Run D2C on a list of query dicts, save results as JSONL.
 
     Each item in *queries* must have a "query" key; other fields are passed through.
     """
+    import concurrent.futures
+
     # If resuming, load already-processed queries
     done_queries: set[str] = set()
     if resume:
@@ -79,21 +84,34 @@ def run_d2c_batch(
         except FileNotFoundError:
             pass
 
-    with open(output_path, "a") as out:
-        for item in tqdm(queries, desc="D2C"):
-            query = item["query"]
-            if query in done_queries:
-                logger.info("Skipping already-processed query: %s", query)
-                continue
+    # Filter out already-processed queries
+    to_process = [q for q in queries if q["query"] not in done_queries]
+    if len(to_process) < len(queries):
+        logger.info("Skipping %d already-processed queries", len(queries) - len(to_process))
 
+    with open(output_path, "a") as out:
+
+        def _worker(item: dict):
+            query = item["query"]
             try:
-                result = run_d2c(query, model=model, num_rounds=num_rounds)
+                result = run_d2c(query, model=model, num_rounds=num_rounds, max_tokens=max_tokens)
                 record = result.to_dict()
-                # Pass through any extra fields from the input
                 for k, v in item.items():
                     if k != "query":
                         record[k] = v
-                out.write(json.dumps(record) + "\n")
-                out.flush()
+                return record
             except Exception:
                 logger.exception("Failed on query: %s", query)
+                return None
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(_worker, item) for item in to_process]
+            for future in tqdm(
+                concurrent.futures.as_completed(futures),
+                total=len(futures),
+                desc="D2C",
+            ):
+                record = future.result()
+                if record:
+                    out.write(json.dumps(record) + "\n")
+                    out.flush()

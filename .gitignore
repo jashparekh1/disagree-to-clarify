@@ -1,0 +1,5 @@
+.DS_Store
+.python-version
+d2c/__pycache__
+scripts/__pycache__
+eval/__pycache__/
