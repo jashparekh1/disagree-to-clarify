@@ -42,10 +42,17 @@ def run_d2c(
     model: str = "qwen2.5:0.5b",
     num_rounds: int = 3,
     max_tokens: int = 300,
+    variant: str = "original",
 ) -> D2CResult:
     """Full pipeline: query -> agents -> dialogue -> synthesizer -> clarifying question."""
     llm = LLMClient(model=model)
-    agents = [Agent(role, llm, max_tokens=max_tokens) for role in AgentRole]
+    
+    if variant == "speech_act":
+        roles = [AgentRole.LOCUTIONARY, AgentRole.ILLOCUTIONARY, AgentRole.PERLOCUTIONARY]
+    else:
+        roles = [AgentRole.LITERALIST, AgentRole.INTENT_SEEKER, AgentRole.SCOPE_EXPANDER]
+        
+    agents = [Agent(role, llm, max_tokens=max_tokens) for role in roles]
     dialogue = run_dialogue(query, agents, num_rounds)
     synth = synthesize(query, dialogue, llm, max_tokens=max_tokens)
     return D2CResult(
@@ -66,6 +73,7 @@ def run_d2c_batch(
     resume: bool = False,
     max_workers: int = 4,
     max_tokens: int = 300,
+    variant: str = "original",
 ) -> None:
     """Run D2C on a list of query dicts, save results as JSONL.
 
@@ -94,7 +102,7 @@ def run_d2c_batch(
         def _worker(item: dict):
             query = item["query"]
             try:
-                result = run_d2c(query, model=model, num_rounds=num_rounds, max_tokens=max_tokens)
+                result = run_d2c(query, model=model, num_rounds=num_rounds, max_tokens=max_tokens, variant=variant)
                 record = result.to_dict()
                 for k, v in item.items():
                     if k != "query":

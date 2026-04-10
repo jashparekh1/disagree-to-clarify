@@ -37,7 +37,7 @@ def parse_ambigqa_item(item: dict) -> tuple[str, list[str]]:
     return query, interpretations
 
 
-def process_query(item: dict, model: str, rounds: int, max_tokens: int, judge_model: str) -> dict:
+def process_query(item: dict, model: str, rounds: int, max_tokens: int, judge_model: str, variant: str) -> dict:
     """Run D2C and then judge the result."""
     query, interpretations = parse_ambigqa_item(item)
     if not query:
@@ -48,7 +48,7 @@ def process_query(item: dict, model: str, rounds: int, max_tokens: int, judge_mo
 
     try:
         # 1. Run D2C
-        result = run_d2c(query, model=model, num_rounds=rounds, max_tokens=max_tokens)
+        result = run_d2c(query, model=model, num_rounds=rounds, max_tokens=max_tokens, variant=variant)
         clarifying_question = result.synthesizer_result.clarifying_question
         
         # 2. Judge
@@ -79,6 +79,7 @@ def main() -> None:
     parser.add_argument("--rounds", type=int, default=3, help="Number of dialogue rounds")
     parser.add_argument("--max-tokens", type=int, default=300, help="Max tokens per D2C call")
     parser.add_argument("--max-workers", type=int, default=4, help="Parallel workers")
+    parser.add_argument("--variant", default="original", choices=["original", "speech_act"], help="D2C agent variant")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -96,7 +97,7 @@ def main() -> None:
     results = []
     with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
         futures = [
-            executor.submit(process_query, item, args.model, args.rounds, args.max_tokens, args.judge_model)
+            executor.submit(process_query, item, args.model, args.rounds, args.max_tokens, args.judge_model, args.variant)
             for item in items
         ]
         

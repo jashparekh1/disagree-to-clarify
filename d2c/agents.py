@@ -12,6 +12,9 @@ from d2c.prompts import (
     INTENT_SEEKER_SYSTEM,
     LITERALIST_SYSTEM,
     SCOPE_EXPANDER_SYSTEM,
+    LOCUTIONARY_SYSTEM,
+    ILLOCUTIONARY_SYSTEM,
+    PERLOCUTIONARY_SYSTEM,
 )
 
 logger = logging.getLogger(__name__)
@@ -21,21 +24,33 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 class AgentRole(Enum):
+    # Original D2C Roles
     LITERALIST = "literalist"
     INTENT_SEEKER = "intent_seeker"
     SCOPE_EXPANDER = "scope_expander"
+    
+    # Speech Act Theory Roles
+    LOCUTIONARY = "locutionary"
+    ILLOCUTIONARY = "illocutionary"
+    PERLOCUTIONARY = "perlocutionary"
 
 
 _ROLE_TO_SYSTEM_PROMPT = {
     AgentRole.LITERALIST: LITERALIST_SYSTEM,
     AgentRole.INTENT_SEEKER: INTENT_SEEKER_SYSTEM,
     AgentRole.SCOPE_EXPANDER: SCOPE_EXPANDER_SYSTEM,
+    AgentRole.LOCUTIONARY: LOCUTIONARY_SYSTEM,
+    AgentRole.ILLOCUTIONARY: ILLOCUTIONARY_SYSTEM,
+    AgentRole.PERLOCUTIONARY: PERLOCUTIONARY_SYSTEM,
 }
 
 _ROLE_DISPLAY = {
     AgentRole.LITERALIST: "Literalist",
     AgentRole.INTENT_SEEKER: "Intent Seeker",
     AgentRole.SCOPE_EXPANDER: "Scope Expander",
+    AgentRole.LOCUTIONARY: "Locutionary Parser",
+    AgentRole.ILLOCUTIONARY: "Illocutionary Analyst",
+    AgentRole.PERLOCUTIONARY: "Perlocutionary Evaluator",
 }
 
 # ---------------------------------------------------------------------------

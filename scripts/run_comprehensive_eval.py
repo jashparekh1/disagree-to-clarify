@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 import logging
 
 # Configuration
-EVAL_N = 50  # Smaller N for a faster "all-in-one" run, increase to 100 for final
+EVAL_N = 100  # Full robust run
 MODEL_OLLAMA = "qwen2.5:0.5b"
 MODEL_MLX_BASE = "mlx-community/Qwen2.5-1.5B-Instruct-4bit"
 ADAPTER_PATH = "adapters/"
@@ -95,8 +95,14 @@ def run_evaluations():
     
     # B. D2C (Your System)
     run_cmd(
-        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA}",
-        "Running D2C (Dialogue) System"
+        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA} --variant original",
+        "Running D2C (Dialogue) System - Original"
+    )
+
+    # B2. D2C (Speech Act)
+    run_cmd(
+        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c_speech_act.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA} --variant speech_act",
+        "Running D2C (Dialogue) System - Speech Act"
     )
     
     # C. SFT
@@ -112,7 +118,8 @@ def aggregate_and_report():
     files = {
         "Vanilla": os.path.join(OUTPUT_DIR, "master_baselines_vanilla.jsonl"),
         "Parallel": os.path.join(OUTPUT_DIR, "master_baselines_parallel.jsonl"),
-        "D2C (Dialogue)": os.path.join(OUTPUT_DIR, "master_d2c.jsonl"),
+        "D2C (Original)": os.path.join(OUTPUT_DIR, "master_d2c.jsonl"),
+        "D2C (Speech Act)": os.path.join(OUTPUT_DIR, "master_d2c_speech_act.jsonl"),
         "SFT (LoRA)": os.path.join(OUTPUT_DIR, "master_sft.jsonl"),
     }
     
@@ -148,8 +155,8 @@ def aggregate_and_report():
     df.to_csv(os.path.join(OUTPUT_DIR, "comparison_results.csv"), index=False)
     
     # Generate Plot
-    plt.figure(figsize=(10, 6))
-    plt.bar(df["System"], df["Avg Quality Score"], color=['gray', 'blue', 'green', 'orange'])
+    plt.figure(figsize=(12, 6))
+    plt.bar(df["System"], df["Avg Quality Score"], color=['gray', 'blue', 'green', 'cyan', 'orange'])
     plt.title("Comparison of Clarifying Question Quality (LLM-as-Judge)")
     plt.ylabel("Avg Score (1-5)")
     plt.ylim(0, 5)
