@@ -106,6 +106,17 @@ Full dialogue transcript:
 Based on the disagreements in this dialogue, generate a clarifying question."""
 
 # ---------------------------------------------------------------------------
+# Baseline prompts
+# ---------------------------------------------------------------------------
+
+VANILLA_CQG_SYSTEM = """You are a helpful assistant. Your goal is to generate a single, concise clarifying question for an ambiguous user query.
+The question should help resolve the most likely ambiguities and allow the user to specify their intent."""
+
+VANILLA_CQG_USER = """The following query is ambiguous: "{query}"
+
+Generate ONE concise clarifying question to help resolve this ambiguity."""
+
+# ---------------------------------------------------------------------------
 # Evaluation prompts
 # ---------------------------------------------------------------------------
 

@@ -49,7 +49,7 @@ class LLMClient:
         last_err: Exception | None = None
         for attempt in range(2):
             try:
-                resp = requests.post(url, json=payload, timeout=120)
+                resp = requests.post(url, json=payload, timeout=300)
                 resp.raise_for_status()
                 content = resp.json()["message"]["content"]
                 if strip_thinking:
