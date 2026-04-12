@@ -2,3 +2,5 @@ requests
 pydantic
 tqdm
 jsonlines
+sentence-transformers
+rouge-score
