@@ -5,7 +5,7 @@ from tqdm import tqdm
 from d2c.llm import LLMClient
 
 # Use a smaller model for fast testing
-GOLD_MODEL = "qwen2.5:0.5b"
+GOLD_MODEL = "qwen3:4b"
 llm = LLMClient(model=GOLD_MODEL)
 
 PROMPT_TEMPLATE = """You are an expert at creating clarifying questions for ambiguous queries.

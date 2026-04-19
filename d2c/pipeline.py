@@ -39,9 +39,9 @@ class D2CResult:
 
 def run_d2c(
     query: str,
-    model: str = "qwen2.5:0.5b",
+    model: str = "qwen3:4b",
     num_rounds: int = 3,
-    max_tokens: int = 300,
+    max_tokens: int = 2048,
     variant: str = "original",
 ) -> D2CResult:
     """Full pipeline: query -> agents -> dialogue -> synthesizer -> clarifying question."""
@@ -68,11 +68,11 @@ def run_d2c(
 def run_d2c_batch(
     queries: list[dict],
     output_path: str,
-    model: str = "qwen2.5:0.5b",
+    model: str = "qwen3:4b",
     num_rounds: int = 3,
     resume: bool = False,
     max_workers: int = 4,
-    max_tokens: int = 300,
+    max_tokens: int = 2048,
     variant: str = "original",
 ) -> None:
     """Run D2C on a list of query dicts, save results as JSONL.

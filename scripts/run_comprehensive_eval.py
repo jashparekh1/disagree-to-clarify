@@ -21,7 +21,7 @@ import logging
 
 # Configuration
 EVAL_N = 100  # Full robust run
-MODEL_OLLAMA = "qwen2.5:0.5b"
+MODEL_OLLAMA = "qwen3:4b"
 MODEL_MLX_BASE = "mlx-community/Qwen2.5-1.5B-Instruct-4bit"
 ADAPTER_PATH = "adapters/"
 DATA_DIR = "data"

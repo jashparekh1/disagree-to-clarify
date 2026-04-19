@@ -130,7 +130,7 @@ def _parse_response(raw: str, role: AgentRole, round_num: int) -> AgentResponse:
 # ---------------------------------------------------------------------------
 
 class Agent:
-    def __init__(self, role: AgentRole, llm: LLMClient, max_tokens: int = 300):
+    def __init__(self, role: AgentRole, llm: LLMClient, max_tokens: int = 2048):
         self.role = role
         self.llm = llm
         self.system_prompt = _ROLE_TO_SYSTEM_PROMPT[role]

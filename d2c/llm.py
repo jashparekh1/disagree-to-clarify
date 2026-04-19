@@ -14,7 +14,7 @@ THINK_TAG_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 class LLMClient:
     def __init__(
         self,
-        model: str = "qwen2.5:0.5b",
+        model: str = "qwen3:4b",
         base_url: str = "http://localhost:11434",
     ):
         self.model = model

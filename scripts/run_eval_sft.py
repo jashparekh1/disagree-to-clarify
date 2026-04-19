@@ -32,7 +32,7 @@ def main():
     parser.add_argument("--output", required=True, help="Output JSONL file")
     parser.add_argument("--model", default="mlx-community/Qwen2.5-1.5B-Instruct-4bit", help="Base model")
     parser.add_argument("--adapter", default="adapters/", help="Path to adapter directory")
-    parser.add_argument("--judge-model", default="qwen2.5:0.5b", help="Judge model name")
+    parser.add_argument("--judge-model", default="qwen3:4b", help="Judge model name")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
