@@ -2,3 +2,6 @@ requests
 pydantic
 tqdm
 jsonlines
+sentence-transformers
+scikit-learn
+tabulate
