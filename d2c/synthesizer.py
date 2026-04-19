@@ -77,6 +77,7 @@ def synthesize(
     query: str,
     dialogue: DialogueResult,
     llm: LLMClient,
+    max_tokens: int = 300,
 ) -> SynthesizerResult:
     """Format dialogue transcript, call synthesizer LLM, parse output."""
     transcript = _format_transcript(dialogue)
@@ -86,5 +87,6 @@ def synthesize(
         system_prompt=SYNTHESIZER_SYSTEM,
         user_prompt=user_prompt,
         temperature=0.3,
+        max_tokens=max_tokens,
     )
     return _parse_synthesizer(raw)

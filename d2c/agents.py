@@ -12,6 +12,9 @@ from d2c.prompts import (
     INTENT_SEEKER_SYSTEM,
     LITERALIST_SYSTEM,
     SCOPE_EXPANDER_SYSTEM,
+    LOCUTIONARY_SYSTEM,
+    ILLOCUTIONARY_SYSTEM,
+    PERLOCUTIONARY_SYSTEM,
 )
 
 logger = logging.getLogger(__name__)
@@ -21,21 +24,33 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 class AgentRole(Enum):
+    # Original D2C Roles
     LITERALIST = "literalist"
     INTENT_SEEKER = "intent_seeker"
     SCOPE_EXPANDER = "scope_expander"
+    
+    # Speech Act Theory Roles
+    LOCUTIONARY = "locutionary"
+    ILLOCUTIONARY = "illocutionary"
+    PERLOCUTIONARY = "perlocutionary"
 
 
 _ROLE_TO_SYSTEM_PROMPT = {
     AgentRole.LITERALIST: LITERALIST_SYSTEM,
     AgentRole.INTENT_SEEKER: INTENT_SEEKER_SYSTEM,
     AgentRole.SCOPE_EXPANDER: SCOPE_EXPANDER_SYSTEM,
+    AgentRole.LOCUTIONARY: LOCUTIONARY_SYSTEM,
+    AgentRole.ILLOCUTIONARY: ILLOCUTIONARY_SYSTEM,
+    AgentRole.PERLOCUTIONARY: PERLOCUTIONARY_SYSTEM,
 }
 
 _ROLE_DISPLAY = {
     AgentRole.LITERALIST: "Literalist",
     AgentRole.INTENT_SEEKER: "Intent Seeker",
     AgentRole.SCOPE_EXPANDER: "Scope Expander",
+    AgentRole.LOCUTIONARY: "Locutionary Parser",
+    AgentRole.ILLOCUTIONARY: "Illocutionary Analyst",
+    AgentRole.PERLOCUTIONARY: "Perlocutionary Evaluator",
 }
 
 # ---------------------------------------------------------------------------
@@ -115,10 +130,11 @@ def _parse_response(raw: str, role: AgentRole, round_num: int) -> AgentResponse:
 # ---------------------------------------------------------------------------
 
 class Agent:
-    def __init__(self, role: AgentRole, llm: LLMClient):
+    def __init__(self, role: AgentRole, llm: LLMClient, max_tokens: int = 300):
         self.role = role
         self.llm = llm
         self.system_prompt = _ROLE_TO_SYSTEM_PROMPT[role]
+        self.max_tokens = max_tokens
 
     def respond_initial(self, query: str) -> AgentResponse:
         """Round 0: agent sees only the query."""
@@ -126,6 +142,7 @@ class Agent:
             system_prompt=self.system_prompt,
             user_prompt=query,
             temperature=0.7,
+            max_tokens=self.max_tokens,
         )
         return _parse_response(raw, self.role, round_num=0)
 
@@ -145,5 +162,6 @@ class Agent:
             system_prompt=self.system_prompt,
             user_prompt=user_prompt,
             temperature=0.7,
+            max_tokens=self.max_tokens,
         )
         return _parse_response(raw, self.role, round_num=round_num)

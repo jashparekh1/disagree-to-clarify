@@ -18,8 +18,9 @@ from d2c.pipeline import run_d2c
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run D2C on a single query")
     parser.add_argument("query", help="The ambiguous query to disambiguate")
-    parser.add_argument("--model", default="qwen3:4b", help="Ollama model name")
+    parser.add_argument("--model", default="qwen2.5:0.5b", help="Ollama model name")
     parser.add_argument("--rounds", type=int, default=3, help="Number of dialogue rounds")
+    parser.add_argument("--max-tokens", type=int, default=300, help="Max tokens per LLM call")
     parser.add_argument("--verbose", action="store_true", help="Print full dialogue transcript")
     args = parser.parse_args()
 
@@ -27,9 +28,10 @@ def main() -> None:
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     print(f"\nQuery: {args.query}")
-    print(f"Model: {args.model} | Rounds: {args.rounds}\n")
+    print(f"Model: {args.model} | Rounds: {args.rounds} | Max Tokens: {args.max_tokens}")
+    print("\nRunning D2C pipeline... (this might take a few seconds)")
 
-    result = run_d2c(args.query, model=args.model, num_rounds=args.rounds)
+    result = run_d2c(args.query, model=args.model, num_rounds=args.rounds, max_tokens=args.max_tokens)
 
     # Verbose: print full round-by-round dialogue
     if args.verbose:
