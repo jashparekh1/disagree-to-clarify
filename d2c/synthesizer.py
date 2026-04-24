@@ -8,15 +8,23 @@ user to close that gap.
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass
 
-from d2c.agents import AgentResponse, _ROLE_DISPLAY
+from d2c.agents import _ROLE_DISPLAY, _extract_json_blob
 from d2c.dialogue import DialogueResult
 from d2c.llm import LLMClient
 from d2c.prompts import SYNTHESIZER_SYSTEM, SYNTHESIZER_USER
 
 logger = logging.getLogger(__name__)
+
+_JSON_RETRY_NUDGE = (
+    "\n\nYour previous response did not parse as valid JSON. Return ONLY a "
+    "single JSON object matching the schema — no prose before or after, no "
+    "markdown fences, no <think> blocks. The response must start with '{' "
+    "and end with '}'."
+)
 
 
 @dataclass
@@ -24,12 +32,14 @@ class SynthesizerResult:
     key_disagreement: str
     clarifying_question: str
     raw_text: str
+    format_failed: bool = False
 
     def to_dict(self) -> dict:
         return {
             "key_disagreement": self.key_disagreement,
             "clarifying_question": self.clarifying_question,
             "raw_text": self.raw_text,
+            "format_failed": self.format_failed,
         }
 
 
@@ -64,32 +74,31 @@ def _format_transcript(dialogue: DialogueResult) -> str:
     return "\n".join(parts)
 
 
-def _parse_synthesizer(raw: str) -> SynthesizerResult:
-    """Parse KEY_DISAGREEMENT and CLARIFYING_QUESTION from synthesizer output."""
-    key_dis = ""
-    clarifying_q = ""
-
-    kd_marker = "KEY_DISAGREEMENT:"
-    cq_marker = "CLARIFYING_QUESTION:"
-
-    kd_start = raw.find(kd_marker)
-    cq_start = raw.find(cq_marker)
-
-    if kd_start != -1:
-        kd_end = cq_start if cq_start > kd_start else len(raw)
-        key_dis = raw[kd_start + len(kd_marker) : kd_end].strip()
-
-    if cq_start != -1:
-        clarifying_q = raw[cq_start + len(cq_marker) :].strip()
-
-    # Fallback: if we couldn't parse, use the whole raw text as the question
-    if not clarifying_q:
-        clarifying_q = raw.strip()
-
+def _parse_synthesizer_json(raw: str) -> SynthesizerResult:
+    """Parse the synthesizer's JSON response. On parse failure, stash the
+    raw text in ``clarifying_question`` so the pipeline still produces *a*
+    question, and flag ``format_failed`` so the failure can be reported.
+    """
+    blob = _extract_json_blob(raw)
+    if blob is not None:
+        try:
+            data = json.loads(blob)
+        except json.JSONDecodeError:
+            data = None
+        if isinstance(data, dict):
+            return SynthesizerResult(
+                key_disagreement=str(data.get("key_disagreement", "")).strip(),
+                clarifying_question=str(
+                    data.get("clarifying_question", "")
+                ).strip(),
+                raw_text=raw,
+                format_failed=False,
+            )
     return SynthesizerResult(
-        key_disagreement=key_dis,
-        clarifying_question=clarifying_q,
+        key_disagreement="",
+        clarifying_question=raw.strip(),
         raw_text=raw,
+        format_failed=True,
     )
 
 
@@ -99,7 +108,10 @@ def synthesize(
     llm: LLMClient,
     max_tokens: int = 300,
 ) -> SynthesizerResult:
-    """Format dialogue transcript, call synthesizer LLM, parse output."""
+    """Format dialogue transcript, call synthesizer LLM, parse output.
+
+    Retries once with a strict JSON reminder if the first parse fails.
+    """
     transcript = _format_transcript(dialogue)
     user_prompt = SYNTHESIZER_USER.format(query=query, transcript=transcript)
 
@@ -109,4 +121,20 @@ def synthesize(
         temperature=0.3,
         max_tokens=max_tokens,
     )
-    return _parse_synthesizer(raw)
+    result = _parse_synthesizer_json(raw)
+    if not result.format_failed:
+        return result
+
+    logger.warning("Synthesizer: JSON parse failed, retrying once")
+    raw_retry = llm.chat(
+        system_prompt=SYNTHESIZER_SYSTEM,
+        user_prompt=user_prompt + _JSON_RETRY_NUDGE,
+        temperature=0.1,
+        max_tokens=max_tokens,
+    )
+    result_retry = _parse_synthesizer_json(raw_retry)
+    if not result_retry.format_failed:
+        return result_retry
+
+    logger.warning("Synthesizer: JSON parse failed after retry; using fallback")
+    return result  # Return the first attempt's fallback (format_failed=True).

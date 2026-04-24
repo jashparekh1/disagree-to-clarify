@@ -61,6 +61,41 @@ class TestSynthesizerGroundingFraming(unittest.TestCase):
         self.assertIn("PRAGMATIC", p)
 
 
+class TestJsonOutputContract(unittest.TestCase):
+    """All agent + synthesizer prompts must demand strict JSON."""
+
+    _AGENT_PROMPTS = [
+        "LITERALIST_SYSTEM",
+        "INTENT_SEEKER_SYSTEM",
+        "SCOPE_EXPANDER_SYSTEM",
+        "LOCUTIONARY_SYSTEM",
+        "ILLOCUTIONARY_SYSTEM",
+        "PERLOCUTIONARY_SYSTEM",
+    ]
+
+    def test_each_agent_prompt_demands_json(self):
+        for name in self._AGENT_PROMPTS:
+            with self.subTest(prompt=name):
+                p = getattr(prompts, name)
+                self.assertIn("JSON", p)
+                self.assertIn('"interpretation"', p)
+                self.assertIn('"assumptions"', p)
+                self.assertIn('"answer_type"', p)
+                self.assertIn('"disagreements"', p)
+
+    def test_synthesizer_prompt_demands_json(self):
+        p = prompts.SYNTHESIZER_SYSTEM
+        self.assertIn("JSON", p)
+        self.assertIn('"key_disagreement"', p)
+        self.assertIn('"clarifying_question"', p)
+
+    def test_dialogue_round_prompt_demands_json_with_stance(self):
+        # The round-N prompt must require stance in the JSON output.
+        p = prompts.DIALOGUE_ROUND_USER
+        self.assertIn("JSON", p)
+        self.assertIn('"stance"', p)
+
+
 class TestPipelineDefault(unittest.TestCase):
     def test_run_d2c_defaults_to_speech_act_variant(self):
         sig = inspect.signature(pipeline.run_d2c)

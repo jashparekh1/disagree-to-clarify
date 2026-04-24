@@ -1,8 +1,10 @@
-"""Dialogue loop + early-stop tests.
+"""Dialogue loop + early-stop + format-failure aggregation tests.
 
-Uses a scripted fake LLM so nothing hits Ollama.
+Uses a scripted fake LLM so nothing hits Ollama. Fixtures are JSON payloads
+to match the new strict-JSON output contract.
 """
 
+import json
 import unittest
 
 from d2c.agents import Agent, AgentRole
@@ -11,34 +13,40 @@ from d2c.dialogue import run_dialogue
 from tests._fake_llm import ScriptedLLM
 
 
-def _round_zero():
-    return (
-        "INTERPRETATION: initial reading\n"
-        "ASSUMPTIONS: some context\n"
-        "ANSWER_TYPE: direct\n"
-        "DISAGREEMENTS: \n"
+def _round_zero() -> str:
+    return json.dumps(
+        {
+            "interpretation": "initial reading",
+            "assumptions": "some context",
+            "answer_type": "direct",
+            "disagreements": "",
+        }
     )
 
 
-def _hold():
-    return (
-        "INTERPRETATION: refined reading\n"
-        "ASSUMPTIONS: some context\n"
-        "ANSWER_TYPE: direct\n"
-        "DISAGREEMENTS: others miss X\n"
-        "STANCE: HOLD\n"
-        "STANCE_REASON: my lens still sees something theirs don't\n"
+def _hold() -> str:
+    return json.dumps(
+        {
+            "interpretation": "refined reading",
+            "assumptions": "some context",
+            "answer_type": "direct",
+            "disagreements": "others miss X",
+            "stance": "HOLD",
+            "stance_reason": "my lens still sees something theirs don't",
+        }
     )
 
 
-def _concede():
-    return (
-        "INTERPRETATION: yielded to other view\n"
-        "ASSUMPTIONS: same\n"
-        "ANSWER_TYPE: direct\n"
-        "DISAGREEMENTS: none remaining\n"
-        "STANCE: CONCEDE\n"
-        "STANCE_REASON: the other agents' reading subsumes mine\n"
+def _concede() -> str:
+    return json.dumps(
+        {
+            "interpretation": "yielded to other view",
+            "assumptions": "same",
+            "answer_type": "direct",
+            "disagreements": "none remaining",
+            "stance": "CONCEDE",
+            "stance_reason": "the other agents' reading subsumes mine",
+        }
     )
 
 
@@ -63,6 +71,7 @@ class TestDialogueLoop(unittest.TestCase):
         self.assertEqual(result.rounds_completed, 3)
         self.assertFalse(result.converged)
         self.assertIsNone(result.converged_at_round)
+        self.assertEqual(result.format_failure_rate, 0.0)
 
     def test_stops_early_when_all_agents_concede(self):
         llm = ScriptedLLM(
@@ -72,17 +81,13 @@ class TestDialogueLoop(unittest.TestCase):
                 "PERLOCUTIONARY": [_round_zero(), _concede()],
             }
         )
-        # Budget is 5 rounds but all concede in round 1 → should stop.
         result = run_dialogue("q", _sat_agents(llm), num_rounds=5)
-        self.assertEqual(result.rounds_completed, 2)  # round 0 + round 1
+        self.assertEqual(result.rounds_completed, 2)
         self.assertTrue(result.converged)
         self.assertEqual(result.converged_at_round, 1)
-        # Configured budget preserved for reporting/reproducibility.
-        self.assertEqual(result.num_rounds, 5)
+        self.assertEqual(result.num_rounds, 5)  # Configured budget preserved.
 
     def test_does_not_stop_on_partial_concede(self):
-        # 1 concede + 2 hold should not trigger early-stop: the residual HOLDs
-        # still encode grounding gaps the synthesizer needs.
         llm = ScriptedLLM(
             {
                 "LOCUTIONARY": [_round_zero(), _concede(), _concede()],
@@ -94,11 +99,7 @@ class TestDialogueLoop(unittest.TestCase):
         self.assertEqual(result.rounds_completed, 3)
         self.assertFalse(result.converged)
 
-    def test_round_zero_never_triggers_convergence(self):
-        # Even if round-0 responses somehow parse as CONCEDE (they shouldn't,
-        # since there's no prior context to concede to), the loop should still
-        # run at least one interpretive round before checking convergence.
-        # In practice round 0 has no STANCE field → defaults to HOLD — test that.
+    def test_round_zero_default_stance_is_hold(self):
         llm = ScriptedLLM(
             {
                 "LOCUTIONARY": [_round_zero(), _hold()],
@@ -108,8 +109,38 @@ class TestDialogueLoop(unittest.TestCase):
         )
         result = run_dialogue("q", _sat_agents(llm), num_rounds=2)
         for resp in result.rounds[0]:
-            # Round 0 → default HOLD, never CONCEDE.
             self.assertEqual(resp.stance.value, "hold")
+
+
+class TestFormatFailureAggregation(unittest.TestCase):
+    def test_rate_reflects_failures_including_retries(self):
+        # LOCUTIONARY: both attempts in round 0 fail, then round 1 valid.
+        # Other agents: clean throughout.
+        garbage = "not json at all"
+        llm = ScriptedLLM(
+            {
+                "LOCUTIONARY": [garbage, garbage, _hold()],
+                "ILLOCUTIONARY": [_round_zero(), _hold()],
+                "PERLOCUTIONARY": [_round_zero(), _hold()],
+            }
+        )
+        result = run_dialogue("q", _sat_agents(llm), num_rounds=2)
+        # Total responses: 3 agents × 2 rounds = 6. One failed (LOCUTIONARY r0).
+        self.assertAlmostEqual(result.format_failure_rate, 1 / 6)
+        # Round 0 LOCUTIONARY response carries the failure flag.
+        locu_r0 = next(r for r in result.rounds[0] if r.role == AgentRole.LOCUTIONARY)
+        self.assertTrue(locu_r0.format_failed)
+
+    def test_zero_failures_gives_zero_rate(self):
+        llm = ScriptedLLM(
+            {
+                "LOCUTIONARY": [_round_zero(), _hold()],
+                "ILLOCUTIONARY": [_round_zero(), _hold()],
+                "PERLOCUTIONARY": [_round_zero(), _hold()],
+            }
+        )
+        result = run_dialogue("q", _sat_agents(llm), num_rounds=2)
+        self.assertEqual(result.format_failure_rate, 0.0)
 
 
 if __name__ == "__main__":

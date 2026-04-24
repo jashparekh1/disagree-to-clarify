@@ -29,6 +29,21 @@ class DialogueResult:
     def rounds_completed(self) -> int:
         return len(self.rounds)
 
+    @property
+    def format_failure_rate(self) -> float:
+        """Fraction of agent responses that failed JSON parsing even after
+        retry. Reported as a first-class eval metric so we can distinguish
+        capability signal from format-adherence signal when comparing models
+        of different sizes.
+        """
+        total = sum(len(rnd) for rnd in self.rounds)
+        if total == 0:
+            return 0.0
+        failures = sum(
+            1 for rnd in self.rounds for resp in rnd if resp.format_failed
+        )
+        return failures / total
+
     def to_dict(self) -> dict:
         return {
             "query": self.query,
@@ -37,6 +52,7 @@ class DialogueResult:
             "rounds_completed": self.rounds_completed,
             "converged": self.converged,
             "converged_at_round": self.converged_at_round,
+            "format_failure_rate": self.format_failure_rate,
         }
 
 

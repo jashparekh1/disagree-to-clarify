@@ -1,8 +1,17 @@
-"""Parser and stance-handling tests for d2c.agents."""
+"""Parser, stance, and JSON-retry tests for d2c.agents."""
 
 import unittest
 
-from d2c.agents import AgentRole, Stance, _parse_response, _parse_stance
+from d2c.agents import (
+    Agent,
+    AgentRole,
+    Stance,
+    _extract_json_blob,
+    _parse_agent_json,
+    _parse_stance,
+)
+
+from tests._fake_llm import ScriptedLLM
 
 
 class TestStanceParsing(unittest.TestCase):
@@ -24,77 +33,160 @@ class TestStanceParsing(unittest.TestCase):
         self.assertEqual(_parse_stance("AGREE"), Stance.HOLD)
 
 
-class TestResponseParsing(unittest.TestCase):
+class TestExtractJsonBlob(unittest.TestCase):
+    def test_clean_object(self):
+        self.assertEqual(_extract_json_blob('{"a": 1}'), '{"a": 1}')
+
+    def test_markdown_fence_json(self):
+        raw = 'Here is the response:\n```json\n{"a": 1}\n```\n'
+        self.assertIn('"a": 1', _extract_json_blob(raw))
+
+    def test_markdown_fence_no_lang(self):
+        raw = '```\n{"a": 1}\n```'
+        self.assertIn('"a": 1', _extract_json_blob(raw))
+
+    def test_prose_wrapping(self):
+        # Some models prepend a thinking-style prefix even with strip_thinking.
+        raw = 'Sure! Here you go: {"a": 1} — let me know if you need more.'
+        self.assertEqual(_extract_json_blob(raw), '{"a": 1}')
+
+    def test_no_json_returns_none(self):
+        self.assertIsNone(_extract_json_blob("I cannot comply."))
+        self.assertIsNone(_extract_json_blob(""))
+
+
+class TestParseAgentJson(unittest.TestCase):
     def test_full_response_with_stance(self):
-        raw = (
-            "INTERPRETATION: The user wants to know X.\n"
-            "ASSUMPTIONS: Context Y.\n"
-            "ANSWER_TYPE: Factual.\n"
-            "DISAGREEMENTS: Literalist missed Z.\n"
-            "STANCE: HOLD\n"
-            "STANCE_REASON: My reading catches pragmatic force theirs don't.\n"
-        )
-        r = _parse_response(raw, AgentRole.ILLOCUTIONARY, round_num=1)
+        raw = """{
+  "interpretation": "The user wants to know X.",
+  "assumptions": "Context Y.",
+  "answer_type": "Factual.",
+  "disagreements": "Literalist missed Z.",
+  "stance": "HOLD",
+  "stance_reason": "My reading catches pragmatic force theirs don't."
+}"""
+        r = _parse_agent_json(raw, AgentRole.ILLOCUTIONARY, round_num=1)
+        self.assertFalse(r.format_failed)
         self.assertTrue(r.interpretation.startswith("The user wants"))
-        self.assertTrue(r.assumptions.startswith("Context Y"))
-        self.assertTrue(r.answer_type.startswith("Factual"))
-        self.assertTrue(r.disagreements.startswith("Literalist"))
+        self.assertEqual(r.assumptions, "Context Y.")
         self.assertEqual(r.stance, Stance.HOLD)
         self.assertIn("pragmatic force", r.stance_reason)
 
-    def test_round_zero_response_has_default_stance(self):
-        raw = (
-            "INTERPRETATION: Surface reading.\n"
-            "ASSUMPTIONS: None.\n"
-            "ANSWER_TYPE: List.\n"
-            "DISAGREEMENTS: \n"
-        )
-        r = _parse_response(raw, AgentRole.LOCUTIONARY, round_num=0)
-        # Round 0 responses don't emit STANCE — default must be HOLD.
+    def test_markdown_fence_wrapping_still_parses(self):
+        raw = """```json
+{
+  "interpretation": "surface reading",
+  "assumptions": "none",
+  "answer_type": "list",
+  "disagreements": ""
+}
+```"""
+        r = _parse_agent_json(raw, AgentRole.LOCUTIONARY, round_num=0)
+        self.assertFalse(r.format_failed)
+        self.assertEqual(r.interpretation, "surface reading")
+
+    def test_round_zero_omitting_stance_defaults_to_hold(self):
+        raw = """{
+  "interpretation": "Surface reading.",
+  "assumptions": "None.",
+  "answer_type": "List.",
+  "disagreements": ""
+}"""
+        r = _parse_agent_json(raw, AgentRole.LOCUTIONARY, round_num=0)
+        self.assertFalse(r.format_failed)
         self.assertEqual(r.stance, Stance.HOLD)
         self.assertEqual(r.stance_reason, "")
 
-    def test_concede_parsed_case_insensitive(self):
-        raw = (
-            "INTERPRETATION: x\n"
-            "ASSUMPTIONS: y\n"
-            "ANSWER_TYPE: z\n"
-            "DISAGREEMENTS: w\n"
-            "STANCE: concede\n"
-            "STANCE_REASON: Illocutionary subsumes my reading.\n"
-        )
-        r = _parse_response(raw, AgentRole.LOCUTIONARY, round_num=1)
+    def test_concede_case_insensitive(self):
+        raw = """{"interpretation": "x", "assumptions": "y", "answer_type": "z",
+                   "disagreements": "w", "stance": "concede",
+                   "stance_reason": "Illocutionary subsumes my reading."}"""
+        r = _parse_agent_json(raw, AgentRole.LOCUTIONARY, round_num=1)
+        self.assertFalse(r.format_failed)
         self.assertEqual(r.stance, Stance.CONCEDE)
-        self.assertIn("Illocutionary", r.stance_reason)
 
-    def test_malformed_stance_defaults_to_hold(self):
-        raw = (
-            "INTERPRETATION: x\n"
-            "ASSUMPTIONS: y\n"
-            "ANSWER_TYPE: z\n"
-            "DISAGREEMENTS: w\n"
-            "STANCE: idk\n"
-            "STANCE_REASON: unclear.\n"
-        )
-        r = _parse_response(raw, AgentRole.LOCUTIONARY, round_num=1)
+    def test_unknown_stance_defaults_to_hold_no_failure(self):
+        # A malformed stance value (valid JSON, unrecognized value) must NOT
+        # raise format_failed — the JSON parsed fine, stance just falls back.
+        raw = """{"interpretation": "x", "assumptions": "y", "answer_type": "z",
+                   "disagreements": "w", "stance": "idk",
+                   "stance_reason": "unclear"}"""
+        r = _parse_agent_json(raw, AgentRole.LOCUTIONARY, round_num=1)
+        self.assertFalse(r.format_failed)
         self.assertEqual(r.stance, Stance.HOLD)
 
-    def test_format_for_others_omits_stance_round_zero(self):
-        raw = "INTERPRETATION: a\nASSUMPTIONS: b\nANSWER_TYPE: c\nDISAGREEMENTS: d\n"
-        r = _parse_response(raw, AgentRole.LITERALIST, round_num=0)
+    def test_invalid_json_flags_format_failed(self):
+        raw = "INTERPRETATION: x\nSTANCE: HOLD"  # old text-marker format
+        r = _parse_agent_json(raw, AgentRole.LOCUTIONARY, round_num=1)
+        self.assertTrue(r.format_failed)
+        self.assertIn("INTERPRETATION", r.interpretation)  # raw stashed
+
+    def test_non_dict_json_flags_format_failed(self):
+        raw = '["interpretation", "assumptions"]'
+        r = _parse_agent_json(raw, AgentRole.LOCUTIONARY, round_num=1)
+        self.assertTrue(r.format_failed)
+
+
+def _sat_locutionary_agent(llm):
+    return Agent(AgentRole.LOCUTIONARY, llm)
+
+
+class TestAgentRetry(unittest.TestCase):
+    """Behavioral tests for the one-shot JSON retry wrapper."""
+
+    def _valid(self, stance: str | None = None):
+        body = {
+            "interpretation": "ok",
+            "assumptions": "ok",
+            "answer_type": "ok",
+            "disagreements": "",
+        }
+        if stance is not None:
+            body["stance"] = stance
+            body["stance_reason"] = "because"
+        # Serialise deterministically.
+        import json as _json
+
+        return _json.dumps(body)
+
+    def test_first_attempt_ok_no_retry(self):
+        llm = ScriptedLLM({"LOCUTIONARY": [self._valid()]})
+        agent = _sat_locutionary_agent(llm)
+        resp = agent.respond_initial("any query")
+        self.assertFalse(resp.format_failed)
+        self.assertEqual(len(llm.calls), 1)
+
+    def test_first_attempt_fails_retry_succeeds(self):
+        llm = ScriptedLLM(
+            {"LOCUTIONARY": ["not valid json at all", self._valid()]}
+        )
+        agent = _sat_locutionary_agent(llm)
+        resp = agent.respond_initial("any query")
+        self.assertFalse(resp.format_failed)
+        self.assertEqual(len(llm.calls), 2)  # initial + one retry
+
+    def test_both_attempts_fail_returns_fallback(self):
+        llm = ScriptedLLM(
+            {"LOCUTIONARY": ["garbage one", "garbage two"]}
+        )
+        agent = _sat_locutionary_agent(llm)
+        resp = agent.respond_initial("any query")
+        self.assertTrue(resp.format_failed)
+        self.assertEqual(len(llm.calls), 2)  # initial + one retry, no third
+
+
+class TestFormatForOthers(unittest.TestCase):
+    def test_round_zero_omits_stance(self):
+        raw = """{"interpretation": "a", "assumptions": "b", "answer_type": "c", "disagreements": "d"}"""
+        r = _parse_agent_json(raw, AgentRole.LITERALIST, round_num=0)
         formatted = r.format_for_others()
         self.assertNotIn("STANCE:", formatted)
 
-    def test_format_for_others_includes_stance_round_one(self):
-        raw = (
-            "INTERPRETATION: a\n"
-            "ASSUMPTIONS: b\n"
-            "ANSWER_TYPE: c\n"
-            "DISAGREEMENTS: d\n"
-            "STANCE: CONCEDE\n"
-            "STANCE_REASON: yielded.\n"
-        )
-        r = _parse_response(raw, AgentRole.LITERALIST, round_num=1)
+    def test_round_one_includes_stance(self):
+        raw = """{"interpretation": "a", "assumptions": "b", "answer_type": "c",
+                   "disagreements": "d", "stance": "CONCEDE",
+                   "stance_reason": "yielded to Illocutionary"}"""
+        r = _parse_agent_json(raw, AgentRole.LITERALIST, round_num=1)
         formatted = r.format_for_others()
         self.assertIn("STANCE: CONCEDE", formatted)
         self.assertIn("yielded", formatted)
