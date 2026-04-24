@@ -79,7 +79,7 @@ def main() -> None:
     parser.add_argument("--rounds", type=int, default=3, help="Number of dialogue rounds")
     parser.add_argument("--max-tokens", type=int, default=2048, help="Max tokens per D2C call")
     parser.add_argument("--max-workers", type=int, default=4, help="Parallel workers")
-    parser.add_argument("--variant", default="original", choices=["original", "speech_act"], help="D2C agent variant")
+    parser.add_argument("--variant", default="speech_act", choices=["original", "speech_act"], help="D2C agent variant (default: SAT-grounded; use 'original' for the pre-theory ablation)")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")

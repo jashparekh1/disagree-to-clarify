@@ -47,7 +47,7 @@ def run_d2c(
     model: str = "qwen3:4b",
     num_rounds: int = 3,
     max_tokens: int = 2048,
-    variant: str = "original",
+    variant: str = "speech_act",
 ) -> D2CResult:
     """Full pipeline: query -> agents -> dialogue -> synthesizer -> clarifying question."""
     llm = LLMClient(model=model)
@@ -78,7 +78,7 @@ def run_d2c_batch(
     resume: bool = False,
     max_workers: int = 4,
     max_tokens: int = 2048,
-    variant: str = "original",
+    variant: str = "speech_act",
 ) -> None:
     """Run D2C on a list of query dicts, save results as JSONL.
 

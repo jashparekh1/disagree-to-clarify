@@ -21,7 +21,15 @@ def main() -> None:
     parser.add_argument("--model", default="qwen3:4b", help="Ollama model name")
     parser.add_argument("--rounds", type=int, default=3, help="Number of dialogue rounds")
     parser.add_argument("--max-tokens", type=int, default=2048, help="Max tokens per LLM call")
-    parser.add_argument("--variant", default="original", choices=["original", "speech_act"], help="Agent variant")
+    parser.add_argument(
+        "--variant",
+        default="speech_act",
+        choices=["original", "speech_act"],
+        help="Agent variant. 'speech_act' (default) uses the SAT-grounded "
+        "Locutionary/Illocutionary/Perlocutionary trio; 'original' is the "
+        "pre-theory Literalist/Intent-Seeker/Scope-Expander trio, kept for "
+        "ablation.",
+    )
     parser.add_argument("--verbose", action="store_true", help="Print full dialogue transcript")
     args = parser.parse_args()
 

@@ -52,11 +52,11 @@ This clones CLAMBER, Qulac, and ClariQ into `data/`.
 ## Quick Start
 
 ```bash
-# Run D2C on a single query
+# Run D2C on a single query (defaults to the SAT-grounded variant)
 python -m scripts.run_demo "What is the best way to handle a Python crash?" --verbose
 
-# Run with Speech Act Theory agents
-python -m scripts.run_demo "How do I set up a table?" --verbose --variant speech_act
+# Run the pre-theory ablation (Literalist / Intent Seeker / Scope Expander)
+python -m scripts.run_demo "How do I set up a table?" --verbose --variant original
 ```
 
 ## Usage
@@ -158,15 +158,24 @@ python -m scripts.run_rl_baseline --input data/ambigqa_sample.jsonl --output out
 
 Each variant gives the three agents a different *kind* of reading to hold. They are not "sides of an argument"; they are lenses that, when they diverge, tell us *what kind of common ground is missing*.
 
-**Original D2C** (default):
-- **Literalist** — surface-level, dictionary-default reading (divergence here ⇒ lexical/syntactic grounding gap)
-- **Intent Seeker** — infers the user's underlying goal (divergence ⇒ intent grounding gap)
-- **Scope Expander** — identifies what the query leaves unspecified (divergence ⇒ contextual grounding gap)
+**Speech Act Theory — the default, SAT-grounded trio.** Grounded in Austin (1962) and Searle (1969, 1975, 1976). The three lenses map one-to-one onto Austin's tripartite decomposition of an utterance, and divergence between them maps cleanly onto three distinct grounding gaps:
 
-**Speech Act Theory** (`--variant speech_act`):
-- **Locutionary Parser** — analyzes the physical utterance (words, grammar)
-- **Illocutionary Analyst** — identifies the intended action/force behind the query
-- **Perlocutionary Evaluator** — considers what context is needed for a successful effect
+- **Locutionary Parser** — Austin's phatic + rhetic acts. Attends only to form (syntax) and sense/reference (lexical semantics, referent fixing). Divergence here ⇒ **referential grounding gap**.
+- **Illocutionary Analyst** — Searle 1976's five-way classification (Assertive / Directive / Commissive / Expressive / Declaration) plus Searle 1975 on indirect speech acts. Attends to which act the user is *performing* with the query. Divergence ⇒ **intent grounding gap**.
+- **Perlocutionary Evaluator** — Austin's perlocutionary act: the effect the utterance is intended to produce in the hearer, distinct from felicity conditions. Attends to the situated context required for the response to actually land. Divergence ⇒ **pragmatic grounding gap**.
+
+**Original D2C** (`--variant original`, kept for ablation). An atheoretical trio used in early experiments and retained so we can compare SAT-grounded against pre-theory decomposition:
+- **Literalist** — surface-level, dictionary-default reading.
+- **Intent Seeker** — infers the user's underlying goal.
+- **Scope Expander** — identifies what the query leaves unspecified.
+
+### References
+
+- Austin, J. L. (1962). *How to Do Things with Words*. Oxford: Clarendon Press.
+- Clark, H. H., & Brennan, S. E. (1991). "Grounding in Communication." In L. B. Resnick, J. M. Levine, & S. D. Teasley (eds.), *Perspectives on Socially Shared Cognition*. APA Books.
+- Searle, J. R. (1969). *Speech Acts: An Essay in the Philosophy of Language*. Cambridge University Press.
+- Searle, J. R. (1975). "Indirect Speech Acts." In P. Cole & J. L. Morgan (eds.), *Syntax and Semantics 3: Speech Acts*. Academic Press.
+- Searle, J. R. (1976). "A Classification of Illocutionary Acts." *Language in Society*, 5(1), 1–23.
 
 ### Evaluation Metrics
 
