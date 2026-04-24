@@ -1,4 +1,9 @@
-"""Agent class and roles for the D2C dialogue system."""
+"""Interpretive agents for the D2C clarification policy.
+
+Each agent applies a distinct reading lens to a user turn. Agents are not
+adversaries competing to win an argument; they are independent readers whose
+divergence signals where the user–system common ground is thin.
+"""
 
 from __future__ import annotations
 

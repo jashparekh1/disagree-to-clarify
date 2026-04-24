@@ -1,6 +1,17 @@
 # D2C — Disagree to Clarify
 
-Multi-agent dialogue system for query disambiguation. Three LLM agents with distinct interpretive lenses debate an ambiguous query over multiple rounds, then a synthesizer identifies the key disagreement and produces a targeted clarifying question.
+**A conversational-AI approach to clarification as a grounding move.** When a user asks an ambiguous query, D2C treats the gap between interpretations as missing *common ground* between the user and the system. Three LLM agents with distinct interpretive lenses read the query independently, compare readings over multiple rounds, and — where their readings diverge — surface the divergence to a synthesizer, which produces a single clarifying question aimed at re-establishing common ground before any answer is attempted.
+
+## Framing: clarification as grounding, not debate-to-consensus
+
+Most multi-agent debate (MAD) work (e.g., Du et al. 2023) uses inter-agent disagreement as a *route to a better answer* — agents argue, one side wins, a consensus answer is emitted. D2C inverts this: the disagreement itself is the signal. If three reasonably-prompted agents read the same query differently, the query under-specifies what the system needs to act — i.e., the system lacks common ground with the user. The right conversational move in that situation is not to pick a winning interpretation; it is to ask a clarifying question so the user can ground the query themselves.
+
+Concretely, D2C is a **clarification policy** over dialogue state:
+- **Input:** a single user turn (possibly ambiguous).
+- **Internal state:** each agent's interpretation, plus their round-over-round stance.
+- **Output:** one conversational move — a clarifying question whose answer would add the specific common ground the interpretations lack.
+
+Grounding in the Clark sense (Clark & Brennan 1991; Clark 1996) is the anchoring theory: a clarifying question is a grounding move, and D2C is an attempt to decide *which* grounding move to make using internal disagreement as the diagnostic.
 
 ## Setup
 
@@ -143,12 +154,14 @@ python -m scripts.run_rl_baseline --input data/ambigqa_sample.jsonl --output out
                     └─────────────────────┘
 ```
 
-### Agent Variants
+### Agent variants
+
+Each variant gives the three agents a different *kind* of reading to hold. They are not "sides of an argument"; they are lenses that, when they diverge, tell us *what kind of common ground is missing*.
 
 **Original D2C** (default):
-- **Literalist** — surface-level, dictionary-default reading
-- **Intent Seeker** — infers the user's underlying goal
-- **Scope Expander** — identifies what the query leaves unspecified
+- **Literalist** — surface-level, dictionary-default reading (divergence here ⇒ lexical/syntactic grounding gap)
+- **Intent Seeker** — infers the user's underlying goal (divergence ⇒ intent grounding gap)
+- **Scope Expander** — identifies what the query leaves unspecified (divergence ⇒ contextual grounding gap)
 
 **Speech Act Theory** (`--variant speech_act`):
 - **Locutionary Parser** — analyzes the physical utterance (words, grammar)

@@ -1,4 +1,10 @@
-"""Synthesizer: reads dialogue transcript and produces a clarifying question."""
+"""Synthesizer: turn divergent readings into a single grounding move.
+
+Reads the multi-round interpretation transcript, identifies the most
+consequential grounding gap (the divergence whose resolution would most change
+the appropriate response), and emits one clarifying question directed at the
+user to close that gap.
+"""
 
 from __future__ import annotations
 

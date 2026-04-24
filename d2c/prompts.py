@@ -1,4 +1,9 @@
-"""All prompt templates for the D2C system."""
+"""All prompt templates for the D2C clarification-policy system.
+
+Prompts here frame each agent as an interpreter contributing to a grounding
+decision, not as a debater. Any theory-specific content (Grice, Clark, QUD,
+Ginzburg, SAT) lives inside the individual system prompts below.
+"""
 
 # ---------------------------------------------------------------------------
 # Agent system prompts

@@ -1,4 +1,9 @@
-"""End-to-end D2C pipeline: query in -> clarifying question out."""
+"""End-to-end D2C clarification-policy pipeline.
+
+Given a user turn, run N rounds of multi-lens interpretation, then emit a single
+grounding move (a clarifying question) whose answer would supply the common
+ground that the agents' divergent readings show to be missing.
+"""
 
 from __future__ import annotations
 

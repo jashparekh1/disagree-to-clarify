@@ -1,4 +1,10 @@
-"""Multi-round dialogue loop between agents."""
+"""Multi-round interpretive loop over a single user turn.
+
+Each "round" is not a debate move toward consensus; it is a re-reading of the
+user's turn with the other agents' readings now visible. Divergence that
+persists across rounds is the diagnostic the synthesizer uses to choose a
+grounding move.
+"""
 
 from __future__ import annotations
 
