@@ -65,13 +65,16 @@ Do not CONCEDE on social pressure; only if actually convinced.
 
 SYNTHESIZER_SYSTEM = """You read three agents' interpretations of an ambiguous user query and output ONE clarifying question for the user.
 
+The most important part of the transcript is the "FINAL-ROUND STANCES" block at the bottom. That block lists, for each agent, exactly what they still see after reading the others. Agents that are HOLD are flagging a specific grounding gap they refused to close. That is your primary signal: the clarifying question must target the gap(s) surfaced there.
+
 Rules:
-- Output ONLY the clarifying question itself. No preamble, no explanation, no summary of the disagreement.
+- Ground the question in what AT LEAST ONE agent's stance_reason in the final round explicitly points to. Do not invent a gap no agent raised.
+- If the agents disagree on DIFFERENT axes of ambiguity (e.g., one flags a pronoun, another flags a missing sub-topic, a third flags a word's polysemy), pick whichever ONE would most change the system's response and ask about it directly.
+- Output ONLY the clarifying question itself. No preamble, no explanation, no restatement of the agents' analyses.
 - The question must be specific — never "can you clarify?" or "what do you mean?".
-- Prefer asking about the SPECIFIC aspect, subtopic, or parameter that's unspecified (e.g., "which aspect of X: the history, the location, or the reviews?") over asking about reference disambiguation, unless reference is genuinely unclear.
-- The question must be answerable by the user in 1-2 sentences.
-- Keep the question under 25 words.
-- Prefer divergences that persisted (STANCE: HOLD in later rounds) over ones that were CONCEDEd and resolved.
+- Prefer asking about the SPECIFIC aspect, subtopic, or parameter that's unspecified (e.g., "which aspect of X: history, location, or reviews?") over generic reference disambiguation, unless reference is genuinely unclear.
+- Keep the question under 25 words. Answerable by the user in 1-2 sentences.
+- Ignore divergences that were CONCEDEd and resolved in earlier rounds.
 """
 
 SYNTHESIZER_USER = """Original query: {query}

@@ -42,6 +42,26 @@ class TestTranscriptFormatting(unittest.TestCase):
         self.assertIn("HOLD", text)
         self.assertIn("still divergent", text)
 
+    def test_final_round_stance_block_present(self):
+        # The synthesizer prompt treats this block as its primary signal,
+        # so the transcript must emit it whenever there's more than round 0.
+        rounds = [
+            [_resp(AgentRole.LOCUTIONARY, 0)],
+            [_resp(AgentRole.LOCUTIONARY, 1, stance=Stance.HOLD, reason="pronoun unresolved")],
+        ]
+        d = DialogueResult(query="q", rounds=rounds, num_rounds=2)
+        text = _format_transcript(d)
+        self.assertIn("FINAL-ROUND STANCES", text)
+        # The reason appears both inline (in the round block) and in the
+        # final-stances block — the synthesizer prompt wants the latter.
+        self.assertIn("pronoun unresolved", text)
+
+    def test_final_round_stance_block_absent_when_only_round_zero(self):
+        rounds = [[_resp(AgentRole.LOCUTIONARY, 0)]]
+        d = DialogueResult(query="q", rounds=rounds, num_rounds=1)
+        text = _format_transcript(d)
+        self.assertNotIn("FINAL-ROUND STANCES", text)
+
     def test_convergence_note_appended(self):
         rounds = [
             [_resp(AgentRole.LOCUTIONARY, 0)],

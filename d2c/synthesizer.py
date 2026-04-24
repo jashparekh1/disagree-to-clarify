@@ -45,19 +45,39 @@ class SynthesizerResult:
 
 
 def _format_transcript(dialogue: DialogueResult) -> str:
-    """Short human-readable transcript for the synthesizer."""
+    """Transcript for the synthesizer.
+
+    Includes every round for context, plus an explicit FINAL-ROUND block
+    that surfaces each agent's stance and stance_reason on their own lines.
+    The synthesizer prompt treats that block as the primary disagreement
+    signal — it's where each agent states what they refuse to concede.
+    """
     parts: list[str] = []
     for round_idx, rnd in enumerate(dialogue.rounds):
         parts.append(f"=== Round {round_idx} ===")
         for resp in rnd:
             line = f"[{_ROLE_DISPLAY[resp.role]}] {resp.interpretation}"
             if round_idx > 0:
-                line += f" (stance: {resp.stance.value}"
-                if resp.stance_reason:
-                    line += f" — {resp.stance_reason}"
-                line += ")"
+                line += f" (stance: {resp.stance.value})"
             parts.append(line)
         parts.append("")
+
+    # Final-round stances, broken out. This is the load-bearing signal —
+    # what each agent still sees that the others don't, after N rounds.
+    if len(dialogue.rounds) > 1:
+        final = dialogue.rounds[-1]
+        parts.append(f"=== FINAL-ROUND STANCES (round {len(dialogue.rounds)-1}) ===")
+        parts.append(
+            "Each agent's explicit statement of what they still see after "
+            "reading the others. This is the persistent grounding gap."
+        )
+        for resp in final:
+            reason = resp.stance_reason or "(no reason given)"
+            parts.append(
+                f"- [{_ROLE_DISPLAY[resp.role]} / {resp.stance.value}]: {reason}"
+            )
+        parts.append("")
+
     if dialogue.converged:
         parts.append(
             f"[Dialogue converged at round {dialogue.converged_at_round}: "
