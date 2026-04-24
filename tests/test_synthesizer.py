@@ -1,4 +1,4 @@
-"""Synthesizer transcript + JSON parsing tests."""
+"""Synthesizer parsing + transcript tests."""
 
 import json
 import unittest
@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 from d2c.agents import AgentResponse, AgentRole, Stance
 from d2c.dialogue import DialogueResult
 from d2c.synthesizer import (
+    SYNTHESIZER_SCHEMA,
     _format_transcript,
     _parse_synthesizer_json,
     synthesize,
@@ -19,9 +20,6 @@ def _resp(role, round_num, stance=Stance.HOLD, reason=""):
         round_num=round_num,
         raw_text="",
         interpretation="i",
-        assumptions="a",
-        answer_type="t",
-        disagreements="d",
         stance=stance,
         stance_reason=reason,
     )
@@ -29,31 +27,25 @@ def _resp(role, round_num, stance=Stance.HOLD, reason=""):
 
 class TestTranscriptFormatting(unittest.TestCase):
     def test_round_zero_omits_stance(self):
-        rounds = [
-            [
-                _resp(AgentRole.LOCUTIONARY, 0),
-                _resp(AgentRole.ILLOCUTIONARY, 0),
-                _resp(AgentRole.PERLOCUTIONARY, 0),
-            ]
-        ]
+        rounds = [[_resp(AgentRole.LOCUTIONARY, 0)]]
         d = DialogueResult(query="q", rounds=rounds, num_rounds=1)
         text = _format_transcript(d)
-        self.assertNotIn("STANCE:", text)
+        self.assertNotIn("stance:", text)
 
-    def test_later_rounds_include_stance_and_reason(self):
+    def test_later_rounds_include_stance(self):
         rounds = [
             [_resp(AgentRole.LOCUTIONARY, 0)],
-            [_resp(AgentRole.LOCUTIONARY, 1, stance=Stance.HOLD, reason="lex ambiguity remains")],
+            [_resp(AgentRole.LOCUTIONARY, 1, stance=Stance.HOLD, reason="still divergent")],
         ]
         d = DialogueResult(query="q", rounds=rounds, num_rounds=2)
         text = _format_transcript(d)
-        self.assertIn("STANCE: HOLD", text)
-        self.assertIn("lex ambiguity remains", text)
+        self.assertIn("HOLD", text)
+        self.assertIn("still divergent", text)
 
     def test_convergence_note_appended(self):
         rounds = [
             [_resp(AgentRole.LOCUTIONARY, 0)],
-            [_resp(AgentRole.LOCUTIONARY, 1, stance=Stance.CONCEDE, reason="yielded")],
+            [_resp(AgentRole.LOCUTIONARY, 1, stance=Stance.CONCEDE)],
         ]
         d = DialogueResult(
             query="q",
@@ -65,76 +57,39 @@ class TestTranscriptFormatting(unittest.TestCase):
         text = _format_transcript(d)
         self.assertIn("converged at round 1", text)
 
-    def test_no_convergence_note_when_not_converged(self):
-        rounds = [
-            [_resp(AgentRole.LOCUTIONARY, 0)],
-            [_resp(AgentRole.LOCUTIONARY, 1, stance=Stance.HOLD)],
-        ]
-        d = DialogueResult(query="q", rounds=rounds, num_rounds=2)
-        text = _format_transcript(d)
-        self.assertNotIn("converged", text.lower())
 
-
-class TestSynthesizerJsonParsing(unittest.TestCase):
-    def test_clean_json_parses(self):
-        raw = json.dumps(
-            {
-                "key_disagreement": "illocutionary force",
-                "clarifying_question": "Are you asking for help debugging or for a tutorial?",
-            }
-        )
+class TestSynthesizerParsing(unittest.TestCase):
+    def test_valid_json_parses(self):
+        raw = json.dumps({"clarifying_question": "which aspect: A or B?"})
         r = _parse_synthesizer_json(raw)
         self.assertFalse(r.format_failed)
-        self.assertEqual(r.key_disagreement, "illocutionary force")
-        self.assertIn("debugging", r.clarifying_question)
+        self.assertEqual(r.clarifying_question, "which aspect: A or B?")
 
-    def test_fenced_json_parses(self):
-        raw = '```json\n{"key_disagreement": "kd", "clarifying_question": "cq?"}\n```'
-        r = _parse_synthesizer_json(raw)
-        self.assertFalse(r.format_failed)
-        self.assertEqual(r.clarifying_question, "cq?")
-
-    def test_invalid_json_falls_back_with_format_failed(self):
-        raw = "KEY_DISAGREEMENT: x\nCLARIFYING_QUESTION: y"
-        r = _parse_synthesizer_json(raw)
+    def test_invalid_json_flags_failure(self):
+        r = _parse_synthesizer_json("not json")
         self.assertTrue(r.format_failed)
-        # Raw gets stashed as the question so the pipeline still outputs something.
-        self.assertIn("KEY_DISAGREEMENT", r.clarifying_question)
+        self.assertEqual(r.clarifying_question, "not json")
 
 
-class TestSynthesizeRetry(unittest.TestCase):
-    def _valid(self) -> str:
-        return json.dumps(
-            {"key_disagreement": "kd", "clarifying_question": "cq?"}
-        )
-
-    def _make_dialogue(self) -> DialogueResult:
-        return DialogueResult(
+class TestSynthesizeUsesSchema(unittest.TestCase):
+    def test_passes_schema_to_llm(self):
+        llm = MagicMock()
+        llm.chat.return_value = json.dumps({"clarifying_question": "cq?"})
+        dlg = DialogueResult(
             query="q",
             rounds=[[_resp(AgentRole.LOCUTIONARY, 0)]],
             num_rounds=1,
         )
-
-    def test_first_call_ok_no_retry(self):
-        llm = MagicMock()
-        llm.chat.return_value = self._valid()
-        result = synthesize("q", self._make_dialogue(), llm)
+        result = synthesize("q", dlg, llm)
         self.assertFalse(result.format_failed)
-        self.assertEqual(llm.chat.call_count, 1)
+        # Check that format_schema was passed through.
+        _, kwargs = llm.chat.call_args
+        self.assertEqual(kwargs["format_schema"], SYNTHESIZER_SCHEMA)
 
-    def test_first_fails_retry_succeeds(self):
-        llm = MagicMock()
-        llm.chat.side_effect = ["not valid json", self._valid()]
-        result = synthesize("q", self._make_dialogue(), llm)
-        self.assertFalse(result.format_failed)
-        self.assertEqual(llm.chat.call_count, 2)
-
-    def test_both_fail_returns_fallback(self):
-        llm = MagicMock()
-        llm.chat.side_effect = ["garbage one", "garbage two"]
-        result = synthesize("q", self._make_dialogue(), llm)
-        self.assertTrue(result.format_failed)
-        self.assertEqual(llm.chat.call_count, 2)
+    def test_schema_requires_only_clarifying_question(self):
+        self.assertEqual(
+            SYNTHESIZER_SCHEMA["required"], ["clarifying_question"]
+        )
 
 
 if __name__ == "__main__":

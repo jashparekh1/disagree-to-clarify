@@ -1,360 +1,89 @@
-"""All prompt templates for the D2C clarification-policy system.
+"""Minimal prompt templates for D2C.
 
-Prompts here frame each agent as an interpreter contributing to a grounding
-decision, not as a debater. Any theory-specific content (Grice, Clark, QUD,
-Ginzburg, SAT) lives inside the individual system prompts below.
-
-All agent and synthesizer outputs are strict JSON — see `_JSON_OUTPUT_RULE`.
-Lenient text-marker parsing was removed because small models (qwen3 0.6B)
-drift from rigid marker formats too often for the format-failure rate to be
-distinguishable from capability signal in eval. JSON with a retry is more
-robust; format failures are now tracked as a first-class metric.
+Design principle: system prompts are role definitions, not theory lectures.
+Theory lives in the README, not in the model's context window. No concrete
+examples in prompts — small models copy them verbatim into outputs.
 """
 
 # ---------------------------------------------------------------------------
-# Shared output-format rule — pasted into each system prompt.
+# Original D2C agents (pre-theory, kept for ablation).
 # ---------------------------------------------------------------------------
 
-_JSON_OUTPUT_RULE = (
-    "OUTPUT FORMAT (strict). Return a single JSON object matching the schema "
-    "below. Do NOT wrap it in markdown code fences (no ```json). Do NOT "
-    "include any prose before or after. Do NOT include reasoning / <think> "
-    "blocks in the final output. The response must start with '{' and end "
-    "with '}'."
-)
+LITERALIST_SYSTEM = """You are the LITERALIST. Give the surface-level, dictionary-default reading of the query. Do not infer context, goals, or background.
+
+Respond in ONE OR TWO sentences. No essays.
+"""
+
+INTENT_SEEKER_SYSTEM = """You are the INTENT SEEKER. Infer what the user is ultimately trying to accomplish. Consider the goal behind the question, not just the question itself.
+
+Respond in ONE OR TWO sentences. No essays.
+"""
+
+SCOPE_EXPANDER_SYSTEM = """You are the SCOPE EXPANDER. Identify what context the query leaves unspecified — the specific aspect, subtopic, or parameter the system would need to give a useful answer.
+
+Respond in ONE OR TWO sentences. No essays.
+"""
 
 # ---------------------------------------------------------------------------
-# Agent system prompts
+# Speech Act Theory agents (default). Theory background lives in the README.
 # ---------------------------------------------------------------------------
 
-LITERALIST_SYSTEM = (
-    """You are the LITERALIST agent in a multi-agent disambiguation system.
+LOCUTIONARY_SYSTEM = """You are the LOCUTIONARY agent. Read the user's query at the surface linguistic level — what the words denote and how the sentence parses. Flag only lexical ambiguity or syntactic ambiguity. Do not reason about intent or missing context.
 
-Your role: Interpret the user's query at face value. Attend to the most common, dictionary-default meaning of each word and the surface-level syntactic reading.
-
-Rules:
-- Do NOT infer unstated context or assume the user's background.
-- Flag any word or phrase that admits multiple dictionary meanings.
-- Flag any syntactic structure that could be parsed differently.
-- Your interpretation should be what a context-free reading would produce.
-
+Respond in ONE OR TWO sentences. Do not write essays. If there is no ambiguity at your level, say so briefly.
 """
-    + _JSON_OUTPUT_RULE
-    + """
 
-Schema:
-{
-  "interpretation": "paraphrase of the query under your reading",
-  "assumptions": "what you are assuming, stated explicitly",
-  "answer_type": "what kind of answer your interpretation would lead to",
-  "disagreements": "where and why you disagree with other agents (leave empty in round 0)",
-  "stance": "HOLD or CONCEDE — rounds 1+ only; omit or set HOLD in round 0",
-  "stance_reason": "one sentence — rounds 1+ only"
-}
+ILLOCUTIONARY_SYSTEM = """You are the ILLOCUTIONARY agent. Classify what act the user is performing: assertive (stating), directive (requesting action or information), commissive (committing to act), expressive (expressing feeling), or declaration. Flag any ambiguity in the force — e.g., a direct vs. indirect reading. Do not reason about surface form or missing context.
+
+Respond in ONE OR TWO sentences. Do not write essays. If the force is unambiguous, say so briefly.
 """
-)
 
-INTENT_SEEKER_SYSTEM = (
-    """You are the INTENT SEEKER agent in a multi-agent disambiguation system.
+PERLOCUTIONARY_SYSTEM = """You are the PERLOCUTIONARY agent. Identify what the system would need to know about the user or situation to produce a response that actually satisfies them. Focus on what SPECIFIC aspect, subtopic, or parameter is unspecified — e.g., "which aspect of X: history, location, reviews?". Do not reason about surface form or speech act type.
 
-Your role: Look past the literal phrasing to infer the user's underlying goal. Ask yourself: "What is the user actually trying to accomplish? What situation prompted this query?"
-
-Rules:
-- Consider the pragmatic context that would motivate this query.
-- Think about what kind of person would ask this and why.
-- Consider multiple possible goals the user might have.
-- Distinguish between the question asked and the problem the user is trying to solve.
-
+Respond in ONE OR TWO sentences. Do not write essays. If no context is missing, say so briefly.
 """
-    + _JSON_OUTPUT_RULE
-    + """
-
-Schema:
-{
-  "interpretation": "paraphrase of the query under your goal-inferring reading",
-  "assumptions": "what you are assuming about the user's goal and context",
-  "answer_type": "what kind of answer your interpretation would lead to",
-  "disagreements": "where and why you disagree with other agents (leave empty in round 0)",
-  "stance": "HOLD or CONCEDE — rounds 1+ only; omit or set HOLD in round 0",
-  "stance_reason": "one sentence — rounds 1+ only"
-}
-"""
-)
-
-SCOPE_EXPANDER_SYSTEM = (
-    """You are the SCOPE EXPANDER agent in a multi-agent disambiguation system.
-
-Your role: Identify what the query leaves unspecified. Consider broader, adjacent, or implicit dimensions that the other agents might miss.
-
-Rules:
-- Identify contextual assumptions that would substantially change the answer.
-- Consider edge cases, alternative scopes, and underspecified dimensions.
-- Think about what information is MISSING from the query that would be needed for a complete answer.
-- Consider whether the query scope is narrower or broader than it appears.
-
-"""
-    + _JSON_OUTPUT_RULE
-    + """
-
-Schema:
-{
-  "interpretation": "paraphrase of the query under your scope-aware reading",
-  "assumptions": "what contextual factors you think are underspecified",
-  "answer_type": "what kind of answer your interpretation would lead to",
-  "disagreements": "where and why you disagree with other agents (leave empty in round 0)",
-  "stance": "HOLD or CONCEDE — rounds 1+ only; omit or set HOLD in round 0",
-  "stance_reason": "one sentence — rounds 1+ only"
-}
-"""
-)
 
 # ---------------------------------------------------------------------------
-# Dialogue round prompt (rounds 1+)
+# Round-N user prompt. Round 0 just sends the bare query.
 # ---------------------------------------------------------------------------
 
-DIALOGUE_ROUND_USER = """Original query: {query}
+DIALOGUE_ROUND_USER = """Query: {query}
 
-Here are the other agents' responses from the previous round:
-
+Other agents' readings from the previous round:
 {other_agent_responses}
 
-Now provide YOUR updated interpretation. You have seen the other agents' views.
+Update your reading if the others have shifted you. Then declare:
+- HOLD: your reading still captures something the others miss.
+- CONCEDE: another agent's reading supersedes yours — you now agree with them.
 
-Your lens is valuable *because* it differs from theirs — do not abandon it on mere social pressure. But you are also not required to defend it indefinitely. After reading the others, declare one of:
-
-- HOLD: your reading still captures something the others miss. Keep defending it.
-- CONCEDE: after reading the others, you believe another agent's reading (or a merged view) more faithfully captures what the user likely means. Name which agent(s) you are conceding to and why.
-
-The dialogue converges when every agent CONCEDES. If you CONCEDE prematurely — before you've actually been convinced — you destroy the divergence signal the system needs to diagnose the grounding gap. If you HOLD with no new justification, you add noise. Be honest about which one applies.
-
-OUTPUT FORMAT (strict). Return a single JSON object matching the schema. Do NOT wrap in markdown code fences. Do NOT include prose before or after. Start with '{{' and end with '}}'.
-
-Schema:
-{{
-  "interpretation": "...",
-  "assumptions": "...",
-  "answer_type": "...",
-  "disagreements": "...",
-  "stance": "HOLD" or "CONCEDE",
-  "stance_reason": "one sentence — if CONCEDE, name which agent(s) and why; if HOLD, what your lens still sees that theirs don't"
-}}
+Do not CONCEDE on social pressure; only if actually convinced.
 """
 
 # ---------------------------------------------------------------------------
-# Synthesizer prompts
+# Synthesizer.
 # ---------------------------------------------------------------------------
 
-SYNTHESIZER_SYSTEM = (
-    """You are the synthesizer in a clarification-as-grounding
-system (Clark & Brennan 1991, "Grounding in Communication"). Your job is to
-turn the agents' residual divergence into a single grounding move — one
-clarifying question that, if the user answers it, adds the specific common
-ground the system currently lacks.
-
-The three agents operate at the three levels of Austin's (1962) speech-act
-decomposition. Their divergences map to distinct grounding gaps:
-  - LOCUTIONARY divergence → REFERENTIAL grounding gap
-    (the system and user don't share what the words pick out: lexical sense,
-    syntactic parse, or referent).
-  - ILLOCUTIONARY divergence → INTENT grounding gap
-    (the system and user don't share what speech act the user is performing:
-    which Searle-1976 force, or whether the reading is direct vs. indirect).
-  - PERLOCUTIONARY divergence → PRAGMATIC grounding gap
-    (the system lacks the situated context needed for the response to
-    produce the effect the user is after).
-
-Your task:
-1. Read the full transcript.
-2. Identify the most consequential residual grounding gap — the divergence
-   whose resolution would most change the system's appropriate response.
-3. Generate ONE clarifying question that closes that specific gap.
+SYNTHESIZER_SYSTEM = """You read three agents' interpretations of an ambiguous user query and output ONE clarifying question for the user.
 
 Rules:
-- The question should be concise and natural (as if a helpful assistant is asking the user).
-- It should target a SPECIFIC grounding gap — never generic ("can you clarify?").
-- It should be answerable by the user in 1–2 sentences.
-- Do NOT explain the ambiguity or the theory to the user — just ask.
-- Prefer divergences flagged as STANCE: HOLD in later rounds: those are
-  gaps agents refused to close despite seeing the others' readings.
-  Divergences raised in round 0 that later CONCEDEd are already resolved
-  and do not need to be surfaced to the user.
-
+- Output ONLY the clarifying question itself. No preamble, no explanation, no summary of the disagreement.
+- The question must be specific — never "can you clarify?" or "what do you mean?".
+- Prefer asking about the SPECIFIC aspect, subtopic, or parameter that's unspecified (e.g., "which aspect of X: the history, the location, or the reviews?") over asking about reference disambiguation, unless reference is genuinely unclear.
+- The question must be answerable by the user in 1-2 sentences.
+- Keep the question under 25 words.
+- Prefer divergences that persisted (STANCE: HOLD in later rounds) over ones that were CONCEDEd and resolved.
 """
-    + _JSON_OUTPUT_RULE
-    + """
-
-Schema:
-{
-  "key_disagreement": "1-sentence summary of the most consequential residual grounding gap",
-  "clarifying_question": "your question to the user"
-}
-"""
-)
 
 SYNTHESIZER_USER = """Original query: {query}
 
-Full dialogue transcript:
+Dialogue transcript:
 {transcript}
 
-Based on the disagreements in this dialogue, generate a clarifying question."""
+Produce the clarifying question.
+"""
 
 # ---------------------------------------------------------------------------
-# Speech Act Theory Agent Prompts (Austin & Searle)
-# ---------------------------------------------------------------------------
-
-LOCUTIONARY_SYSTEM = (
-    """You are the LOCUTIONARY PARSER agent in a speech-act-theoretic
-disambiguation system (Austin 1962, *How to Do Things with Words*).
-
-THEORETICAL BACKGROUND — what a locutionary act is.
-Austin decomposes the locutionary act (the act of producing a meaningful
-utterance) into three sub-acts:
-  - phonetic: producing sounds (N/A for written text).
-  - phatic: producing those sounds as words of a language, in a grammatical
-    sequence (i.e., form: lexis + syntax).
-  - rhetic: using those words with definite sense and reference (i.e.,
-    what is being referred to and what is being predicated of it).
-
-YOUR JOB. Diagnose phatic and rhetic indeterminacies in the user's query —
-the grounding gaps that exist at the level of "what was literally said." Do
-NOT infer intent (that is the Illocutionary agent's job) or context (that is
-the Perlocutionary agent's job). If the phatic/rhetic analysis is clean, say
-so; do not manufacture ambiguity.
-
-Specifically look for:
-  [phatic level]
-  - Syntactic ambiguity: attachment (PP, relative-clause), coordination
-    scope, quantifier scope, or ellipsis that permits distinct parses.
-  [rhetic level]
-  - Lexical ambiguity: homonymy ("bank" = river vs. financial) or polysemy
-    ("Python" = snake vs. language; "crash" = fail vs. physical collision).
-  - Referential indeterminacy: underspecified referents ("it," "this,"
-    bare definites "the table," or underdescribed named entities).
-
-When your reading diverges from another agent's, that divergence is a
-REFERENTIAL grounding gap: the system does not share with the user what the
-words pick out in the world.
-
-"""
-    + _JSON_OUTPUT_RULE
-    + """
-
-Schema:
-{
-  "interpretation": "paraphrase under a specific phatic+rhetic reading; if multiple readings are live, pick the most default and flag the others in disagreements",
-  "assumptions": "explicitly name the lexical sense(s) and syntactic parse you are using, e.g., \\"sense-of 'Python' = programming language; attachment of 'with a crash' = to VP 'handle'\\"",
-  "answer_type": "what kind of answer this literal reading calls for",
-  "disagreements": "which other agents are operating on a different phatic/rhetic reading, and what the rival reading would be (leave empty in round 0)",
-  "stance": "HOLD or CONCEDE — rounds 1+ only; omit or set HOLD in round 0",
-  "stance_reason": "one sentence — rounds 1+ only"
-}
-"""
-)
-
-ILLOCUTIONARY_SYSTEM = (
-    """You are the ILLOCUTIONARY ANALYST agent in a
-speech-act-theoretic disambiguation system (Austin 1962;
-Searle 1969, *Speech Acts*; Searle 1975, "Indirect Speech Acts";
-Searle 1976, "A Classification of Illocutionary Acts").
-
-THEORETICAL BACKGROUND — what an illocutionary act is.
-The illocutionary act is the act performed *in* saying something (asserting,
-requesting, promising, apologizing, declaring). Searle 1976 classifies every
-illocutionary act into exactly one of five types, distinguished by
-illocutionary point, direction of fit, and sincerity condition:
-  - Assertive: commits the speaker to the truth of a proposition
-    ("the file is corrupted"; "Python is a language").
-  - Directive: attempts to get the hearer to do something
-    ("pass the salt"; "explain X"; many user queries are covert directives).
-  - Commissive: commits the speaker to a future course of action
-    ("I'll send it tomorrow").
-  - Expressive: expresses a psychological state about a state of affairs
-    ("thank you"; "I'm sorry").
-  - Declaration: brings about a state of affairs by its utterance
-    ("I name this ship…"; "you're fired").
-
-INDIRECT SPEECH ACTS (Searle 1975). An utterance can perform one
-illocutionary act by way of performing another — "Can you pass the salt?"
-is literally an Assertive-framed question about ability but is conventionally
-used as a Directive (request). For a user query, the literal force and the
-intended force may diverge; flag this when it is plausibly the case.
-
-YOUR JOB. Classify the primary illocutionary force of the user's query and
-flag any plausible indirect-force reading. Do NOT re-analyze lexical or
-syntactic form (Locutionary's job) or reason about required context
-(Perlocutionary's job). If the force is unambiguous, say so.
-
-When your reading diverges from another agent's, that divergence is an
-INTENT grounding gap: the system does not share with the user what the user
-is doing *with* the utterance.
-
-"""
-    + _JSON_OUTPUT_RULE
-    + """
-
-Schema:
-{
-  "interpretation": "paraphrase of the query in terms of what act the user is performing, e.g., 'a Directive requesting a debugging procedure' or 'an Assertive question seeking a factual list'",
-  "assumptions": "name the Searle-1976 primary force (Assertive / Directive / Commissive / Expressive / Declaration) and, if applicable, the indirect force and why you think the indirect reading is warranted",
-  "answer_type": "what kind of response satisfies the assumed illocutionary force (e.g., a how-to procedure satisfies a Directive; a fact list satisfies an Assertive question)",
-  "disagreements": "which other agents' readings imply a different illocutionary force, and what force they seem to be assuming (leave empty in round 0)",
-  "stance": "HOLD or CONCEDE — rounds 1+ only; omit or set HOLD in round 0",
-  "stance_reason": "one sentence — rounds 1+ only"
-}
-"""
-)
-
-PERLOCUTIONARY_SYSTEM = (
-    """You are the PERLOCUTIONARY EVALUATOR agent in a
-speech-act-theoretic disambiguation system (Austin 1962, *How to Do Things
-with Words*).
-
-THEORETICAL BACKGROUND — what a perlocutionary act is.
-The perlocutionary act is the act performed *by* saying something — the
-actual effect or consequence the utterance is intended to produce in the
-hearer (persuading, convincing, scaring, informing, prompting the hearer to
-act). Crucially, perlocution is distinct from felicity conditions (the
-preconditions that must hold for an illocution to "come off"). Felicity
-belongs to the Illocutionary agent; perlocutionary EFFECT and the context
-required to secure that effect belong to you.
-
-YOUR JOB. Identify the intended perlocutionary effect of the query and the
-contextual parameters required to produce that effect. Ask: after the
-system responds, what should be true of the user — informed? unblocked?
-persuaded? capable of acting? — and what does the system need to know about
-the user or the situation to bring that state about? If the query already
-carries all the context needed, say so; do not manufacture gaps.
-
-Contextual parameters commonly needed to secure a perlocutionary effect:
-  - user knowledge state / expertise level (novice vs. expert changes the answer).
-  - task setting / environment (OS, framework, domain, audience).
-  - constraints (time, budget, existing tooling, acceptable trade-offs).
-  - success criteria (what counts, for *this* user, as the matter being resolved).
-
-When your reading diverges from another agent's, that divergence is a
-PRAGMATIC grounding gap: the system has enough on the literal form
-(Locutionary) and the intended act (Illocutionary) but lacks the situated
-information required for its response to actually produce the intended
-effect on *this* user.
-
-"""
-    + _JSON_OUTPUT_RULE
-    + """
-
-Schema:
-{
-  "interpretation": "paraphrase in terms of the intended perlocutionary effect, e.g., 'the user should end up knowing which of two migration strategies fits their codebase'",
-  "assumptions": "name the specific contextual parameters you are assuming about the user/setting that would be required to secure that effect — and flag which of them are UNDERSPECIFIED in the query",
-  "answer_type": "what shape the answer must take for the effect to land (e.g., 'a comparative recommendation with a decision criterion, not a list of options')",
-  "disagreements": "where other agents are treating a parameter as given that is actually underspecified, or vice versa (leave empty in round 0)",
-  "stance": "HOLD or CONCEDE — rounds 1+ only; omit or set HOLD in round 0",
-  "stance_reason": "one sentence — rounds 1+ only"
-}
-"""
-)
-
-# ---------------------------------------------------------------------------
-# Baseline prompts
+# Baselines (unchanged).
 # ---------------------------------------------------------------------------
 
 VANILLA_CQG_SYSTEM = """You are a helpful assistant. Your goal is to generate a single, concise clarifying question for an ambiguous user query.
@@ -365,7 +94,7 @@ VANILLA_CQG_USER = """The following query is ambiguous: "{query}"
 Generate ONE concise clarifying question to help resolve this ambiguity."""
 
 # ---------------------------------------------------------------------------
-# RL / Future Turn Simulation Prompts
+# Simulated-user / RL prompts (legacy, unchanged).
 # ---------------------------------------------------------------------------
 
 SIMULATED_USER_SYSTEM = """You are simulating a user who has a specific intent in mind but asked an ambiguous query.
@@ -388,7 +117,7 @@ User's Response: {user_answer}
 Possible interpretations were:
 {all_interpretations}
 
-Does the combination of the question and the answer uniquely identify which interpretation the user meant? 
+Does the combination of the question and the answer uniquely identify which interpretation the user meant?
 Provide your evaluation in JSON format:
 {{
   "resolution_score": (1-5 scale, 5 = perfectly clear which one was meant, 1 = still totally ambiguous),
@@ -396,7 +125,7 @@ Provide your evaluation in JSON format:
 }}"""
 
 # ---------------------------------------------------------------------------
-# Evaluation prompts
+# Eval judge prompts (unchanged).
 # ---------------------------------------------------------------------------
 
 JUDGE_SYSTEM = """You are an expert evaluator of clarifying questions for ambiguous user queries.

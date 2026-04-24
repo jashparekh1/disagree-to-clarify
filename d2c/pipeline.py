@@ -48,9 +48,10 @@ def run_d2c(
     num_rounds: int = 3,
     max_tokens: int = 2048,
     variant: str = "speech_act",
+    think: bool | None = None,
 ) -> D2CResult:
     """Full pipeline: query -> agents -> dialogue -> synthesizer -> clarifying question."""
-    llm = LLMClient(model=model)
+    llm = LLMClient(model=model, think=think)
     
     if variant == "speech_act":
         roles = [AgentRole.LOCUTIONARY, AgentRole.ILLOCUTIONARY, AgentRole.PERLOCUTIONARY]

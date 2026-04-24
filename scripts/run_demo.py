@@ -30,6 +30,13 @@ def main() -> None:
         "pre-theory Literalist/Intent-Seeker/Scope-Expander trio, kept for "
         "ablation.",
     )
+    parser.add_argument(
+        "--no-think",
+        action="store_true",
+        help="Disable Qwen3 thinking mode (pass think=false to Ollama). "
+        "Recommended for small models (e.g., qwen3:0.6b) where thinking "
+        "tokens eat the budget without producing useful reasoning.",
+    )
     parser.add_argument("--verbose", action="store_true", help="Print full dialogue transcript")
     args = parser.parse_args()
 
@@ -40,7 +47,14 @@ def main() -> None:
     print(f"Model: {args.model} | Rounds: {args.rounds} | Max Tokens: {args.max_tokens}")
     print("\nRunning D2C pipeline... (this might take a few seconds)")
 
-    result = run_d2c(args.query, model=args.model, num_rounds=args.rounds, max_tokens=args.max_tokens, variant=args.variant)
+    result = run_d2c(
+        args.query,
+        model=args.model,
+        num_rounds=args.rounds,
+        max_tokens=args.max_tokens,
+        variant=args.variant,
+        think=False if args.no_think else None,
+    )
 
     # Verbose: print full round-by-round dialogue
     if args.verbose:
@@ -49,11 +63,11 @@ def main() -> None:
             print(f"  Round {round_idx}")
             print(f"{'='*60}")
             for resp in rnd:
-                print(f"\n  [{_ROLE_DISPLAY[resp.role]}]")
+                stance = f" [{resp.stance.value}]" if round_idx > 0 else ""
+                print(f"\n  [{_ROLE_DISPLAY[resp.role]}]{stance}")
                 print(f"  INTERPRETATION: {resp.interpretation}")
-                print(f"  ASSUMPTIONS: {resp.assumptions}")
-                print(f"  ANSWER_TYPE: {resp.answer_type}")
-                print(f"  DISAGREEMENTS: {resp.disagreements}")
+                if round_idx > 0 and resp.stance_reason:
+                    print(f"  STANCE_REASON: {resp.stance_reason}")
             print()
 
     # Always print final summary

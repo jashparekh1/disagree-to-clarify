@@ -1,18 +1,17 @@
 """Test helper: scripted fake LLM client.
 
-Matches the LLMClient.chat signature and returns pre-canned responses keyed by
-role marker found in the system prompt. Each role's response list is consumed
-in order (one per round).
+Matches LLMClient.chat and records each call. Responses are keyed by role
+marker found in the system prompt (using word-boundary regex so LOCUTIONARY
+doesn't match ILLOCUTIONARY/PERLOCUTIONARY).
 """
 
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
+from typing import Any
 
 
-# Use word-boundary patterns: LOCUTIONARY is a suffix of ILLOCUTIONARY and
-# PERLOCUTIONARY, so naive substring matching mis-routes two of three SAT
-# prompts to the LOCUTIONARY queue.
 _ROLE_PATTERNS = [
     ("LITERALIST", re.compile(r"\bLITERALIST\b")),
     ("INTENT SEEKER", re.compile(r"\bINTENT SEEKER\b")),
@@ -23,11 +22,21 @@ _ROLE_PATTERNS = [
 ]
 
 
+@dataclass
+class RecordedCall:
+    role: str
+    system_prompt: str
+    user_prompt: str
+    format_schema: Any = None
+    temperature: float = 0.7
+    max_tokens: int | None = None
+
+
 class ScriptedLLM:
     def __init__(self, responses_by_role: dict[str, list[str]]):
         self._remaining = {k: list(v) for k, v in responses_by_role.items()}
         self.model = "fake-model"
-        self.calls: list[tuple[str, str, str]] = []  # (role, system, user)
+        self.calls: list[RecordedCall] = []
 
     def chat(
         self,
@@ -36,6 +45,8 @@ class ScriptedLLM:
         temperature: float = 0.7,
         max_tokens: int | None = None,
         strip_thinking: bool = True,
+        think: bool | None = None,
+        format_schema: dict | None = None,
     ) -> str:
         marker = self._match_role(system_prompt)
         queue = self._remaining.get(marker)
@@ -44,7 +55,16 @@ class ScriptedLLM:
                 f"ScriptedLLM ran out of responses for {marker!r}"
             )
         response = queue.pop(0)
-        self.calls.append((marker, system_prompt, user_prompt))
+        self.calls.append(
+            RecordedCall(
+                role=marker,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                format_schema=format_schema,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+        )
         return response
 
     def _match_role(self, system_prompt: str) -> str:
