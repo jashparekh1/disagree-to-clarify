@@ -91,6 +91,18 @@ class TestSynthesizeUsesSchema(unittest.TestCase):
             SYNTHESIZER_SCHEMA["required"], ["clarifying_question"]
         )
 
+    def test_clarifying_question_has_max_length(self):
+        # Enforced at the decoder so the synthesizer can't dump a
+        # multi-sentence paragraph instead of a clarifying question.
+        self.assertIn(
+            "maxLength",
+            SYNTHESIZER_SCHEMA["properties"]["clarifying_question"],
+        )
+        self.assertLessEqual(
+            SYNTHESIZER_SCHEMA["properties"]["clarifying_question"]["maxLength"],
+            250,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -17,10 +17,12 @@ from d2c.prompts import SYNTHESIZER_SYSTEM, SYNTHESIZER_USER
 logger = logging.getLogger(__name__)
 
 
+# maxLength ~ 200 chars ≈ 30 words. Enforces "under 25 words, just the
+# question" at the decoder level; prose-level hints were unreliable.
 SYNTHESIZER_SCHEMA = {
     "type": "object",
     "properties": {
-        "clarifying_question": {"type": "string"},
+        "clarifying_question": {"type": "string", "maxLength": 200},
     },
     "required": ["clarifying_question"],
 }

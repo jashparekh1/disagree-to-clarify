@@ -77,10 +77,13 @@ def _parse_stance(text: str) -> Stance:
 # JSON schemas for structured outputs.
 # ---------------------------------------------------------------------------
 
+# Length caps are enforced at the decoder level by Ollama's schema-constrained
+# generation. Prose-level "1-2 sentences" hints were consistently ignored by
+# qwen3:4b (rounds 0 often ran 2,000-6,000 chars). 400 chars ≈ 2 sentences.
 ROUND_ZERO_SCHEMA = {
     "type": "object",
     "properties": {
-        "interpretation": {"type": "string"},
+        "interpretation": {"type": "string", "maxLength": 400},
     },
     "required": ["interpretation"],
 }
@@ -88,9 +91,9 @@ ROUND_ZERO_SCHEMA = {
 ROUND_N_SCHEMA = {
     "type": "object",
     "properties": {
-        "interpretation": {"type": "string"},
+        "interpretation": {"type": "string", "maxLength": 400},
         "stance": {"type": "string", "enum": ["HOLD", "CONCEDE"]},
-        "stance_reason": {"type": "string"},
+        "stance_reason": {"type": "string", "maxLength": 250},
     },
     "required": ["interpretation", "stance", "stance_reason"],
 }

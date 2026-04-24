@@ -87,6 +87,21 @@ class TestSchemas(unittest.TestCase):
             ["HOLD", "CONCEDE"],
         )
 
+    def test_interpretation_has_max_length(self):
+        # Length is enforced at the decoder, not in prose, because qwen3:4b
+        # was ignoring "1-2 sentences" and emitting 4,000-char essays.
+        for schema in (ROUND_ZERO_SCHEMA, ROUND_N_SCHEMA):
+            self.assertIn("maxLength", schema["properties"]["interpretation"])
+            self.assertLessEqual(
+                schema["properties"]["interpretation"]["maxLength"], 500
+            )
+
+    def test_stance_reason_has_max_length(self):
+        self.assertIn("maxLength", ROUND_N_SCHEMA["properties"]["stance_reason"])
+        self.assertLessEqual(
+            ROUND_N_SCHEMA["properties"]["stance_reason"]["maxLength"], 300
+        )
+
 
 class TestAgentCallsSchemaConstrainedLLM(unittest.TestCase):
     """Agent.respond_* must pass the appropriate schema through to the LLM."""
