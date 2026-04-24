@@ -46,8 +46,17 @@ def load_qulac(data_dir: str = "data/qulac") -> list[AmbiguousQuery]:
     with open(data_path) as f:
         raw_data = json.load(f)
 
+    # Current Qulac ships a column-oriented JSON: {field: {row_id: value, ...}, ...}
+    # (the pandas .to_dict() default). Convert to row-oriented list of dicts.
+    if isinstance(raw_data, dict):
+        fields = list(raw_data.keys())
+        row_ids = list(raw_data[fields[0]].keys())
+        rows = [{f: raw_data[f].get(rid) for f in fields} for rid in row_ids]
+    else:
+        rows = raw_data  # Older dumps are already list-of-dicts.
+
     items: list[AmbiguousQuery] = []
-    for obj in raw_data:
+    for obj in rows:
         topic_facet_question_id = str(obj.get("topic_facet_question_id", ""))
         topic_id = str(obj.get("topic_id", ""))
 

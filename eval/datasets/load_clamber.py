@@ -44,6 +44,10 @@ def load_clamber(data_dir: str = "data/clamber") -> list[AmbiguousQuery]:
         if not line:
             continue
         obj = json.loads(line)
+        # Upstream CLAMBER dumps sometimes double-encode each line as a JSON
+        # string wrapping the actual JSON object. Decode once more if so.
+        if isinstance(obj, str):
+            obj = json.loads(obj)
 
         is_ambiguous = obj.get("require_clarification") == 1
         category_code = obj.get("category", "")
