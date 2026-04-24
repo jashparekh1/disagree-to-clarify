@@ -34,19 +34,33 @@ class SynthesizerResult:
 
 
 def _format_transcript(dialogue: DialogueResult) -> str:
-    """Format the full dialogue as a human-readable transcript."""
+    """Format the full dialogue as a human-readable transcript.
+
+    Stance is included for rounds 1+ (round 0 has nothing to concede to).
+    A convergence note is appended if the dialogue early-stopped.
+    """
     parts: list[str] = []
     for round_idx, rnd in enumerate(dialogue.rounds):
         parts.append(f"=== Round {round_idx} ===")
         for resp in rnd:
-            parts.append(
+            block = (
                 f"[{_ROLE_DISPLAY[resp.role]}]\n"
                 f"INTERPRETATION: {resp.interpretation}\n"
                 f"ASSUMPTIONS: {resp.assumptions}\n"
                 f"ANSWER_TYPE: {resp.answer_type}\n"
                 f"DISAGREEMENTS: {resp.disagreements}"
             )
+            if round_idx > 0:
+                block += f"\nSTANCE: {resp.stance.value.upper()}"
+                if resp.stance_reason:
+                    block += f"\nSTANCE_REASON: {resp.stance_reason}"
+            parts.append(block)
         parts.append("")
+    if dialogue.converged:
+        parts.append(
+            f"[Dialogue converged at round {dialogue.converged_at_round}: "
+            "all agents CONCEDEd.]"
+        )
     return "\n".join(parts)
 
 

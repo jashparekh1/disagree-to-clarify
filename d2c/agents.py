@@ -8,7 +8,7 @@ divergence signals where the user–system common ground is thin.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 from d2c.llm import LLMClient
@@ -25,7 +25,7 @@ from d2c.prompts import (
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Role enum
+# Role & stance enums
 # ---------------------------------------------------------------------------
 
 class AgentRole(Enum):
@@ -33,11 +33,41 @@ class AgentRole(Enum):
     LITERALIST = "literalist"
     INTENT_SEEKER = "intent_seeker"
     SCOPE_EXPANDER = "scope_expander"
-    
+
     # Speech Act Theory Roles
     LOCUTIONARY = "locutionary"
     ILLOCUTIONARY = "illocutionary"
     PERLOCUTIONARY = "perlocutionary"
+
+
+class Stance(Enum):
+    """Agent's position on its own reading after seeing others'.
+
+    HOLD = my lens still sees something theirs don't; keep the divergence.
+    CONCEDE = another agent's reading supersedes mine; converge.
+    """
+
+    HOLD = "hold"
+    CONCEDE = "concede"
+
+
+_STANCE_ALIASES = {
+    "hold": Stance.HOLD,
+    "holding": Stance.HOLD,
+    "concede": Stance.CONCEDE,
+    "conceded": Stance.CONCEDE,
+    "concedes": Stance.CONCEDE,
+    "conceding": Stance.CONCEDE,
+}
+
+
+def _parse_stance(text: str) -> Stance:
+    """Map free-form stance text to the enum. Unknown values default to HOLD.
+
+    HOLD is the safe default because a spurious CONCEDE would falsely trigger
+    early-stop and destroy the grounding-gap signal.
+    """
+    return _STANCE_ALIASES.get(text.strip().lower(), Stance.HOLD)
 
 
 _ROLE_TO_SYSTEM_PROMPT = {
@@ -71,6 +101,8 @@ class AgentResponse:
     assumptions: str
     answer_type: str
     disagreements: str
+    stance: Stance = Stance.HOLD
+    stance_reason: str = ""
 
     def to_dict(self) -> dict:
         return {
@@ -81,24 +113,39 @@ class AgentResponse:
             "assumptions": self.assumptions,
             "answer_type": self.answer_type,
             "disagreements": self.disagreements,
+            "stance": self.stance.value,
+            "stance_reason": self.stance_reason,
         }
 
     def format_for_others(self) -> str:
         """Format this response so other agents can read it in the next round."""
-        return (
+        base = (
             f"[{_ROLE_DISPLAY[self.role]}]\n"
             f"INTERPRETATION: {self.interpretation}\n"
             f"ASSUMPTIONS: {self.assumptions}\n"
             f"ANSWER_TYPE: {self.answer_type}\n"
             f"DISAGREEMENTS: {self.disagreements}"
         )
+        # Round 0 has no prior context, so stance doesn't apply yet.
+        if self.round_num > 0:
+            base += f"\nSTANCE: {self.stance.value.upper()}"
+            if self.stance_reason:
+                base += f"\nSTANCE_REASON: {self.stance_reason}"
+        return base
 
 
 # ---------------------------------------------------------------------------
 # Parsing helper
 # ---------------------------------------------------------------------------
 
-_FIELDS = ["INTERPRETATION", "ASSUMPTIONS", "ANSWER_TYPE", "DISAGREEMENTS"]
+_FIELDS = [
+    "INTERPRETATION",
+    "ASSUMPTIONS",
+    "ANSWER_TYPE",
+    "DISAGREEMENTS",
+    "STANCE",
+    "STANCE_REASON",
+]
 
 
 def _parse_response(raw: str, role: AgentRole, round_num: int) -> AgentResponse:
@@ -127,6 +174,8 @@ def _parse_response(raw: str, role: AgentRole, round_num: int) -> AgentResponse:
         assumptions=sections.get("ASSUMPTIONS", ""),
         answer_type=sections.get("ANSWER_TYPE", ""),
         disagreements=sections.get("DISAGREEMENTS", ""),
+        stance=_parse_stance(sections.get("STANCE", "")),
+        stance_reason=sections.get("STANCE_REASON", ""),
     )
 
 

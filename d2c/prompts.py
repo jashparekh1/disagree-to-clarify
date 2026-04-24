@@ -72,13 +72,20 @@ Here are the other agents' responses from the previous round:
 
 Now provide YOUR updated interpretation. You have seen the other agents' views.
 
-CRITICAL INSTRUCTION: Do NOT simply agree with the other agents. Your job is to DEFEND your interpretive lens and IDENTIFY where your reading differs from theirs. If you find yourself agreeing on everything, you are failing at your task — look harder for differences. Genuine disagreement is valuable; premature consensus destroys the information we need.
+Your lens is valuable *because* it differs from theirs — do not abandon it on mere social pressure. But you are also not required to defend it indefinitely. After reading the others, declare one of:
 
-Respond in the same format:
+- HOLD: your reading still captures something the others miss. Keep defending it.
+- CONCEDE: after reading the others, you believe another agent's reading (or a merged view) more faithfully captures what the user likely means. Name which agent(s) you are conceding to and why.
+
+The dialogue converges when every agent CONCEDES. If you CONCEDE prematurely — before you've actually been convinced — you destroy the divergence signal the system needs to diagnose the grounding gap. If you HOLD with no new justification, you add noise. Be honest about which one applies.
+
+Respond in the same format, plus a stance:
 INTERPRETATION: [...]
 ASSUMPTIONS: [...]
 ANSWER_TYPE: [...]
 DISAGREEMENTS: [...]
+STANCE: [HOLD or CONCEDE]
+STANCE_REASON: [one sentence — if CONCEDE, name which agent(s) and why; if HOLD, what your lens still sees that theirs don't]
 """
 
 # ---------------------------------------------------------------------------
@@ -97,6 +104,7 @@ Rules:
 - The question should target a SPECIFIC ambiguity, not be generic like "can you clarify?"
 - The question should be answerable by the user in 1-2 sentences.
 - Do NOT explain the ambiguity to the user — just ask the question.
+- Prefer disagreements flagged as STANCE: HOLD in later rounds (these are grounding gaps agents refused to close). Disagreements raised in round 0 that later CONCEDEd are resolved and do not need clarification.
 
 Output format:
 KEY_DISAGREEMENT: [1-sentence summary of the most important disagreement]
