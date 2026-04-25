@@ -39,16 +39,25 @@ class D2CResult:
 
 def run_d2c(
     query: str,
-    model: str = "qwen2.5:0.5b",
+    model: str = "qwen2.5:1.5b",
     num_rounds: int = 3,
     max_tokens: int = 300,
     variant: str = "original",
+    think: bool = True,
 ) -> D2CResult:
     """Full pipeline: query -> agents -> dialogue -> synthesizer -> clarifying question."""
-    llm = LLMClient(model=model)
+    llm = LLMClient(model=model, think=think)
     
     if variant == "speech_act":
         roles = [AgentRole.LOCUTIONARY, AgentRole.ILLOCUTIONARY, AgentRole.PERLOCUTIONARY]
+    elif variant == "speech_act_improved":
+        roles = [AgentRole.LOCUTIONARY_IMPROVED, AgentRole.ILLOCUTIONARY_IMPROVED, AgentRole.PERLOCUTIONARY_IMPROVED]
+    elif variant == "speech_act_clear":
+        roles = [AgentRole.LOCUTIONARY_CLEAR, AgentRole.ILLOCUTIONARY_CLEAR, AgentRole.PERLOCUTIONARY_CLEAR]
+    elif variant == "speech_act_hybrid":
+        roles = [AgentRole.LOCUTIONARY_HYBRID, AgentRole.ILLOCUTIONARY_HYBRID, AgentRole.PERLOCUTIONARY_HYBRID]
+    elif variant == "speech_act_surgical":
+        roles = [AgentRole.LOCUTIONARY_SURGICAL, AgentRole.ILLOCUTIONARY_SURGICAL, AgentRole.PERLOCUTIONARY_SURGICAL]
     else:
         roles = [AgentRole.LITERALIST, AgentRole.INTENT_SEEKER, AgentRole.SCOPE_EXPANDER]
         
@@ -68,7 +77,7 @@ def run_d2c(
 def run_d2c_batch(
     queries: list[dict],
     output_path: str,
-    model: str = "qwen2.5:0.5b",
+    model: str = "qwen2.5:1.5b",
     num_rounds: int = 3,
     resume: bool = False,
     max_workers: int = 4,
