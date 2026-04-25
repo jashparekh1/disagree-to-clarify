@@ -31,7 +31,7 @@ Interpretations: {gold}
 Question: {candidate}"""
 
 def main():
-    gen_model = "qwen2.5:1.5b"
+    gen_model = "qwen3:1.7b"
     judge_models = ["qwen3.5:4b", "gemma2:9b"]
     
     llm_gen = LLMClient(model=gen_model)

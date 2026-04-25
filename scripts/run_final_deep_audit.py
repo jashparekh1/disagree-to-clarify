@@ -26,7 +26,7 @@ Output EXACT JSON:
 }"""
 
 def main():
-    gen_model = "qwen2.5:1.5b"
+    gen_model = "qwen3:1.7b"
     judge_model = "qwen3.5:4b"
     llm_gen = LLMClient(model=gen_model)
     llm_judge = LLMClient(model=judge_model, think=False)

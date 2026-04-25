@@ -44,7 +44,7 @@ class D2CResult:
 
 def run_d2c(
     query: str,
-    model: str = "qwen3:4b",
+    model: str = "qwen3:1.7b",
     num_rounds: int = 3,
     max_tokens: int = 2048,
     variant: str = "speech_act",
@@ -82,7 +82,7 @@ def run_d2c(
 def run_d2c_batch(
     queries: list[dict],
     output_path: str,
-    model: str = "qwen3:4b",
+    model: str = "qwen3:1.7b",
     num_rounds: int = 3,
     resume: bool = False,
     max_workers: int = 4,
