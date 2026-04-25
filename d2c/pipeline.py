@@ -1,4 +1,9 @@
-"""End-to-end D2C pipeline: query in -> clarifying question out."""
+"""End-to-end D2C clarification-policy pipeline.
+
+Given a user turn, run N rounds of multi-lens interpretation, then emit a single
+grounding move (a clarifying question) whose answer would supply the common
+ground that the agents' divergent readings show to be missing.
+"""
 
 from __future__ import annotations
 
@@ -39,11 +44,11 @@ class D2CResult:
 
 def run_d2c(
     query: str,
-    model: str = "qwen2.5:1.5b",
+    model: str = "qwen3:4b",
     num_rounds: int = 3,
-    max_tokens: int = 300,
-    variant: str = "original",
-    think: bool = True,
+    max_tokens: int = 2048,
+    variant: str = "speech_act",
+    think: bool | None = None,
 ) -> D2CResult:
     """Full pipeline: query -> agents -> dialogue -> synthesizer -> clarifying question."""
     llm = LLMClient(model=model, think=think)
@@ -77,12 +82,12 @@ def run_d2c(
 def run_d2c_batch(
     queries: list[dict],
     output_path: str,
-    model: str = "qwen2.5:1.5b",
+    model: str = "qwen3:4b",
     num_rounds: int = 3,
     resume: bool = False,
     max_workers: int = 4,
-    max_tokens: int = 300,
-    variant: str = "original",
+    max_tokens: int = 2048,
+    variant: str = "speech_act",
 ) -> None:
     """Run D2C on a list of query dicts, save results as JSONL.
 

@@ -1,11 +1,15 @@
-"""Synthesizer: reads dialogue transcript and produces a clarifying question."""
+"""Synthesizer: turn divergent readings into a single clarifying question.
+
+Uses Ollama structured outputs so the JSON is always valid.
+"""
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass
 
-from d2c.agents import AgentResponse, _ROLE_DISPLAY
+from d2c.agents import _ROLE_DISPLAY
 from d2c.dialogue import DialogueResult
 from d2c.llm import LLMClient
 from d2c.prompts import SYNTHESIZER_SYSTEM, SYNTHESIZER_USER
@@ -13,63 +17,94 @@ from d2c.prompts import SYNTHESIZER_SYSTEM, SYNTHESIZER_USER
 logger = logging.getLogger(__name__)
 
 
+# maxLength ~ 200 chars ≈ 30 words. Enforces "under 25 words, just the
+# question" at the decoder level; prose-level hints were unreliable.
+SYNTHESIZER_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "clarifying_question": {"type": "string", "maxLength": 200},
+    },
+    "required": ["clarifying_question"],
+}
+
+
 @dataclass
 class SynthesizerResult:
-    key_disagreement: str
     clarifying_question: str
     raw_text: str
+    format_failed: bool = False
+    # Retained for backward-compat with older output JSONL; not populated.
+    key_disagreement: str = ""
 
     def to_dict(self) -> dict:
         return {
-            "key_disagreement": self.key_disagreement,
             "clarifying_question": self.clarifying_question,
             "raw_text": self.raw_text,
+            "format_failed": self.format_failed,
         }
 
 
 def _format_transcript(dialogue: DialogueResult) -> str:
-    """Format the full dialogue as a human-readable transcript."""
+    """Transcript for the synthesizer.
+
+    Includes every round for context, plus an explicit FINAL-ROUND block
+    that surfaces each agent's stance and stance_reason on their own lines.
+    The synthesizer prompt treats that block as the primary disagreement
+    signal — it's where each agent states what they refuse to concede.
+    """
     parts: list[str] = []
     for round_idx, rnd in enumerate(dialogue.rounds):
         parts.append(f"=== Round {round_idx} ===")
         for resp in rnd:
+            line = f"[{_ROLE_DISPLAY[resp.role]}] {resp.interpretation}"
+            if round_idx > 0:
+                line += f" (stance: {resp.stance.value})"
+            parts.append(line)
+        parts.append("")
+
+    # Final-round stances, broken out. This is the load-bearing signal —
+    # what each agent still sees that the others don't, after N rounds.
+    if len(dialogue.rounds) > 1:
+        final = dialogue.rounds[-1]
+        parts.append(f"=== FINAL-ROUND STANCES (round {len(dialogue.rounds)-1}) ===")
+        parts.append(
+            "Each agent's explicit statement of what they still see after "
+            "reading the others. This is the persistent grounding gap."
+        )
+        for resp in final:
+            reason = resp.stance_reason or "(no reason given)"
             parts.append(
-                f"[{_ROLE_DISPLAY[resp.role]}]\n"
-                f"INTERPRETATION: {resp.interpretation}\n"
-                f"ASSUMPTIONS: {resp.assumptions}\n"
-                f"ANSWER_TYPE: {resp.answer_type}\n"
-                f"DISAGREEMENTS: {resp.disagreements}"
+                f"- [{_ROLE_DISPLAY[resp.role]} / {resp.stance.value}]: {reason}"
             )
         parts.append("")
+
+    if dialogue.converged:
+        parts.append(
+            f"[Dialogue converged at round {dialogue.converged_at_round}: "
+            "all agents CONCEDEd.]"
+        )
     return "\n".join(parts)
 
 
-def _parse_synthesizer(raw: str) -> SynthesizerResult:
-    """Parse KEY_DISAGREEMENT and CLARIFYING_QUESTION from synthesizer output."""
-    key_dis = ""
-    clarifying_q = ""
-
-    kd_marker = "KEY_DISAGREEMENT:"
-    cq_marker = "CLARIFYING_QUESTION:"
-
-    kd_start = raw.find(kd_marker)
-    cq_start = raw.find(cq_marker)
-
-    if kd_start != -1:
-        kd_end = cq_start if cq_start > kd_start else len(raw)
-        key_dis = raw[kd_start + len(kd_marker) : kd_end].strip()
-
-    if cq_start != -1:
-        clarifying_q = raw[cq_start + len(cq_marker) :].strip()
-
-    # Fallback: if we couldn't parse, use the whole raw text as the question
-    if not clarifying_q:
-        clarifying_q = raw.strip()
-
+def _parse_synthesizer_json(raw: str) -> SynthesizerResult:
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return SynthesizerResult(
+            clarifying_question=raw.strip(),
+            raw_text=raw,
+            format_failed=True,
+        )
+    if not isinstance(data, dict):
+        return SynthesizerResult(
+            clarifying_question=raw.strip(),
+            raw_text=raw,
+            format_failed=True,
+        )
     return SynthesizerResult(
-        key_disagreement=key_dis,
-        clarifying_question=clarifying_q,
+        clarifying_question=str(data.get("clarifying_question", "")).strip(),
         raw_text=raw,
+        format_failed=False,
     )
 
 
@@ -79,7 +114,6 @@ def synthesize(
     llm: LLMClient,
     max_tokens: int = 300,
 ) -> SynthesizerResult:
-    """Format dialogue transcript, call synthesizer LLM, parse output."""
     transcript = _format_transcript(dialogue)
     user_prompt = SYNTHESIZER_USER.format(query=query, transcript=transcript)
 
@@ -88,5 +122,6 @@ def synthesize(
         user_prompt=user_prompt,
         temperature=0.3,
         max_tokens=max_tokens,
+        format_schema=SYNTHESIZER_SCHEMA,
     )
-    return _parse_synthesizer(raw)
+    return _parse_synthesizer_json(raw)

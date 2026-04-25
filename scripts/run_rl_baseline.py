@@ -138,9 +138,9 @@ def main():
     parser = argparse.ArgumentParser(description="Run RL-Inspired 'Future Turn' Baseline")
     parser.add_argument("--input", required=True)
     parser.add_argument("--output", required=True)
-    parser.add_argument("--gen-model", default="qwen2.5:0.5b")
+    parser.add_argument("--gen-model", default="qwen3:4b")
     parser.add_argument("--sim-model", default="qwen3.5:4b")
-    parser.add_argument("--judge-model", default="qwen2.5:0.5b")
+    parser.add_argument("--judge-model", default="qwen3:4b")
     parser.add_argument("--n-candidates", type=int, default=3)
     parser.add_argument("--max-workers", type=int, default=2) # Lower because each item does many calls
     args = parser.parse_args()

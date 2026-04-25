@@ -37,6 +37,10 @@ models/
 *.bin
 *.safetensors
 
+# Test sets are checked-in fixtures — override the *.jsonl rule for them.
+!test_sets/
+!test_sets/*.jsonl
+
 # Environment
 .env
 .venv

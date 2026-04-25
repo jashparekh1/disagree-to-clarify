@@ -8,19 +8,25 @@ Three metrics:
 
 from __future__ import annotations
 
-import json
 import logging
 import statistics
-from collections import Counter
-from dataclasses import dataclass
+from collections import Counter, defaultdict
+from typing import TYPE_CHECKING, Any
 
-from d2c.llm import LLMClient
-from d2c.prompts import JUDGE_SYSTEM, JUDGE_USER
+from eval.judge_prompts import JUDGE_SYSTEM, JUDGE_USER
+
+if TYPE_CHECKING:
+    from d2c.llm import LLMClient
+    from eval.datasets.base import AmbiguousQuery
 
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Lazy-loaded sentence transformer model
+# ---------------------------------------------------------------------------
+
 _EMBED_MODEL = None
-_EMBED_MODEL_NAME = "all-MiniLM-L6-v2"
+_EMBED_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 
 def _get_embed_model():
@@ -41,106 +47,48 @@ def _get_embed_model():
 # ---------------------------------------------------------------------------
 
 def clarification_need_f1(
-    gold_ambiguous: list[bool],
-    predicted_ambiguous: list[bool],
-) -> dict:
-    """Compute F1, Precision, and Recall for binary ambiguity detection."""
-    tp = sum(g and p for g, p in zip(gold_ambiguous, predicted_ambiguous))
-    fp = sum(not g and p for g, p in zip(gold_ambiguous, predicted_ambiguous))
-    fn = sum(g and not p for g, p in zip(gold_ambiguous, predicted_ambiguous))
+    predictions: list[bool],
+    gold_labels: list[bool],
+) -> dict[str, float]:
+    """Compute precision, recall, F1, and accuracy for the 'ambiguous' class.
+
+    Args:
+        predictions: True = system decided to ask a clarifying question.
+        gold_labels: True = query is actually ambiguous.
+
+    Returns:
+        {"precision": ..., "recall": ..., "f1": ..., "accuracy": ...}
+    """
+    assert len(predictions) == len(gold_labels), "Length mismatch"
+
+    tp = sum(p and g for p, g in zip(predictions, gold_labels))
+    fp = sum(p and not g for p, g in zip(predictions, gold_labels))
+    fn = sum(not p and g for p, g in zip(predictions, gold_labels))
+    correct = sum(p == g for p, g in zip(predictions, gold_labels))
 
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+    accuracy = correct / len(predictions) if predictions else 0.0
 
     return {
         "precision": precision,
         "recall": recall,
         "f1": f1,
-        "support": len(gold_ambiguous),
+        "accuracy": accuracy,
     }
 
 
 # ---------------------------------------------------------------------------
-# Metric 2: Clarifying Question Quality (LLM-as-Judge)
-# ---------------------------------------------------------------------------
-
-def llm_judge_quality(
-    query: str,
-    generated_question: str,
-    gold_question: str,
-    llm: LLMClient,
-) -> dict:
-    """Score a question (1-5) relative to a reference question."""
-    if not generated_question.strip():
-        return {"score": 1, "reasoning": "Empty question", "covers_interpretations": False}
-
-    # We use the gold question as a proxy for 'correct interpretations'
-    # in the standard prompt schema.
-    user_prompt = JUDGE_USER.format(
-        query=query,
-        interpretations=f"Reference Question: {gold_question}",
-        clarifying_question=generated_question,
-    )
-
-    try:
-        raw = llm.chat(
-            system_prompt=JUDGE_SYSTEM,
-            user_prompt=user_prompt,
-            temperature=0.0,
-        )
-        return _parse_judge_json(raw)
-    except Exception as e:
-        logger.error("Judge failed: %s", e)
-        return {"score": 1, "reasoning": str(e), "covers_interpretations": False}
-
-
-def llm_judge_quality_multi_ref(
-    query: str,
-    generated_question: str,
-    gold_questions: list[str],
-    llm: LLMClient,
-) -> dict:
-    """Score relative to multiple valid reference questions."""
-    refs = "\n".join(f"- {q}" for q in gold_questions)
-    user_prompt = JUDGE_USER.format(
-        query=query,
-        interpretations=f"Valid reference questions:\n{refs}",
-        clarifying_question=generated_question,
-    )
-
-    try:
-        raw = llm.chat(
-            system_prompt=JUDGE_SYSTEM,
-            user_prompt=user_prompt,
-            temperature=0.0,
-        )
-        return _parse_judge_json(raw)
-    except Exception as e:
-        logger.error("Judge failed: %s", e)
-        return {"score": 1, "reasoning": str(e), "covers_interpretations": False}
-
-
-def _parse_judge_json(raw: str) -> dict:
-    """Defensive JSON parsing for judge output."""
-    if "```json" in raw:
-        raw = raw.split("```json")[1].split("```")[0]
-    elif "```" in raw:
-        raw = raw.split("```")[1].split("```")[0]
-    
-    try:
-        return json.loads(raw.strip())
-    except:
-        # Fallback if the LLM produced junk
-        return {"score": 1, "reasoning": "Parse failure", "covers_interpretations": False}
-
-
-# ---------------------------------------------------------------------------
-# Metric 3: Semantic Similarity
+# Metric 3: Semantic Similarity (Embedding Cosine)
 # ---------------------------------------------------------------------------
 
 def semantic_similarity(generated: str, gold: str) -> float | None:
-    """Cosine similarity between sentence embeddings."""
+    """Cosine similarity between sentence embeddings.
+
+    Uses all-MiniLM-L6-v2 (loaded once, cached).
+    Returns float in [0, 1] (clamped — cosine can technically be negative).
+    """
     if not generated.strip() or not gold.strip():
         return 0.0
 
@@ -157,7 +105,10 @@ def semantic_similarity_multi_ref(
     generated: str,
     gold_questions: list[str],
 ) -> float | None:
-    """Max cosine similarity across multiple reference questions."""
+    """Max cosine similarity across multiple reference questions.
+
+    For Qulac/ClariQ where a topic has multiple valid clarifying questions.
+    """
     if not gold_questions:
         return 0.0
     scores = [semantic_similarity(generated, gold) for gold in gold_questions]
@@ -168,46 +119,136 @@ def semantic_similarity_multi_ref(
 
 
 # ---------------------------------------------------------------------------
-# Orchestrator
+# Metric 2: Clarifying Question Quality (LLM-as-Judge)
+# ---------------------------------------------------------------------------
+
+def _parse_judge_output(raw: str) -> dict[str, Any]:
+    """Parse REASONING and SCORE from judge output."""
+    result: dict[str, Any] = {"raw": raw, "score": 0, "reasoning": ""}
+
+    score_idx = raw.find("SCORE:")
+    if score_idx != -1:
+        rest = raw[score_idx + len("SCORE:"):].strip()
+        score_str = rest.split()[0] if rest else "0"
+        try:
+            result["score"] = max(1, min(5, int(score_str)))
+        except ValueError:
+            result["score"] = 0
+
+    reasoning_idx = raw.find("REASONING:")
+    if reasoning_idx != -1:
+        end = score_idx if score_idx > reasoning_idx else len(raw)
+        result["reasoning"] = raw[reasoning_idx + len("REASONING:"):end].strip()
+
+    return result
+
+
+def llm_judge_quality(
+    query: str,
+    generated_question: str,
+    gold_question: str,
+    llm: LLMClient,
+) -> dict[str, Any]:
+    """Score a generated clarifying question against a gold reference (1-5).
+
+    Returns: {"score": int, "reasoning": str, "raw": str}
+    """
+    user_prompt = JUDGE_USER.format(
+        query=query,
+        gold_question=gold_question,
+        candidate_question=generated_question,
+    )
+    raw = llm.chat(
+        system_prompt=JUDGE_SYSTEM,
+        user_prompt=user_prompt,
+        temperature=0.1,
+    )
+    return _parse_judge_output(raw)
+
+
+def llm_judge_quality_multi_ref(
+    query: str,
+    generated_question: str,
+    gold_questions: list[str],
+    llm: LLMClient,
+) -> dict[str, Any]:
+    """Score against each gold question, return the result with the max score."""
+    if not gold_questions:
+        return {"score": 0, "reasoning": "No gold questions", "raw": ""}
+
+    best: dict[str, Any] = {"score": 0}
+    for gold_q in gold_questions:
+        result = llm_judge_quality(query, generated_question, gold_q, llm)
+        if result["score"] > best["score"]:
+            best = result
+    return best
+
+
+# ---------------------------------------------------------------------------
+# Unified evaluator
 # ---------------------------------------------------------------------------
 
 def evaluate_all(
     dataset_name: str,
-    queries: list,  # List of dataset objects
+    queries: list[AmbiguousQuery],
     generated_questions: list[str],
     predicted_ambiguous: list[bool],
     llm: LLMClient | None = None,
     skip_judge: bool = False,
-) -> dict:
-    """Run full evaluation suite on a batch of results."""
-    gold_ambiguous = [q.is_ambiguous for q in queries]
-    
-    # 1. Prediction Metrics
-    f1_results = clarification_need_f1(gold_ambiguous, predicted_ambiguous)
-    
-    # 2. Question Quality (only for items where we generated a question)
-    judge_scores = []
-    ss_scores = []
-    coverage_count = 0
-    
-    # Pre-map topic groups for multi-ref evaluation
-    topic_gold_questions = {}
+) -> dict[str, Any]:
+    """Run all applicable metrics for a dataset.
+
+    Returns:
+        {
+            "dataset": str,
+            "n_examples": int,
+            "clarification_need": {...} or None,
+            "judge_quality": {"mean": ..., "std": ..., "median": ..., "distribution": {...}} or None,
+            "semantic_similarity": {"mean": ..., "std": ..., "median": ...},
+            "per_example": [...]
+        }
+    """
+    assert len(queries) == len(generated_questions) == len(predicted_ambiguous)
+
+    result: dict[str, Any] = {
+        "dataset": dataset_name,
+        "n_examples": len(queries),
+        "clarification_need": None,
+        "judge_quality": None,
+        "semantic_similarity": None,
+        "per_example": [],
+    }
+
+    # --- Clarification Need F1 (skip for Qulac — all ambiguous) ---
+    if dataset_name != "qulac":
+        gold_labels = [q.is_ambiguous for q in queries]
+        result["clarification_need"] = clarification_need_f1(predicted_ambiguous, gold_labels)
+
+    # --- Filter to ambiguous-only for quality metrics ---
+    amb_indices = [i for i, q in enumerate(queries) if q.is_ambiguous]
+
+    # Group by topic for multi-ref datasets (Qulac, ClariQ)
+    topic_gold_questions: dict[str, list[str]] = defaultdict(list)
     if dataset_name in ("qulac", "clariq"):
-        from collections import defaultdict
-        groups = defaultdict(list)
         for q in queries:
-            groups[q.topic_id].append(q.gold_clarifying_question)
-        topic_gold_questions = dict(groups)
+            if q.topic_id and q.gold_clarifying_question:
+                topic_gold_questions[q.topic_id].append(q.gold_clarifying_question)
 
-    results_per_example = []
+    # Compute per-example scores
+    ss_scores: list[float] = []
+    judge_scores: list[int] = []
 
-    for q, gen in zip(queries, generated_questions):
-        if not q.is_ambiguous:
-            continue
-            
-        per_ex = {"query": q.query, "generated": gen, "gold": q.gold_clarifying_question}
-        
-        # Semantic Similarity
+    for i in amb_indices:
+        q = queries[i]
+        gen = generated_questions[i]
+        per_ex: dict[str, Any] = {
+            "example_id": q.example_id,
+            "query": q.query,
+            "generated": gen,
+            "gold": q.gold_clarifying_question,
+        }
+
+        # Semantic similarity
         if dataset_name in ("qulac", "clariq") and q.topic_id:
             golds = topic_gold_questions.get(q.topic_id, [q.gold_clarifying_question])
             ss = semantic_similarity_multi_ref(gen, golds)
@@ -224,24 +265,21 @@ def evaluate_all(
                 judge = llm_judge_quality_multi_ref(q.query, gen, golds, llm)
             else:
                 judge = llm_judge_quality(q.query, gen, q.gold_clarifying_question, llm)
-            
-            score = judge.get("score", 1)
-            judge_scores.append(score)
-            if judge.get("covers_interpretations"):
-                coverage_count += 1
-            per_ex["judge"] = judge
+            per_ex["judge_score"] = judge["score"]
+            per_ex["judge_reasoning"] = judge.get("reasoning", "")
+            judge_scores.append(judge["score"])
 
-        results_per_example.append(per_ex)
+        result["per_example"].append(per_ex)
 
-    result = {
-        "f1": f1_results,
-        "semantic_similarity": {
-            "mean": statistics.mean(ss_scores) if ss_scores else 0.0,
+    # Aggregate semantic similarity
+    if ss_scores:
+        result["semantic_similarity"] = {
+            "mean": statistics.mean(ss_scores),
             "std": statistics.stdev(ss_scores) if len(ss_scores) > 1 else 0.0,
-        },
-        "examples": results_per_example
-    }
+            "median": statistics.median(ss_scores),
+        }
 
+    # Aggregate judge scores
     if judge_scores:
         dist = Counter(judge_scores)
         result["judge_quality"] = {
@@ -250,6 +288,5 @@ def evaluate_all(
             "median": statistics.median(judge_scores),
             "distribution": {k: dist.get(k, 0) for k in range(1, 6)},
         }
-        result["coverage_rate"] = coverage_count / len(judge_scores)
 
     return result

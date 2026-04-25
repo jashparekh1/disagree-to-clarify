@@ -1,4 +1,9 @@
-"""Interpretive agents for the D2C clarification policy."""
+"""Interpretive agents for the D2C clarification policy.
+
+Each agent produces a short JSON reading of the query. Structured outputs
+(Ollama `format` field) constrain generation to valid JSON — no more
+prompt-based JSON begging, no retry loop, no format failures in practice.
+"""
 
 from __future__ import annotations
 
@@ -133,7 +138,7 @@ ROUND_N_SCHEMA = {
     "properties": {
         "interpretation": {"type": "string", "maxLength": 400},
         "stance": {"type": "string", "enum": ["HOLD", "CONCEDE"]},
-        "stance_reason": {"type": "string", "maxLength": 200},
+        "stance_reason": {"type": "string", "maxLength": 250},
     },
     "required": ["interpretation", "stance", "stance_reason"],
 }
@@ -164,10 +169,13 @@ class AgentResponse:
         }
 
     def format_for_others(self) -> str:
-        """Compact format for other agents to read."""
+        """Short block other agents see in the next round."""
         base = f"[{_ROLE_DISPLAY[self.role]}] {self.interpretation}"
         if self.round_num > 0:
-            base += f"\n   stance: {self.stance.value} ({self.stance_reason})"
+            base += f" (stance: {self.stance.value}"
+            if self.stance_reason:
+                base += f" — {self.stance_reason}"
+            base += ")"
         return base
 
 
@@ -175,26 +183,39 @@ class AgentResponse:
 # Parsing
 # ---------------------------------------------------------------------------
 
-def _parse_agent_json(raw: str, role: AgentRole, round_num: int) -> AgentResponse:
+def _parse_agent_json(
+    raw: str, role: AgentRole, round_num: int
+) -> AgentResponse:
+    """Parse an agent response. With structured outputs, ``raw`` should be
+    a clean JSON object. Defensive fallback if it isn't.
+    """
     try:
         data = json.loads(raw)
+    except json.JSONDecodeError:
         return AgentResponse(
             role=role,
             round_num=round_num,
             raw_text=raw,
-            interpretation=data.get("interpretation", ""),
-            stance=_parse_stance(data.get("stance", "HOLD")),
-            stance_reason=data.get("stance_reason", ""),
-        )
-    except Exception as e:
-        logger.warning("Failed to parse agent JSON: %s. Raw: %s", e, raw)
-        return AgentResponse(
-            role=role,
-            round_num=round_num,
-            raw_text=raw,
-            interpretation=raw,
+            interpretation=raw.strip(),
             format_failed=True,
         )
+    if not isinstance(data, dict):
+        return AgentResponse(
+            role=role,
+            round_num=round_num,
+            raw_text=raw,
+            interpretation=raw.strip(),
+            format_failed=True,
+        )
+    return AgentResponse(
+        role=role,
+        round_num=round_num,
+        raw_text=raw,
+        interpretation=str(data.get("interpretation", "")).strip(),
+        stance=_parse_stance(str(data.get("stance", ""))),
+        stance_reason=str(data.get("stance_reason", "")).strip(),
+        format_failed=False,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -202,7 +223,7 @@ def _parse_agent_json(raw: str, role: AgentRole, round_num: int) -> AgentRespons
 # ---------------------------------------------------------------------------
 
 class Agent:
-    def __init__(self, role: AgentRole, llm: LLMClient, max_tokens: int = 400):
+    def __init__(self, role: AgentRole, llm: LLMClient, max_tokens: int = 2048):
         self.role = role
         self.llm = llm
         self.system_prompt = _ROLE_TO_SYSTEM_PROMPT[role]

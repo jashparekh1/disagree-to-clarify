@@ -18,11 +18,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run D2C on a batch of queries")
     parser.add_argument("--input", required=True, help="Input JSONL file (each line: {\"query\": \"...\"})")
     parser.add_argument("--output", required=True, help="Output JSONL file for results")
-    parser.add_argument("--model", default="qwen2.5:0.5b", help="Ollama model name")
+    parser.add_argument("--model", default="qwen3:4b", help="Ollama model name")
     parser.add_argument("--rounds", type=int, default=3, help="Number of dialogue rounds")
     parser.add_argument("--resume", action="store_true", help="Skip queries already in the output file")
     parser.add_argument("--max-workers", type=int, default=4, help="Number of parallel query workers")
-    parser.add_argument("--max-tokens", type=int, default=300, help="Max tokens per LLM call")
+    parser.add_argument("--max-tokens", type=int, default=2048, help="Max tokens per LLM call")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
