@@ -33,7 +33,7 @@ Question: {candidate}"""
 
 def main():
     gen_model = "qwen3:1.7b"
-    judge_models = ["qwen3.5:4b", "gemma2:9b"]
+    judge_models = ["qwen3.5:4b", "qwen2.5:7b"]
     
     llm_gen = LLMClient(model=gen_model)
     judges = {m: LLMClient(model=m, think=False) for m in judge_models}
