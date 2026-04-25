@@ -89,6 +89,10 @@ def main() -> None:
         "--variant", default="speech_act", choices=["original", "speech_act"]
     )
     parser.add_argument("--think", action="store_true", help="Enable thinking mode")
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"],
+                        help="LLM backend: ollama (default) or openai (vLLM / any OpenAI-compatible server)")
+    parser.add_argument("--base-url", default=None,
+                        help="Override LLM server URL (default: localhost:11434 for ollama, localhost:8000 for openai)")
     parser.add_argument(
         "--out-dir", default="outputs", help="Where to write per-query rows."
     )
@@ -125,7 +129,7 @@ def main() -> None:
                     pass
         logger.info("Resume: skipping %d already-scored rows", len(done_ids))
 
-    judge_llm = LLMClient(model=args.judge_model, think=False)
+    judge_llm = LLMClient(model=args.judge_model, think=False, base_url=args.base_url, backend=args.backend)
 
     print(
         f"Eval: dataset={args.dataset} n={len(test_set)} "
@@ -161,6 +165,8 @@ def main() -> None:
                 max_tokens=args.max_tokens,
                 variant=args.variant,
                 think=True if args.think else False,
+                base_url=args.base_url,
+                backend=args.backend,
             )
             d2c_pred = d2c_res.synthesizer_result.clarifying_question
             d2c_fail = d2c_res.dialogue.format_failure_rate
@@ -169,7 +175,7 @@ def main() -> None:
                 convergence += 1
 
             # Vanilla baseline.
-            vanilla_llm = LLMClient(model=args.model, think=False)
+            vanilla_llm = LLMClient(model=args.model, think=False, base_url=args.base_url, backend=args.backend)
             vanilla_res = run_vanilla_cqg(query, vanilla_llm, max_tokens=300)
             vanilla_pred = vanilla_res.clarifying_question
 

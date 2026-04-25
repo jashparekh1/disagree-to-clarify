@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.backends.build_meta"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "d2c"
@@ -12,8 +12,13 @@ dependencies = [
     "pydantic",
     "tqdm",
     "jsonlines",
+    "sentence-transformers",
+    "rouge-score",
 ]
 
 [project.scripts]
 d2c-demo = "scripts.run_demo:main"
 d2c-batch = "scripts.run_batch:main"
+
+[tool.setuptools.packages.find]
+include = ["d2c*", "eval*", "scripts*"]

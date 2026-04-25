@@ -75,6 +75,8 @@ def run_dialogue(
     converged = False
     converged_at: int | None = None
 
+    conceded_roles: set = set()
+
     with ThreadPoolExecutor(max_workers=len(agents)) as executor:
         # --- Round 0 ---
         logger.info("Starting Round 0")
@@ -84,26 +86,34 @@ def run_dialogue(
 
         # --- Rounds 1+ ---
         for round_num in range(1, num_rounds):
-            prev_round = all_rounds[-1]
-            logger.info("Starting Round %d", round_num)
+            active_agents = [a for a in agents if a.role not in conceded_roles]
+            if len(active_agents) <= 1:
+                logger.info("Only %d agent(s) remain — stopping early", len(active_agents))
+                converged = True
+                converged_at = round_num
+                break
 
-            def _get_resp(agent: Agent, prev_round: list[AgentResponse], r_num: int):
-                other_responses = [r for r in prev_round if r.role != agent.role]
-                return agent.respond_dialogue(query, other_responses, r_num)
+            logger.info("Starting Round %d (%d active agents)", round_num, len(active_agents))
+
+            def _get_resp(agent: Agent, prior_rounds: list, r_num: int, c_roles: set):
+                return agent.respond_dialogue(query, prior_rounds, r_num, c_roles)
 
             futures = [
-                executor.submit(_get_resp, agent, prev_round, round_num)
-                for agent in agents
+                executor.submit(_get_resp, agent, list(all_rounds), round_num, set(conceded_roles))
+                for agent in active_agents
             ]
             round_responses = [f.result() for f in futures]
             all_rounds.append(round_responses)
 
+            for resp in round_responses:
+                if resp.stance == Stance.CONCEDE:
+                    conceded_roles.add(resp.role)
+                    logger.info("%s concedes at round %d", resp.role.value, round_num)
+
             if all(r.stance == Stance.CONCEDE for r in round_responses):
                 converged = True
                 converged_at = round_num
-                logger.info(
-                    "Dialogue converged at round %d (all agents CONCEDE)", round_num
-                )
+                logger.info("Dialogue converged at round %d (all active agents CONCEDE)", round_num)
                 break
 
     return DialogueResult(

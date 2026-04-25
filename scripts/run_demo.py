@@ -38,6 +38,10 @@ def main() -> None:
         "tokens eat the budget without producing useful reasoning.",
     )
     parser.add_argument("--verbose", action="store_true", help="Print full dialogue transcript")
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"],
+                        help="LLM backend: ollama (default) or openai (vLLM / any OpenAI-compatible server)")
+    parser.add_argument("--base-url", default=None,
+                        help="Override LLM server URL (default: localhost:11434 for ollama, localhost:8000 for openai)")
     args = parser.parse_args()
 
     if args.verbose:
@@ -54,6 +58,8 @@ def main() -> None:
         max_tokens=args.max_tokens,
         variant=args.variant,
         think=False if args.no_think else None,
+        base_url=args.base_url,
+        backend=args.backend,
     )
 
     # Verbose: print full round-by-round dialogue

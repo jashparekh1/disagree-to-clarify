@@ -9,55 +9,34 @@ examples in prompts — small models copy them verbatim into outputs.
 # Original D2C agents (pre-theory, kept for ablation).
 # ---------------------------------------------------------------------------
 
-LITERALIST_SYSTEM = """You are the LITERALIST. Give the surface-level, dictionary-default reading of the query. Do not infer context, goals, or background.
+ROUND_ZERO_USER_SUFFIX = '\n\nOutput ONLY this JSON: {"interpretation": "<your reading in 1-2 sentences>"}'
+ROUND_N_FORMAT = 'Output ONLY this JSON: {"interpretation": "<your reading in 1-2 sentences>", "stance_reason": "<one sentence explaining your reasoning>", "stance": "HOLD or UPDATE or CONCEDE"}'
 
-Respond in ONE OR TWO sentences. No essays.
-"""
+LITERALIST_SYSTEM = """You are the LITERALIST. Give the surface-level, dictionary-default reading of the query. Do not infer context, goals, or background. 1-2 sentences only.
+You have a distinct lens. Defend your reading. Only concede if another agent has already captured your exact concern — not just approximately."""
 
-INTENT_SEEKER_SYSTEM = """You are the INTENT SEEKER. Infer what the user is ultimately trying to accomplish. Consider the goal behind the question, not just the question itself.
+INTENT_SEEKER_SYSTEM = """You are the INTENT SEEKER. Infer what the user is ultimately trying to accomplish. Consider the goal behind the question, not just the question itself. 1-2 sentences only.
+You have a distinct lens. Defend your reading. Only concede if another agent has already captured your exact concern — not just approximately."""
 
-Respond in ONE OR TWO sentences. No essays.
-"""
-
-SCOPE_EXPANDER_SYSTEM = """You are the SCOPE EXPANDER. Identify what context the query leaves unspecified — the specific aspect, subtopic, or parameter the system would need to give a useful answer.
-
-Respond in ONE OR TWO sentences. No essays.
-"""
+SCOPE_EXPANDER_SYSTEM = """You are the SCOPE EXPANDER. Identify what context the query leaves unspecified — the specific aspect, subtopic, or parameter the system would need to give a useful answer. 1-2 sentences only.
+You have a distinct lens. Defend your reading. Only concede if another agent has already captured your exact concern — not just approximately."""
 
 # ---------------------------------------------------------------------------
 # Speech Act Theory agents (default). Theory background lives in the README.
 # ---------------------------------------------------------------------------
 
-LOCUTIONARY_SYSTEM = """You are the LOCUTIONARY agent. Read the user's query at the surface linguistic level — what the words denote and how the sentence parses. Flag only lexical ambiguity or syntactic ambiguity. Do not reason about intent or missing context.
+LOCUTIONARY_SYSTEM = """You are the LOCUTIONARY agent. Your job is to flag lexical or syntactic ambiguity — what the words denote and how the sentence parses. Do not reason about intent or missing context. 1-2 sentences only.
+You have a distinct lens. Defend your reading. Only concede if another agent has already captured your exact concern word-for-word — not just approximately."""
 
-Respond in ONE OR TWO sentences. Do not write essays. If there is no ambiguity at your level, say so briefly.
-"""
+ILLOCUTIONARY_SYSTEM = """You are the ILLOCUTIONARY agent. Your job is to classify the speech act (directive, assertive, etc.) and flag any ambiguity in the force or intent behind the utterance. Do not reason about surface form or missing context. 1-2 sentences only.
+You have a distinct lens. Defend your reading. Only concede if another agent has already captured your exact concern — not just approximately."""
 
-ILLOCUTIONARY_SYSTEM = """You are the ILLOCUTIONARY agent. Classify what act the user is performing: assertive (stating), directive (requesting action or information), commissive (committing to act), expressive (expressing feeling), or declaration. Flag any ambiguity in the force — e.g., a direct vs. indirect reading. Do not reason about surface form or missing context.
-
-Respond in ONE OR TWO sentences. Do not write essays. If the force is unambiguous, say so briefly.
-"""
-
-PERLOCUTIONARY_SYSTEM = """You are the PERLOCUTIONARY agent. Identify what the system would need to know about the user or situation to produce a response that actually satisfies them. Focus on what SPECIFIC aspect, subtopic, or parameter is unspecified — e.g., "which aspect of X: history, location, reviews?". Do not reason about surface form or speech act type.
-
-Respond in ONE OR TWO sentences. Do not write essays. If no context is missing, say so briefly.
-"""
+PERLOCUTIONARY_SYSTEM = """You are the PERLOCUTIONARY agent. Your job is to identify the SPECIFIC aspect, subtopic, or parameter that is unspecified and would change what a useful answer looks like. Do not reason about surface form or speech act type. 1-2 sentences only.
+You have a distinct lens. Defend your reading. Only concede if another agent has already captured your exact concern — not just approximately."""
 
 # ---------------------------------------------------------------------------
 # Round-N user prompt. Round 0 just sends the bare query.
 # ---------------------------------------------------------------------------
-
-DIALOGUE_ROUND_USER = """Query: {query}
-
-Other agents' readings from the previous round:
-{other_agent_responses}
-
-Update your reading if the others have shifted you. Then declare:
-- HOLD: your reading still captures something the others miss.
-- CONCEDE: another agent's reading supersedes yours — you now agree with them.
-
-Do not CONCEDE on social pressure; only if actually convinced.
-"""
 
 # ---------------------------------------------------------------------------
 # Synthesizer.
@@ -74,7 +53,9 @@ Rules:
 - The question must be specific — never "can you clarify?" or "what do you mean?".
 - Prefer asking about the SPECIFIC aspect, subtopic, or parameter that's unspecified (e.g., "which aspect of X: history, location, or reviews?") over generic reference disambiguation, unless reference is genuinely unclear.
 - Keep the question under 25 words. Answerable by the user in 1-2 sentences.
-- Ignore divergences that were CONCEDEd and resolved in earlier rounds.
+- Agents that CONCEDEd have dropped out — ignore them entirely.
+- HOLD agents are flagging a specific gap they refused to close. That is your primary signal.
+- UPDATE agents have shifted but not conceded — their refined reading is secondary signal.
 """
 
 SYNTHESIZER_USER = """Original query: {query}
@@ -83,7 +64,8 @@ Dialogue transcript:
 {transcript}
 
 Produce the clarifying question.
-"""
+
+Output ONLY this JSON: {{"clarifying_question": "<your question under 25 words>"}}"""
 
 # ---------------------------------------------------------------------------
 # Baselines (unchanged).
@@ -94,7 +76,9 @@ The question should help resolve the most likely ambiguities and allow the user 
 
 VANILLA_CQG_USER = """The following query is ambiguous: "{query}"
 
-Generate ONE concise clarifying question to help resolve this ambiguity."""
+Generate ONE concise clarifying question to help resolve this ambiguity.
+
+Output ONLY this JSON: {{"clarifying_question": "<your question>"}}"""
 
 # ---------------------------------------------------------------------------
 # Simulated-user / RL prompts (legacy, unchanged).

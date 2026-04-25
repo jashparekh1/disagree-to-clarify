@@ -37,9 +37,9 @@ def parse_ambigqa_item(item: dict) -> tuple[str, list[str]]:
     return query, interpretations
 
 
-def run_vanilla(query: str, model: str, max_tokens: int) -> str:
+def run_vanilla(query: str, model: str, max_tokens: int, base_url: str | None = None, backend: str = "ollama") -> str:
     """Baseline 1: Single-turn LLM call."""
-    llm = LLMClient(model=model)
+    llm = LLMClient(model=model, base_url=base_url, backend=backend)
     user_prompt = VANILLA_CQG_USER.format(query=query)
     return llm.chat(
         system_prompt=VANILLA_CQG_SYSTEM,
@@ -48,9 +48,9 @@ def run_vanilla(query: str, model: str, max_tokens: int) -> str:
     )
 
 
-def run_parallel_only(query: str, model: str, max_tokens: int) -> str:
+def run_parallel_only(query: str, model: str, max_tokens: int, base_url: str | None = None, backend: str = "ollama") -> str:
     """Baseline 2: Agents generate initial interpretation in parallel, then synthesize."""
-    llm = LLMClient(model=model)
+    llm = LLMClient(model=model, base_url=base_url, backend=backend)
     agents = [Agent(role, llm, max_tokens=max_tokens) for role in AgentRole]
 
     with ThreadPoolExecutor(max_workers=3) as executor:
@@ -62,7 +62,8 @@ def run_parallel_only(query: str, model: str, max_tokens: int) -> str:
     return synth.clarifying_question
 
 
-def process_baseline(item: dict, baseline_type: str, model: str, judge_model: str, max_tokens: int) -> dict:
+def process_baseline(item: dict, baseline_type: str, model: str, judge_model: str, max_tokens: int,
+                     base_url: str | None = None, backend: str = "ollama") -> dict:
     query, interpretations = parse_ambigqa_item(item)
     if not query or len(interpretations) < 2:
         return {"query": query, "status": "skipped"}
@@ -70,12 +71,12 @@ def process_baseline(item: dict, baseline_type: str, model: str, judge_model: st
     try:
         # 1. Generate question
         if baseline_type == "vanilla":
-            question = run_vanilla(query, model, max_tokens)
+            question = run_vanilla(query, model, max_tokens, base_url=base_url, backend=backend)
         else:
-            question = run_parallel_only(query, model, max_tokens)
+            question = run_parallel_only(query, model, max_tokens, base_url=base_url, backend=backend)
 
         # 2. Judge
-        judge_llm = LLMClient(model=judge_model)
+        judge_llm = LLMClient(model=judge_model, base_url=base_url, backend=backend)
         eval_result = llm_judge_score(query, interpretations, question, judge_llm)
 
         return {
@@ -96,6 +97,10 @@ def main() -> None:
     parser.add_argument("--model", default="qwen3:4b", help="Model name")
     parser.add_argument("--judge-model", default="qwen3:4b", help="Judge model name")
     parser.add_argument("--max-workers", type=int, default=4)
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"],
+                        help="LLM backend: ollama (default) or openai (vLLM / any OpenAI-compatible server)")
+    parser.add_argument("--base-url", default=None,
+                        help="Override LLM server URL (default: localhost:11434 for ollama, localhost:8000 for openai)")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -114,7 +119,8 @@ def main() -> None:
 
         with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
             futures = [
-                executor.submit(process_baseline, item, b_type, args.model, args.judge_model, 300)
+                executor.submit(process_baseline, item, b_type, args.model, args.judge_model, 300,
+                                base_url=args.base_url, backend=args.backend)
                 for item in items
             ]
             with open(output_file, "w") as out:

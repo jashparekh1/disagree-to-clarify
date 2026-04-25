@@ -62,26 +62,26 @@ def _format_transcript(dialogue: DialogueResult) -> str:
             parts.append(line)
         parts.append("")
 
-    # Final-round stances, broken out. This is the load-bearing signal —
-    # what each agent still sees that the others don't, after N rounds.
+    # Final-round stances — only HOLD and UPDATE agents remain load-bearing.
+    # CONCEDEd agents have dropped out and are not signal for the question.
     if len(dialogue.rounds) > 1:
         final = dialogue.rounds[-1]
+        active = [r for r in final if r.stance.value in ("HOLD", "UPDATE")]
         parts.append(f"=== FINAL-ROUND STANCES (round {len(dialogue.rounds)-1}) ===")
-        parts.append(
-            "Each agent's explicit statement of what they still see after "
-            "reading the others. This is the persistent grounding gap."
-        )
-        for resp in final:
-            reason = resp.stance_reason or "(no reason given)"
-            parts.append(
-                f"- [{_ROLE_DISPLAY[resp.role]} / {resp.stance.value}]: {reason}"
-            )
+        if active:
+            parts.append("Agents still holding a distinct position (primary signal):")
+            for resp in active:
+                reason = resp.stance_reason or "(no reason given)"
+                parts.append(
+                    f"- [{_ROLE_DISPLAY[resp.role]} / {resp.stance.value}]: {reason}"
+                )
+        else:
+            parts.append("All agents conceded — no residual disagreement.")
         parts.append("")
 
     if dialogue.converged:
         parts.append(
-            f"[Dialogue converged at round {dialogue.converged_at_round}: "
-            "all agents CONCEDEd.]"
+            f"[Dialogue converged at round {dialogue.converged_at_round}.]"
         )
     return "\n".join(parts)
 

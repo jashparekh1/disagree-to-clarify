@@ -14,12 +14,13 @@ from enum import Enum
 
 from d2c.llm import LLMClient
 from d2c.prompts import (
-    DIALOGUE_ROUND_USER,
     ILLOCUTIONARY_SYSTEM,
     INTENT_SEEKER_SYSTEM,
     LITERALIST_SYSTEM,
     LOCUTIONARY_SYSTEM,
     PERLOCUTIONARY_SYSTEM,
+    ROUND_N_FORMAT,
+    ROUND_ZERO_USER_SUFFIX,
     SCOPE_EXPANDER_SYSTEM,
 )
 
@@ -41,6 +42,7 @@ class AgentRole(Enum):
 
 class Stance(Enum):
     HOLD = "HOLD"
+    UPDATE = "UPDATE"
     CONCEDE = "CONCEDE"
 
 
@@ -65,6 +67,7 @@ _ROLE_DISPLAY = {
 
 _STANCE_ALIASES = {
     "hold": Stance.HOLD,
+    "update": Stance.UPDATE,
     "concede": Stance.CONCEDE,
 }
 
@@ -92,10 +95,10 @@ ROUND_N_SCHEMA = {
     "type": "object",
     "properties": {
         "interpretation": {"type": "string", "maxLength": 400},
-        "stance": {"type": "string", "enum": ["HOLD", "CONCEDE"]},
         "stance_reason": {"type": "string", "maxLength": 250},
+        "stance": {"type": "string", "enum": ["HOLD", "UPDATE", "CONCEDE"]},
     },
-    "required": ["interpretation", "stance", "stance_reason"],
+    "required": ["interpretation", "stance_reason", "stance"],
 }
 
 
@@ -175,6 +178,44 @@ def _parse_agent_json(
 
 
 # ---------------------------------------------------------------------------
+# Per-round user-turn builder
+# ---------------------------------------------------------------------------
+
+_STANCE_INSTRUCTIONS = """\
+Decide your stance using this decision tree:
+1. Can you name a specific gap or ambiguity that NO other agent has captured? → HOLD (name the gap explicitly in stance_reason)
+2. Have the others partially shifted your view but not fully? → UPDATE (state what changed)
+3. Does another agent's reading cover EXACTLY what you see, with nothing left out? → CONCEDE (name which agent and why their reading is complete)
+
+Default to HOLD unless you can point to a specific agent whose reading already captures your exact concern.\
+"""
+
+
+def _format_others_turn(
+    latest_round: list[AgentResponse],
+    own_role: AgentRole,
+    conceded_roles: set,
+) -> str:
+    """Build the user-turn content showing other agents' latest responses."""
+    parts = ["Other agents' latest readings:"]
+    for resp in latest_round:
+        if resp.role == own_role:
+            continue
+        if resp.role in conceded_roles:
+            continue
+        label = _ROLE_DISPLAY[resp.role]
+        reason = f" — {resp.stance_reason}" if resp.stance_reason else ""
+        parts.append(f"[{label}] {resp.stance.value}{reason}: {resp.interpretation}")
+
+    dropped = [_ROLE_DISPLAY[r] for r in conceded_roles if r != own_role]
+    if dropped:
+        parts.append(f"\n(Dropped out — conceded previously: {', '.join(dropped)})")
+
+    parts.append(f"\n{_STANCE_INSTRUCTIONS}")
+    return "\n".join(parts)
+
+
+# ---------------------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------------------
 
@@ -184,33 +225,38 @@ class Agent:
         self.llm = llm
         self.system_prompt = _ROLE_TO_SYSTEM_PROMPT[role]
         self.max_tokens = max_tokens
+        self.messages: list[dict] = []
 
     def respond_initial(self, query: str) -> AgentResponse:
-        raw = self.llm.chat(
-            system_prompt=self.system_prompt,
-            user_prompt=query,
+        self.messages = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user",   "content": query + ROUND_ZERO_USER_SUFFIX},
+        ]
+        raw = self.llm.chat_with_messages(
+            messages=self.messages,
             temperature=0.7,
             max_tokens=self.max_tokens,
             format_schema=ROUND_ZERO_SCHEMA,
         )
+        self.messages.append({"role": "assistant", "content": raw})
         return _parse_agent_json(raw, self.role, round_num=0)
 
     def respond_dialogue(
         self,
         query: str,
-        other_responses: list[AgentResponse],
+        all_prior_rounds: list[list[AgentResponse]],
         round_num: int,
+        conceded_roles: set | None = None,
     ) -> AgentResponse:
-        other_text = "\n".join(r.format_for_others() for r in other_responses)
-        user_prompt = DIALOGUE_ROUND_USER.format(
-            query=query,
-            other_agent_responses=other_text,
+        others_text = _format_others_turn(
+            all_prior_rounds[-1], self.role, conceded_roles or set()
         )
-        raw = self.llm.chat(
-            system_prompt=self.system_prompt,
-            user_prompt=user_prompt,
+        self.messages.append({"role": "user", "content": others_text + "\n\n" + ROUND_N_FORMAT})
+        raw = self.llm.chat_with_messages(
+            messages=self.messages,
             temperature=0.7,
             max_tokens=self.max_tokens,
             format_schema=ROUND_N_SCHEMA,
         )
+        self.messages.append({"role": "assistant", "content": raw})
         return _parse_agent_json(raw, self.role, round_num=round_num)
