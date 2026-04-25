@@ -1,0 +1,145 @@
+Query,Gold,Variant,Generated,SemanticSimilarity
+mothers day songs,are you looking for a playlist of mothers days songs,vanilla,"What specific type of ""mothers day songs"" are you referring to (e.g., a list, a particular genre, or a specific event)?",0.7830287
+mothers day songs,are you looking for a playlist of mothers days songs,speech_act,"Which aspect of mothers' day songs: genre, artist, popularity, or cultural context is unspecified?",0.6917638
+mothers day songs,are you looking for a playlist of mothers days songs,speech_act_surgical,"Which aspect of Mother's Day songs is being referred to: celebration, tradition, or cultural significance?",0.6226869
+the secret garden,are you interested in educational reviews and essays about the secret garden for a homework assignment,vanilla,"Are you referring to the book ""The Secret Garden"" or the 2001 film adaptation?",0.5181273
+the secret garden,are you interested in educational reviews and essays about the secret garden for a homework assignment,speech_act,"Which aspect of 'The Secret Garden' are you interested in—plot, characters, themes, or summary?",0.67467964
+the secret garden,are you interested in educational reviews and essays about the secret garden for a homework assignment,speech_act_surgical,"Which aspect of 'The Secret Garden' is being referred to: plot, themes, or author?",0.63433933
+civil right movement,would you like to know what happened during the civil rights movement,vanilla,Could you specify the context or area you're referring to when discussing the 'civil right movement'?,0.67801696
+civil right movement,would you like to know what happened during the civil rights movement,speech_act,"Which aspect of the civil right movement is being referred to—history, location, reviews, or a particular event?",0.6387495
+civil right movement,would you like to know what happened during the civil rights movement,speech_act_surgical,"Which specific aspect of the civil right movement is being referred to—historical context, key events, or ongoing efforts?",0.64565444
+How to cook pork tenderlion,would you like to make a rub for pork tenderloin,vanilla,Which cut of pork are you referring to?,0.50124025
+How to cook pork tenderlion,would you like to make a rub for pork tenderloin,speech_act,"Which specific aspect of pork tenderloin (e.g., cooking method, seasoning, recipe type) is desired?",0.58072376
+How to cook pork tenderlion,would you like to make a rub for pork tenderloin,speech_act_surgical,"Which aspect of pork tenderloin: history, location, or reviews?",0.62330085
+what is the best long term care insurance,are you interested in getting a quote for coverage,vanilla,What factors are most important to you when choosing long-term care insurance?,0.27168158
+what is the best long term care insurance,are you interested in getting a quote for coverage,speech_act,"Which aspect of long-term care insurance—coverage types, providers, geographic location, or particular benefits—is being referred to?",0.3630433
+what is the best long term care insurance,are you interested in getting a quote for coverage,speech_act_surgical,Which aspect of long-term care insurance is missing from the query?,0.38223177
+Find me information about the Last Supper painting.,what aspect of the last supper painting are you interested in,vanilla,Which specific version of the Last Supper painting are you referring to?,0.8195965
+Find me information about the Last Supper painting.,what aspect of the last supper painting are you interested in,speech_act,"Which aspect of the Last Supper painting—history, location, or reviews—is being referred to?",0.8829154
+Find me information about the Last Supper painting.,what aspect of the last supper painting are you interested in,speech_act_surgical,"Which aspect of the Last Supper painting—style, subject, or historical context—is being referred to?",0.8662443
+blue throated hummingbird,would you like to know where it originates from,vanilla,What specific information are you looking for regarding the blue throated hummingbird?,0.16192798
+blue throated hummingbird,would you like to know where it originates from,speech_act,"Which aspect of the blue-throated hummingbird is the user interested in? (options: biology, habitat, behavior, conservation)",0.016475918
+blue throated hummingbird,would you like to know where it originates from,speech_act_surgical,Which definition of 'blue-throated' is being used in the context of the hummingbird?,0.24113949
+source of the nile,is there any specific information about the river that would interest you,vanilla,What specific location or tributary are you referring to when asking about the source of the Nile?,0.62800324
+source of the nile,is there any specific information about the river that would interest you,speech_act,"Which specific part of the Nile's source is being referred to—White Nile, Lake Victoria, or the exact location?",0.4556265
+source of the nile,is there any specific information about the river that would interest you,speech_act_surgical,Which specific location within the Ethiopian Highlands is being referred to as the source of the Nile River?,0.44366163
+Tell me about weather stripping,would you like to purchase a weather stripping product,vanilla,"Could you clarify what aspect of weather stripping you're interested in? (e.g., materials, applications, manufacturers, or specific techniques)",0.6814295
+Tell me about weather stripping,would you like to purchase a weather stripping product,speech_act,"Which aspect of weather stripping: history, application, benefits, or types?",0.645985
+Tell me about weather stripping,would you like to purchase a weather stripping product,speech_act_surgical,"Which aspect of weather stripping: material, application, or purpose is missing?",0.6349383
+Tell me more about Culpeper National Cemetry,what would you like to know about culpeper national cemetary,vanilla,What specific information would you like to know about Culpeper National Cemetery?,0.7451854
+Tell me more about Culpeper National Cemetry,what would you like to know about culpeper national cemetary,speech_act,"Which aspect of Culpeper National Cemetery: history, location, or reviews?",0.6921298
+Tell me more about Culpeper National Cemetry,what would you like to know about culpeper national cemetary,speech_act_surgical,"Which aspect of Culpeper National Cemetery: history, location, or reviews?",0.6921298
+How to prepare for the GMAT?,are you looking for gmat prep classes near you,vanilla,What specific aspect of preparing for the GMAT are you looking to focus on?,0.5994593
+How to prepare for the GMAT?,are you looking for gmat prep classes near you,speech_act,Which study method or resource should be used for GMAT preparation?,0.56068367
+How to prepare for the GMAT?,are you looking for gmat prep classes near you,speech_act_surgical,"Which specific aspect of GMAT preparation—study plan, resources, or practice tests—is being referred to?",0.5725075
+the secret garden,would you like to know more about the short story by g k chesterton,vanilla,"What are you referring to when you say ""the secret garden""? (Option: Book or actual garden)",0.21068019
+the secret garden,would you like to know more about the short story by g k chesterton,speech_act,"Which aspect of 'The Secret Garden' are you interested in—plot, characters, themes, or reviews?",0.27552155
+the secret garden,would you like to know more about the short story by g k chesterton,speech_act_surgical,"Which aspect of 'The Secret Garden' is being referred to: plot, characters, or themes?",0.24813992
+How should I use the septic system design,do you want a single large lateral or multiple smaller laterals,vanilla,What specific aspects of septic system design are you looking to understand?,0.17738064
+How should I use the septic system design,do you want a single large lateral or multiple smaller laterals,speech_act,"Which specific aspect of septic system design—location, size, or maintenance—is being referred to?",0.22750771
+How should I use the septic system design,do you want a single large lateral or multiple smaller laterals,speech_act_surgical,Which type of septic system design should be used?,0.30110595
+french lick resort and casino,would you like to be hired by french lick casino and resort,vanilla,"Are you referring to the French Lick Resort and Casino in Pennsylvania, or another location? And would you like information about the resort and casino separately or together?",0.6224224
+french lick resort and casino,would you like to be hired by french lick casino and resort,speech_act,"Which aspect of French Lick Resort and Casino: history, location, reviews, or operating hours?",0.675915
+french lick resort and casino,would you like to be hired by french lick casino and resort,speech_act_surgical,"Which aspect of French Lick Resort and Casino: history, location, or reviews?",0.6572393
+Tell me information about Volvo.,are you looking for a specific web site,vanilla,Could you clarify what specific aspect of Volvo you are interested in?,0.14988701
+Tell me information about Volvo.,are you looking for a specific web site,speech_act,"Which aspect of Volvo: history, location, or reviews?",0.09987409
+Tell me information about Volvo.,are you looking for a specific web site,speech_act_surgical,"Which aspect of Volvo: history, location, or reviews?",0.09987409
+tell me about diversity,what type of diversity do you need information about,vanilla,Could you clarify what aspect of diversity you're interested in?,0.83760303
+tell me about diversity,what type of diversity do you need information about,speech_act,"Which aspect of diversity: history, location, reviews, or other subtopics?",0.7931373
+tell me about diversity,what type of diversity do you need information about,speech_act_surgical,"Which aspect of diversity: history, location, or reviews?",0.77639514
+signs of a heartattack,are you experiencing a heart attack,vanilla,What are you looking for? (Are you seeking the signs of a heartattack or the medical condition itself?),0.4636682
+signs of a heartattack,are you experiencing a heart attack,speech_act,"Which aspect of heart attack signs—symptoms, causes, prevention, or treatment—is the user interested in?",0.49331442
+signs of a heartattack,are you experiencing a heart attack,speech_act_surgical,Which definition of 'signs' is being referred to in the context of a heart attack?,0.46232316
+How to change the toilet in the house,would you like a new toilet,vanilla,"What exactly do you mean by ""change the toilet in the house""? (e.g., replace it, adjust its position, or modify it?)",0.54514647
+How to change the toilet in the house,would you like a new toilet,speech_act,"Which specific aspect of the toilet (e.g., seat, toilet itself, room) is being referred to?",0.47690958
+How to change the toilet in the house,would you like a new toilet,speech_act_surgical,Which type of toilet (bathroom or furniture) are you referring to?,0.5736023
+pampered chef,are you looking for reviews related to the pampered chef,vanilla,"Could you clarify which context you're referring to when you say ""pampered chef""?",0.6501367
+pampered chef,are you looking for reviews related to the pampered chef,speech_act,"Which aspect of Pampered Chef: history, location, reviews, products, or services?",0.78397715
+pampered chef,are you looking for reviews related to the pampered chef,speech_act_surgical,"Which aspect of Pampered Chef: history, location, or reviews?",0.8238615
+Find me information about PVC,what project do you want to use the pvc for,vanilla,Please specify if you mean the plastic material or a specific product.,0.28483838
+Find me information about PVC,what project do you want to use the pvc for,speech_act,"Which aspect of PVC: material, product, or parameter is being referred to?",0.59537965
+Find me information about PVC,what project do you want to use the pvc for,speech_act_surgical,"Which aspect of PVC: history, location, or reviews?",0.68698776
+newyork hotels,would you like to book a new york hotel,vanilla,What are you looking for—hotel listings in New York City or a hotel named New York?,0.68056655
+newyork hotels,would you like to book a new york hotel,speech_act,"Which aspect of New York hotels: history, location, or reviews?",0.67907304
+newyork hotels,would you like to book a new york hotel,speech_act_surgical,Which type of hotel is being referred to in the query?,0.441527
+Tell me about scooters.,there are some cool deals available shall i show them,vanilla,"What specific type of scooters are you referring to? (e.g., electric, sport, urban, etc.)",0.093543276
+Tell me about scooters.,there are some cool deals available shall i show them,speech_act,"Which aspect of scooters (history, types, uses, safety, regulations) would you like to explore?",0.10500837
+Tell me about scooters.,there are some cool deals available shall i show them,speech_act_surgical,"Which aspect of scooters: history, location, or reviews?",0.08579531
+Find information on Hoboken,do you want a hotel in hoboken,vanilla,"Could you clarify if you're looking for information on Hoboken as a city, a person, or another entity?",0.5817645
+Find information on Hoboken,do you want a hotel in hoboken,speech_act,"Which aspect of Hoboken: history, location, or reviews?",0.5489009
+Find information on Hoboken,do you want a hotel in hoboken,speech_act_surgical,"Which aspect of Hoboken: history, location, or reviews?",0.5489009
+tell me about memory,would you like to know how to increase your memory,vanilla,What specific aspect of memory are you interested in?,0.5935589
+tell me about memory,would you like to know how to increase your memory,speech_act,"Which aspect of memory: cognitive, historical, or specific type?",0.43300438
+tell me about memory,would you like to know how to increase your memory,speech_act_surgical,"Which aspect of memory: definition, function, or example?",0.41673613
+rock art,do you want to buy rock art,vanilla,"What specific context or application are you referring to when discussing ""rock art""? (e.g., prehistoric art, rock carvings, geological formations, etc.)",0.49928498
+rock art,do you want to buy rock art,speech_act,"Which aspect of rock art: history, location, reviews, or a particular type?",0.5636125
+rock art,do you want to buy rock art,speech_act_surgical,"Which aspect of rock art: type, location, or technique is unspecified?",0.49267238
+I'm looking for information about mayo clinic Jacksonville FL,which treatments are you looking for at mayo clinic jacksonville fl,vanilla,"Could you confirm if you're referring to the Mayo Clinic in Jacksonville, FL, or another location?",0.7153833
+I'm looking for information about mayo clinic Jacksonville FL,which treatments are you looking for at mayo clinic jacksonville fl,speech_act,"Which specific aspect of the Mayo Clinic in Jacksonville, FL is being requested?",0.7277163
+I'm looking for information about mayo clinic Jacksonville FL,which treatments are you looking for at mayo clinic jacksonville fl,speech_act_surgical,"Which aspect of Mayo Clinic Jacksonville FL: location, type, or service?",0.7139297
+Give me information about Titan.,are you referring to the watch brand,vanilla,Which Titan are you referring to?,0.18599927
+Give me information about Titan.,are you referring to the watch brand,speech_act,"Which aspect of Titan: history, location, or reviews?",0.025558412
+Give me information about Titan.,are you referring to the watch brand,speech_act_surgical,"Which aspect of Titan: geography, atmosphere, or mission details?",-0.0735165
+Matthew told Joshua that he spooked the client.,What does he refer to? Matthew or Joshua?,vanilla,"Who is ""he"" in the sentence?",0.40409192
+Matthew told Joshua that he spooked the client.,What does he refer to? Matthew or Joshua?,speech_act,Which agent's stance_reason indicates that the subject of the action is still ambiguous?,0.13638471
+Matthew told Joshua that he spooked the client.,What does he refer to? Matthew or Joshua?,speech_act_surgical,Which definition of 'spooked' was used in Matthew's statement?,0.449414
+flushing,are you looking for a specific product in flushing queens,vanilla,"What context is the phrase ""flushing"" referring to?",0.32436523
+flushing,are you looking for a specific product in flushing queens,speech_act,"Which aspect of flushing (health, environment, technology) is being referred to?",0.3741634
+flushing,are you looking for a specific product in flushing queens,speech_act_surgical,Which type of car is being referred to in the query?,0.17803842
+fickle creek farm,are you looking for a place which sales products from fickle creek farm,vanilla,"Is ""Fickle Creek Farm"" a real place or a fictional creation? If it's real, where is it located?",0.5906206
+fickle creek farm,are you looking for a place which sales products from fickle creek farm,speech_act,"Which aspect of Fickle Creek Farm is being referred to—operations, sustainability, or location?",0.63950956
+fickle creek farm,are you looking for a place which sales products from fickle creek farm,speech_act_surgical,"Which aspect of Fickle Creek Farm is being referred to: location, description, or purpose?",0.6158461
+Find me information about diabetes education,what are you trying to learn about diabetes,vanilla,What type of diabetes education information do you need?,0.6775577
+Find me information about diabetes education,what are you trying to learn about diabetes,speech_act,"Which aspect of diabetes education: history, location, or reviews?",0.6444209
+Find me information about diabetes education,what are you trying to learn about diabetes,speech_act_surgical,"Which aspect of diabetes education: history, location, or reviews?",0.6444209
+Tell me about Bowflex Power Pro.,would you like to see specs on this equipment,vanilla,"What would you like to know about Bowflex Power Pro—specifically about the product itself, the company, or its features?",0.37583834
+Tell me about Bowflex Power Pro.,would you like to see specs on this equipment,speech_act,"Which aspect of Bowflex Power Pro (e.g., history, features, reviews, price, etc.) is being requested?",0.348858
+Tell me about Bowflex Power Pro.,would you like to see specs on this equipment,speech_act_surgical,"Which aspect of Bowflex Power Pro: product type, features, or pricing?",0.30298817
+brooks brothers clearance,would you like to know about the brooks brothers clearance return policy,vanilla,"Is ""brooks brothers clearance"" referring to two people needing clearance or a document for two people?",0.6480691
+brooks brothers clearance,would you like to know about the brooks brothers clearance return policy,speech_act,"Which specific parameter of Brooks Brothers clearance are you referring to—location, product type, or time frame?",0.6752939
+brooks brothers clearance,would you like to know about the brooks brothers clearance return policy,speech_act_surgical,Which aspect of Brooks Brothers clearance is being requested?,0.7601658
+Find me information about diabetes education,are you looking to take a class about diabetes,vanilla,"Could you clarify what type of information you're looking for about diabetes education? (e.g., prevention, management, resources, courses, etc.)",0.7274294
+Find me information about diabetes education,are you looking to take a class about diabetes,speech_act,"Which aspect of diabetes education: history, location, or reviews?",0.67642564
+Find me information about diabetes education,are you looking to take a class about diabetes,speech_act_surgical,"Which aspect of diabetes education: history, location, or reviews?",0.67642564
+How to cook pork tenderlion,would you like to see pork tenderloin recipes,vanilla,Are you referring to pork tenderloin or pork loin?,0.6733503
+How to cook pork tenderlion,would you like to see pork tenderloin recipes,speech_act,"Which specific aspect of pork tenderloin (e.g., cooking method, seasoning, serving suggestion) is being asked for?",0.6644188
+How to cook pork tenderlion,would you like to see pork tenderloin recipes,speech_act_surgical,Which cooking method should be used for pork tenderloin?,0.68825394
+Find information about tornadoes,are you looking for information on weather,vanilla,"Could you clarify what type of information you're seeking about tornadoes? (e.g., weather forecasts, historical data, safety tips, scientific explanations, etc.)",0.5822638
+Find information about tornadoes,are you looking for information on weather,speech_act,"Which aspect of tornadoes: history, location, reviews, or parameters is unspecified?",0.43017304
+Find information about tornadoes,are you looking for information on weather,speech_act_surgical,Which type of tornado should be included in the information?,0.4863618
+pork tenderloin,are you purchasing pork tenderloin today,vanilla,Are you referring to a regular tenderloin or a pork tenderloin?,0.64507
+pork tenderloin,are you purchasing pork tenderloin today,speech_act,"Which aspect of pork tenderloin: history, location, or reviews?",0.69093126
+pork tenderloin,are you purchasing pork tenderloin today,speech_act_surgical,Which type of car is being referred to in the detail missing?,0.055721555
+How should I use the septic system design,are you looking for the basics of septic system design,vanilla,"What specific aspect of septic system design are you referring to (e.g., installation, maintenance, regulatory requirements, or materials)?",0.87290573
+How should I use the septic system design,are you looking for the basics of septic system design,speech_act,"Which aspect of septic system design—location, size, or type—is unspecified?",0.80102915
+How should I use the septic system design,are you looking for the basics of septic system design,speech_act_surgical,Which type of septic system design should be used?,0.8344638
+Tell me about madam cj walker,are you looking for any specific information about the business she started,vanilla,"Could you clarify whether ""Madam"" refers to a title or a different name, and provide more details about the context you're interested in?",0.28975922
+Tell me about madam cj walker,are you looking for any specific information about the business she started,speech_act,"Which aspect of Madam C.J. Walker: history, contributions, or legacy?",0.38331714
+Tell me about madam cj walker,are you looking for any specific information about the business she started,speech_act_surgical,"Which aspect of Madam C.J. Walker: history, location, or reviews?",0.40215924
+Find information about flushing.,do you want to know why your face is flushing,vanilla,"What specific context or scenario are you referring to when asking about ""flushing""?",0.5149306
+Find information about flushing.,do you want to know why your face is flushing,speech_act,"Which aspect of flushing—process, function, or example—is being requested?",0.46709564
+Find information about flushing.,do you want to know why your face is flushing,speech_act_surgical,"Which aspect of flushing: definition, method, or common cause?",0.5936218
+Tell me about the educational advantages of social networking sites.,what type of educational advantages are you seeking from social networking,vanilla,"Would you like to know about the educational advantages of social networking sites in general, or specific aspects like academic resources, professional development, or collaborative learning tools?",0.9006107
+Tell me about the educational advantages of social networking sites.,what type of educational advantages are you seeking from social networking,speech_act,"Which specific educational platform, subject, or age group is being referred to?",0.43924302
+Tell me about the educational advantages of social networking sites.,what type of educational advantages are you seeking from social networking,speech_act_surgical,"Which aspect of social networking sites—learning resources, collaborative learning, or skill development—is being referred to in the query?",0.6550492
+computer programming,are you looking for nearby coding classes,vanilla,Are you referring to the practice of writing code or a specific area within computer science?,0.5102726
+computer programming,are you looking for nearby coding classes,speech_act,"Which aspect of computer programming (history, location, reviews) is being referred to?",0.3056347
+computer programming,are you looking for nearby coding classes,speech_act_surgical,"Which aspect of computer programming: history, location, or reviews?",0.31670156
+What are the causes of lipoma tumors,are you referring to a medical condition for your pet,vanilla,What specific type of tumor are you referring to when asking about the causes of lipoma tumors?,0.2533019
+What are the causes of lipoma tumors,are you referring to a medical condition for your pet,speech_act,"Which aspect of lipoma tumors (medical cause, biological mechanism, or related condition) is being referred to?",0.29531187
+What are the causes of lipoma tumors,are you referring to a medical condition for your pet,speech_act_surgical,"Which aspect of lipoma: history, location, or reviews?",0.11194905
+How can I lower my heart rate?,do you have any medical conditions,vanilla,"What specific method or context do you prefer for lowering your heart rate (e.g., medical advice, exercise, lifestyle changes, etc.)?",0.11373472
+How can I lower my heart rate?,do you have any medical conditions,speech_act,"Which specific aspect of heart rate regulation, such as tachycardia, exercise, or stress, is being referred to?",0.1683101
+How can I lower my heart rate?,do you have any medical conditions,speech_act_surgical,"Which aspect of heart rate—exercise, medication, or lifestyle—should be targeted to lower it?",0.14454097
+how to build a fence,are you looking for companies to build a fence for you,vanilla,"What type of fence (e.g., wooden, concrete, metal, privacy, garden) are you planning to build?",0.687268
+how to build a fence,are you looking for companies to build a fence for you,speech_act,"Which aspect of the fence (type, location, materials, size) is unspecified?",0.5818217
+how to build a fence,are you looking for companies to build a fence for you,speech_act_surgical,Which type of fence is being referred to in the query?,0.60294634
+tell me about diversity,in what setting do you need to know more about diversity,vanilla,"What specific aspect of diversity are you interested in (e.g., cultural, gender, racial, etc.)?",0.76835376
+tell me about diversity,in what setting do you need to know more about diversity,speech_act,"Which aspect of diversity: history, location, reviews, or other subtopics?",0.7882559
+tell me about diversity,in what setting do you need to know more about diversity,speech_act_surgical,"Which aspect of diversity: history, location, or reviews?",0.79468143
+penguins,are you looking for some photos,vanilla,"Could you clarify which context or area you're referring to when you say ""penguins""?",0.13247102
+penguins,are you looking for some photos,speech_act,"Which aspect of penguins: history, location, or reviews?",0.20528936
+penguins,are you looking for some photos,speech_act_surgical,"Which aspect of penguins: species, habitat, or behavior?",0.16498569
+Who sings the song love lift us up where we belong?,"In which year: 1982, or 1984?",vanilla,"Who is the artist of the song ""Love Lift Us Up Where We Belong""?",0.09923201
+Who sings the song love lift us up where we belong?,"In which year: 1982, or 1984?",speech_act,Which version of 'Love Lift Us Up Where We Belong' is being referred to?,0.109118745
+Who sings the song love lift us up where we belong?,"In which year: 1982, or 1984?",speech_act_surgical,Which artist is credited with performing 'Love Lift Us Up' in the final round stance?,0.08840287

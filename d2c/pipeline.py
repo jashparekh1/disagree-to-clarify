@@ -63,6 +63,8 @@ def run_d2c(
         roles = [AgentRole.LOCUTIONARY_HYBRID, AgentRole.ILLOCUTIONARY_HYBRID, AgentRole.PERLOCUTIONARY_HYBRID]
     elif variant == "speech_act_surgical":
         roles = [AgentRole.LOCUTIONARY_SURGICAL, AgentRole.ILLOCUTIONARY_SURGICAL, AgentRole.PERLOCUTIONARY_SURGICAL]
+    elif variant == "info_gap":
+        roles = [AgentRole.WORD_MEANING, AgentRole.USER_GOAL, AgentRole.MISSING_DETAILS]
     else:
         roles = [AgentRole.LITERALIST, AgentRole.INTENT_SEEKER, AgentRole.SCOPE_EXPANDER]
         

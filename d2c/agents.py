@@ -33,6 +33,9 @@ from d2c.prompts import (
     LOCUTIONARY_SURGICAL_SYSTEM,
     ILLOCUTIONARY_SURGICAL_SYSTEM,
     PERLOCUTIONARY_SURGICAL_SYSTEM,
+    WORD_MEANING_SYSTEM,
+    USER_GOAL_SYSTEM,
+    MISSING_DETAILS_SYSTEM,
 )
 
 logger = logging.getLogger(__name__)
@@ -61,6 +64,9 @@ class AgentRole(Enum):
     LOCUTIONARY_SURGICAL = "locutionary_surgical"
     ILLOCUTIONARY_SURGICAL = "illocutionary_surgical"
     PERLOCUTIONARY_SURGICAL = "perlocutionary_surgical"
+    WORD_MEANING = "word_meaning"
+    USER_GOAL = "user_goal"
+    MISSING_DETAILS = "missing_details"
 
 
 class Stance(Enum):
@@ -87,6 +93,9 @@ _ROLE_TO_SYSTEM_PROMPT = {
     AgentRole.LOCUTIONARY_SURGICAL: LOCUTIONARY_SURGICAL_SYSTEM,
     AgentRole.ILLOCUTIONARY_SURGICAL: ILLOCUTIONARY_SURGICAL_SYSTEM,
     AgentRole.PERLOCUTIONARY_SURGICAL: PERLOCUTIONARY_SURGICAL_SYSTEM,
+    AgentRole.WORD_MEANING: WORD_MEANING_SYSTEM,
+    AgentRole.USER_GOAL: USER_GOAL_SYSTEM,
+    AgentRole.MISSING_DETAILS: MISSING_DETAILS_SYSTEM,
 }
 
 _ROLE_DISPLAY = {
@@ -108,6 +117,9 @@ _ROLE_DISPLAY = {
     AgentRole.LOCUTIONARY_SURGICAL: "Locutionary (Surgical)",
     AgentRole.ILLOCUTIONARY_SURGICAL: "Illocutionary (Surgical)",
     AgentRole.PERLOCUTIONARY_SURGICAL: "Perlocutionary (Surgical)",
+    AgentRole.WORD_MEANING: "Word Meaning Agent",
+    AgentRole.USER_GOAL: "User Goal Agent",
+    AgentRole.MISSING_DETAILS: "Missing Details Agent",
 }
 
 

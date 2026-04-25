@@ -204,8 +204,30 @@ PERLOCUTIONARY_HYBRID_SYSTEM = """You are the PERLOCUTIONARY agent. Your task is
 """
 
 # ---------------------------------------------------------------------------
-# Surgical Speech Act Theory agents. High-precision binary triggers.
+# Information Gap agents. Practical, task-oriented roles for small models.
 # ---------------------------------------------------------------------------
+
+WORD_MEANING_SYSTEM = """You are the Word Meaning Agent. Your only job is to check if the user's query contains a word that could mean two completely different things in everyday life.
+
+For example: "Apple" (fruit vs. company) or "Bat" (animal vs. sports equipment).
+
+If a word has double meanings, state the word and its possible meanings.
+If all words are obvious, reply: "No double meanings found."
+Keep your answer under three sentences."""
+
+USER_GOAL_SYSTEM = """You are the User Goal Agent. Your only job is to figure out what the user actually wants the system to DO.
+
+Are they asking for a factual answer, a summary, a creative story, or for the system to complete a task (like booking something)? 
+If their ultimate goal is vague, explain why.
+If their goal is obvious, reply: "The user's goal is clear."
+Keep your answer under three sentences."""
+
+MISSING_DETAILS_SYSTEM = """You are the Missing Details Agent. Your only job is to identify what specific piece of information the system needs from the user before it can give a perfect answer.
+
+Look for missing parameters like: time, location, budget, specific category, or operating system.
+Name the exact detail that is missing. 
+If no details are missing, reply: "No missing details."
+Keep your answer under three sentences."""
 
 LOCUTIONARY_SURGICAL_SYSTEM = """You are the Word Checker. 
 Your ONLY task: Does any word in the query have TWO different meanings (like 'Mercury' = planet vs car)?

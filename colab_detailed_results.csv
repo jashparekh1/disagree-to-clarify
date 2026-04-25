@@ -1,0 +1,301 @@
+ID,Variant,Judge,Score,Question
+1,vanilla,qwen3.5:4b,55,"What specific type of ""mothers day songs"" are you referring to (e.g., a list, a particular genre, or a specific event)?"
+1,vanilla,qwen2.5:7b,83,"What specific type of ""mothers day songs"" are you referring to (e.g., a list, a particular genre, or a specific event)?"
+1,speech_act,qwen3.5:4b,65,"Which aspect of mothers' day songs: genre, artist, popularity, or cultural context is unspecified?"
+1,speech_act,qwen2.5:7b,85,"Which aspect of mothers' day songs: genre, artist, popularity, or cultural context is unspecified?"
+1,speech_act_surgical,qwen3.5:4b,85,"Which aspect of Mother's Day songs is being referred to: celebration, tradition, or cultural significance?"
+1,speech_act_surgical,qwen2.5:7b,85,"Which aspect of Mother's Day songs is being referred to: celebration, tradition, or cultural significance?"
+2,vanilla,qwen3.5:4b,25,"Are you referring to the book ""The Secret Garden"" or the 2001 film adaptation?"
+2,vanilla,qwen2.5:7b,85,"Are you referring to the book ""The Secret Garden"" or the 2001 film adaptation?"
+2,speech_act,qwen3.5:4b,75,"Which aspect of 'The Secret Garden' are you interested in—plot, characters, themes, or summary?"
+2,speech_act,qwen2.5:7b,85,"Which aspect of 'The Secret Garden' are you interested in—plot, characters, themes, or summary?"
+2,speech_act_surgical,qwen3.5:4b,55,"Which aspect of 'The Secret Garden' is being referred to: plot, themes, or author?"
+2,speech_act_surgical,qwen2.5:7b,85,"Which aspect of 'The Secret Garden' is being referred to: plot, themes, or author?"
+3,vanilla,qwen3.5:4b,65,Could you specify the context or area you're referring to when discussing the 'civil right movement'?
+3,vanilla,qwen2.5:7b,85,Could you specify the context or area you're referring to when discussing the 'civil right movement'?
+3,speech_act,qwen3.5:4b,10,"Which aspect of the civil right movement is being referred to—history, location, reviews, or a particular event?"
+3,speech_act,qwen2.5:7b,85,"Which aspect of the civil right movement is being referred to—history, location, reviews, or a particular event?"
+3,speech_act_surgical,qwen3.5:4b,85,"Which specific aspect of the civil right movement is being referred to—historical context, key events, or ongoing efforts?"
+3,speech_act_surgical,qwen2.5:7b,85,"Which specific aspect of the civil right movement is being referred to—historical context, key events, or ongoing efforts?"
+4,vanilla,qwen3.5:4b,0,Which cut of pork are you referring to?
+4,vanilla,qwen2.5:7b,50,Which cut of pork are you referring to?
+4,speech_act,qwen3.5:4b,85,"Which specific aspect of pork tenderloin (e.g., cooking method, seasoning, recipe type) is desired?"
+4,speech_act,qwen2.5:7b,85,"Which specific aspect of pork tenderloin (e.g., cooking method, seasoning, recipe type) is desired?"
+4,speech_act_surgical,qwen3.5:4b,15,"Which aspect of pork tenderloin: history, location, or reviews?"
+4,speech_act_surgical,qwen2.5:7b,51,"Which aspect of pork tenderloin: history, location, or reviews?"
+5,vanilla,qwen3.5:4b,85,What factors are most important to you when choosing long-term care insurance?
+5,vanilla,qwen2.5:7b,85,What factors are most important to you when choosing long-term care insurance?
+5,speech_act,qwen3.5:4b,92,"Which aspect of long-term care insurance—coverage types, providers, geographic location, or particular benefits—is being referred to?"
+5,speech_act,qwen2.5:7b,85,"Which aspect of long-term care insurance—coverage types, providers, geographic location, or particular benefits—is being referred to?"
+5,speech_act_surgical,qwen3.5:4b,0,Which aspect of long-term care insurance is missing from the query?
+5,speech_act_surgical,qwen2.5:7b,85,Which aspect of long-term care insurance is missing from the query?
+6,vanilla,qwen3.5:4b,85,Which specific version of the Last Supper painting are you referring to?
+6,vanilla,qwen2.5:7b,51,Which specific version of the Last Supper painting are you referring to?
+6,speech_act,qwen3.5:4b,20,"Which aspect of the Last Supper painting—history, location, or reviews—is being referred to?"
+6,speech_act,qwen2.5:7b,85,"Which aspect of the Last Supper painting—history, location, or reviews—is being referred to?"
+6,speech_act_surgical,qwen3.5:4b,95,"Which aspect of the Last Supper painting—style, subject, or historical context—is being referred to?"
+6,speech_act_surgical,qwen2.5:7b,85,"Which aspect of the Last Supper painting—style, subject, or historical context—is being referred to?"
+7,vanilla,qwen3.5:4b,85,What specific information are you looking for regarding the blue throated hummingbird?
+7,vanilla,qwen2.5:7b,85,What specific information are you looking for regarding the blue throated hummingbird?
+7,speech_act,qwen3.5:4b,20,"Which aspect of the blue-throated hummingbird is the user interested in? (options: biology, habitat, behavior, conservation)"
+7,speech_act,qwen2.5:7b,85,"Which aspect of the blue-throated hummingbird is the user interested in? (options: biology, habitat, behavior, conservation)"
+7,speech_act_surgical,qwen3.5:4b,10,Which definition of 'blue-throated' is being used in the context of the hummingbird?
+7,speech_act_surgical,qwen2.5:7b,85,Which definition of 'blue-throated' is being used in the context of the hummingbird?
+8,vanilla,qwen3.5:4b,20,Could you clarify what a 403b refers to in your context?
+8,vanilla,qwen2.5:7b,85,Could you clarify what a 403b refers to in your context?
+8,speech_act,qwen3.5:4b,85,"Which aspect of 403(b): history, location, or purpose is specifically unclear?"
+8,speech_act,qwen2.5:7b,85,"Which aspect of 403(b): history, location, or purpose is specifically unclear?"
+8,speech_act_surgical,qwen3.5:4b,5,"Which aspect of 403b: history, location, or reviews?"
+8,speech_act_surgical,qwen2.5:7b,51,"Which aspect of 403b: history, location, or reviews?"
+9,vanilla,qwen3.5:4b,55,What specific location or tributary are you referring to when asking about the source of the Nile?
+9,vanilla,qwen2.5:7b,85,What specific location or tributary are you referring to when asking about the source of the Nile?
+9,speech_act,qwen3.5:4b,85,"Which specific part of the Nile's source is being referred to—White Nile, Lake Victoria, or the exact location?"
+9,speech_act,qwen2.5:7b,85,"Which specific part of the Nile's source is being referred to—White Nile, Lake Victoria, or the exact location?"
+9,speech_act_surgical,qwen3.5:4b,55,Which specific location within the Ethiopian Highlands is being referred to as the source of the Nile River?
+9,speech_act_surgical,qwen2.5:7b,85,Which specific location within the Ethiopian Highlands is being referred to as the source of the Nile River?
+10,vanilla,qwen3.5:4b,85,"Could you clarify what aspect of weather stripping you're interested in? (e.g., materials, applications, manufacturers, or specific techniques)"
+10,vanilla,qwen2.5:7b,85,"Could you clarify what aspect of weather stripping you're interested in? (e.g., materials, applications, manufacturers, or specific techniques)"
+10,speech_act,qwen3.5:4b,85,"Which aspect of weather stripping: history, application, benefits, or types?"
+10,speech_act,qwen2.5:7b,51,"Which aspect of weather stripping: history, application, benefits, or types?"
+10,speech_act_surgical,qwen3.5:4b,35,"Which aspect of weather stripping: material, application, or purpose is missing?"
+10,speech_act_surgical,qwen2.5:7b,85,"Which aspect of weather stripping: material, application, or purpose is missing?"
+11,vanilla,qwen3.5:4b,95,What specific information would you like to know about Culpeper National Cemetery?
+11,vanilla,qwen2.5:7b,85,What specific information would you like to know about Culpeper National Cemetery?
+11,speech_act,qwen3.5:4b,45,"Which aspect of Culpeper National Cemetery: history, location, or reviews?"
+11,speech_act,qwen2.5:7b,65,"Which aspect of Culpeper National Cemetery: history, location, or reviews?"
+11,speech_act_surgical,qwen3.5:4b,35,"Which aspect of Culpeper National Cemetery: history, location, or reviews?"
+11,speech_act_surgical,qwen2.5:7b,55,"Which aspect of Culpeper National Cemetery: history, location, or reviews?"
+12,vanilla,qwen3.5:4b,85,What specific aspect of preparing for the GMAT are you looking to focus on?
+12,vanilla,qwen2.5:7b,85,What specific aspect of preparing for the GMAT are you looking to focus on?
+12,speech_act,qwen3.5:4b,55,Which study method or resource should be used for GMAT preparation?
+12,speech_act,qwen2.5:7b,85,Which study method or resource should be used for GMAT preparation?
+12,speech_act_surgical,qwen3.5:4b,85,"Which specific aspect of GMAT preparation—study plan, resources, or practice tests—is being referred to?"
+12,speech_act_surgical,qwen2.5:7b,85,"Which specific aspect of GMAT preparation—study plan, resources, or practice tests—is being referred to?"
+13,vanilla,qwen3.5:4b,55,"What are you referring to when you say ""the secret garden""? (Option: Book or actual garden)"
+13,vanilla,qwen2.5:7b,85,"What are you referring to when you say ""the secret garden""? (Option: Book or actual garden)"
+13,speech_act,qwen3.5:4b,85,"Which aspect of 'The Secret Garden' are you interested in—plot, characters, themes, or reviews?"
+13,speech_act,qwen2.5:7b,85,"Which aspect of 'The Secret Garden' are you interested in—plot, characters, themes, or reviews?"
+13,speech_act_surgical,qwen3.5:4b,10,"Which aspect of 'The Secret Garden' is being referred to: plot, characters, or themes?"
+13,speech_act_surgical,qwen2.5:7b,83,"Which aspect of 'The Secret Garden' is being referred to: plot, characters, or themes?"
+14,vanilla,qwen3.5:4b,85,What specific aspects of septic system design are you looking to understand?
+14,vanilla,qwen2.5:7b,85,What specific aspects of septic system design are you looking to understand?
+14,speech_act,qwen3.5:4b,55,"Which specific aspect of septic system design—location, size, or maintenance—is being referred to?"
+14,speech_act,qwen2.5:7b,85,"Which specific aspect of septic system design—location, size, or maintenance—is being referred to?"
+14,speech_act_surgical,qwen3.5:4b,25,Which type of septic system design should be used?
+14,speech_act_surgical,qwen2.5:7b,85,Which type of septic system design should be used?
+15,vanilla,qwen3.5:4b,85,"Are you referring to the French Lick Resort and Casino in Pennsylvania, or another location? And would you like information about the resort and casino separately or together?"
+15,vanilla,qwen2.5:7b,85,"Are you referring to the French Lick Resort and Casino in Pennsylvania, or another location? And would you like information about the resort and casino separately or together?"
+15,speech_act,qwen3.5:4b,25,"Which aspect of French Lick Resort and Casino: history, location, reviews, or operating hours?"
+15,speech_act,qwen2.5:7b,85,"Which aspect of French Lick Resort and Casino: history, location, reviews, or operating hours?"
+15,speech_act_surgical,qwen3.5:4b,10,"Which aspect of French Lick Resort and Casino: history, location, or reviews?"
+15,speech_act_surgical,qwen2.5:7b,85,"Which aspect of French Lick Resort and Casino: history, location, or reviews?"
+16,vanilla,qwen3.5:4b,85,Could you clarify what specific aspect of Volvo you are interested in?
+16,vanilla,qwen2.5:7b,85,Could you clarify what specific aspect of Volvo you are interested in?
+16,speech_act,qwen3.5:4b,55,"Which aspect of Volvo: history, location, or reviews?"
+16,speech_act,qwen2.5:7b,51,"Which aspect of Volvo: history, location, or reviews?"
+16,speech_act_surgical,qwen3.5:4b,65,"Which aspect of Volvo: history, location, or reviews?"
+16,speech_act_surgical,qwen2.5:7b,51,"Which aspect of Volvo: history, location, or reviews?"
+17,vanilla,qwen3.5:4b,65,Could you clarify what aspect of diversity you're interested in?
+17,vanilla,qwen2.5:7b,85,Could you clarify what aspect of diversity you're interested in?
+17,speech_act,qwen3.5:4b,55,"Which aspect of diversity: history, location, reviews, or other subtopics?"
+17,speech_act,qwen2.5:7b,85,"Which aspect of diversity: history, location, reviews, or other subtopics?"
+17,speech_act_surgical,qwen3.5:4b,85,"Which aspect of diversity: history, location, or reviews?"
+17,speech_act_surgical,qwen2.5:7b,51,"Which aspect of diversity: history, location, or reviews?"
+18,vanilla,qwen3.5:4b,25,What are you looking for? (Are you seeking the signs of a heartattack or the medical condition itself?)
+18,vanilla,qwen2.5:7b,85,What are you looking for? (Are you seeking the signs of a heartattack or the medical condition itself?)
+18,speech_act,qwen3.5:4b,10,"Which aspect of heart attack signs—symptoms, causes, prevention, or treatment—is the user interested in?"
+18,speech_act,qwen2.5:7b,85,"Which aspect of heart attack signs—symptoms, causes, prevention, or treatment—is the user interested in?"
+18,speech_act_surgical,qwen3.5:4b,0,Which definition of 'signs' is being referred to in the context of a heart attack?
+18,speech_act_surgical,qwen2.5:7b,85,Which definition of 'signs' is being referred to in the context of a heart attack?
+19,vanilla,qwen3.5:4b,92,"What exactly do you mean by ""change the toilet in the house""? (e.g., replace it, adjust its position, or modify it?)"
+19,vanilla,qwen2.5:7b,85,"What exactly do you mean by ""change the toilet in the house""? (e.g., replace it, adjust its position, or modify it?)"
+19,speech_act,qwen3.5:4b,55,"Which specific aspect of the toilet (e.g., seat, toilet itself, room) is being referred to?"
+19,speech_act,qwen2.5:7b,85,"Which specific aspect of the toilet (e.g., seat, toilet itself, room) is being referred to?"
+19,speech_act_surgical,qwen3.5:4b,25,Which type of toilet (bathroom or furniture) are you referring to?
+19,speech_act_surgical,qwen2.5:7b,85,Which type of toilet (bathroom or furniture) are you referring to?
+20,vanilla,qwen3.5:4b,85,"Could you clarify which context you're referring to when you say ""pampered chef""?"
+20,vanilla,qwen2.5:7b,85,"Could you clarify which context you're referring to when you say ""pampered chef""?"
+20,speech_act,qwen3.5:4b,85,"Which aspect of Pampered Chef: history, location, reviews, products, or services?"
+20,speech_act,qwen2.5:7b,85,"Which aspect of Pampered Chef: history, location, reviews, products, or services?"
+20,speech_act_surgical,qwen3.5:4b,65,"Which aspect of Pampered Chef: history, location, or reviews?"
+20,speech_act_surgical,qwen2.5:7b,55,"Which aspect of Pampered Chef: history, location, or reviews?"
+21,vanilla,qwen3.5:4b,85,Please specify if you mean the plastic material or a specific product.
+21,vanilla,qwen2.5:7b,85,Please specify if you mean the plastic material or a specific product.
+21,speech_act,qwen3.5:4b,45,"Which aspect of PVC: material, product, or parameter is being referred to?"
+21,speech_act,qwen2.5:7b,51,"Which aspect of PVC: material, product, or parameter is being referred to?"
+21,speech_act_surgical,qwen3.5:4b,15,"Which aspect of PVC: history, location, or reviews?"
+21,speech_act_surgical,qwen2.5:7b,51,"Which aspect of PVC: history, location, or reviews?"
+22,vanilla,qwen3.5:4b,85,What are you looking for—hotel listings in New York City or a hotel named New York?
+22,vanilla,qwen2.5:7b,85,What are you looking for—hotel listings in New York City or a hotel named New York?
+22,speech_act,qwen3.5:4b,10,"Which aspect of New York hotels: history, location, or reviews?"
+22,speech_act,qwen2.5:7b,75,"Which aspect of New York hotels: history, location, or reviews?"
+22,speech_act_surgical,qwen3.5:4b,10,Which type of hotel is being referred to in the query?
+22,speech_act_surgical,qwen2.5:7b,51,Which type of hotel is being referred to in the query?
+23,vanilla,qwen3.5:4b,25,"What specific type of scooters are you referring to? (e.g., electric, sport, urban, etc.)"
+23,vanilla,qwen2.5:7b,85,"What specific type of scooters are you referring to? (e.g., electric, sport, urban, etc.)"
+23,speech_act,qwen3.5:4b,55,"Which aspect of scooters (history, types, uses, safety, regulations) would you like to explore?"
+23,speech_act,qwen2.5:7b,85,"Which aspect of scooters (history, types, uses, safety, regulations) would you like to explore?"
+23,speech_act_surgical,qwen3.5:4b,55,"Which aspect of scooters: history, location, or reviews?"
+23,speech_act_surgical,qwen2.5:7b,51,"Which aspect of scooters: history, location, or reviews?"
+24,vanilla,qwen3.5:4b,55,"Could you clarify if you're looking for information on Hoboken as a city, a person, or another entity?"
+24,vanilla,qwen2.5:7b,85,"Could you clarify if you're looking for information on Hoboken as a city, a person, or another entity?"
+24,speech_act,qwen3.5:4b,85,"Which aspect of Hoboken: history, location, or reviews?"
+24,speech_act,qwen2.5:7b,51,"Which aspect of Hoboken: history, location, or reviews?"
+24,speech_act_surgical,qwen3.5:4b,85,"Which aspect of Hoboken: history, location, or reviews?"
+24,speech_act_surgical,qwen2.5:7b,85,"Which aspect of Hoboken: history, location, or reviews?"
+25,vanilla,qwen3.5:4b,55,What specific aspect of memory are you interested in?
+25,vanilla,qwen2.5:7b,85,What specific aspect of memory are you interested in?
+25,speech_act,qwen3.5:4b,85,"Which aspect of memory: cognitive, historical, or specific type?"
+25,speech_act,qwen2.5:7b,51,"Which aspect of memory: cognitive, historical, or specific type?"
+25,speech_act_surgical,qwen3.5:4b,85,"Which aspect of memory: definition, function, or example?"
+25,speech_act_surgical,qwen2.5:7b,51,"Which aspect of memory: definition, function, or example?"
+26,vanilla,qwen3.5:4b,85,"What specific context or application are you referring to when discussing ""rock art""? (e.g., prehistoric art, rock carvings, geological formations, etc.)"
+26,vanilla,qwen2.5:7b,85,"What specific context or application are you referring to when discussing ""rock art""? (e.g., prehistoric art, rock carvings, geological formations, etc.)"
+26,speech_act,qwen3.5:4b,92,"Which aspect of rock art: history, location, reviews, or a particular type?"
+26,speech_act,qwen2.5:7b,85,"Which aspect of rock art: history, location, reviews, or a particular type?"
+26,speech_act_surgical,qwen3.5:4b,25,"Which aspect of rock art: type, location, or technique is unspecified?"
+26,speech_act_surgical,qwen2.5:7b,85,"Which aspect of rock art: type, location, or technique is unspecified?"
+27,vanilla,qwen3.5:4b,45,"Could you confirm if you're referring to the Mayo Clinic in Jacksonville, FL, or another location?"
+27,vanilla,qwen2.5:7b,85,"Could you confirm if you're referring to the Mayo Clinic in Jacksonville, FL, or another location?"
+27,speech_act,qwen3.5:4b,85,"Which specific aspect of the Mayo Clinic in Jacksonville, FL is being requested?"
+27,speech_act,qwen2.5:7b,51,"Which specific aspect of the Mayo Clinic in Jacksonville, FL is being requested?"
+27,speech_act_surgical,qwen3.5:4b,65,"Which aspect of Mayo Clinic Jacksonville FL: location, type, or service?"
+27,speech_act_surgical,qwen2.5:7b,83,"Which aspect of Mayo Clinic Jacksonville FL: location, type, or service?"
+28,vanilla,qwen3.5:4b,85,Which Titan are you referring to?
+28,vanilla,qwen2.5:7b,85,Which Titan are you referring to?
+28,speech_act,qwen3.5:4b,51,"Which aspect of Titan: history, location, or reviews?"
+28,speech_act,qwen2.5:7b,51,"Which aspect of Titan: history, location, or reviews?"
+28,speech_act_surgical,qwen3.5:4b,55,"Which aspect of Titan: geography, atmosphere, or mission details?"
+28,speech_act_surgical,qwen2.5:7b,85,"Which aspect of Titan: geography, atmosphere, or mission details?"
+29,vanilla,qwen3.5:4b,85,"Who is ""he"" in the sentence?"
+29,vanilla,qwen2.5:7b,85,"Who is ""he"" in the sentence?"
+29,speech_act,qwen3.5:4b,10,Which agent's stance_reason indicates that the subject of the action is still ambiguous?
+29,speech_act,qwen2.5:7b,83,Which agent's stance_reason indicates that the subject of the action is still ambiguous?
+29,speech_act_surgical,qwen3.5:4b,25,Which definition of 'spooked' was used in Matthew's statement?
+29,speech_act_surgical,qwen2.5:7b,85,Which definition of 'spooked' was used in Matthew's statement?
+30,vanilla,qwen3.5:4b,51,"What context is the phrase ""flushing"" referring to?"
+30,vanilla,qwen2.5:7b,85,"What context is the phrase ""flushing"" referring to?"
+30,speech_act,qwen3.5:4b,85,"Which aspect of flushing (health, environment, technology) is being referred to?"
+30,speech_act,qwen2.5:7b,85,"Which aspect of flushing (health, environment, technology) is being referred to?"
+30,speech_act_surgical,qwen3.5:4b,0,Which type of car is being referred to in the query?
+30,speech_act_surgical,qwen2.5:7b,0,Which type of car is being referred to in the query?
+31,vanilla,qwen3.5:4b,85,"Is ""Fickle Creek Farm"" a real place or a fictional creation? If it's real, where is it located?"
+31,vanilla,qwen2.5:7b,85,"Is ""Fickle Creek Farm"" a real place or a fictional creation? If it's real, where is it located?"
+31,speech_act,qwen3.5:4b,42,"Which aspect of Fickle Creek Farm is being referred to—operations, sustainability, or location?"
+31,speech_act,qwen2.5:7b,85,"Which aspect of Fickle Creek Farm is being referred to—operations, sustainability, or location?"
+31,speech_act_surgical,qwen3.5:4b,92,"Which aspect of Fickle Creek Farm is being referred to: location, description, or purpose?"
+31,speech_act_surgical,qwen2.5:7b,85,"Which aspect of Fickle Creek Farm is being referred to: location, description, or purpose?"
+32,vanilla,qwen3.5:4b,85,What type of diabetes education information do you need?
+32,vanilla,qwen2.5:7b,85,What type of diabetes education information do you need?
+32,speech_act,qwen3.5:4b,25,"Which aspect of diabetes education: history, location, or reviews?"
+32,speech_act,qwen2.5:7b,65,"Which aspect of diabetes education: history, location, or reviews?"
+32,speech_act_surgical,qwen3.5:4b,25,"Which aspect of diabetes education: history, location, or reviews?"
+32,speech_act_surgical,qwen2.5:7b,51,"Which aspect of diabetes education: history, location, or reviews?"
+33,vanilla,qwen3.5:4b,25,What type of furniture or arrangement do you prefer for small spaces?
+33,vanilla,qwen2.5:7b,51,What type of furniture or arrangement do you prefer for small spaces?
+33,speech_act,qwen3.5:4b,85,"Which aspect of furniture for small spaces (e.g., storage, seating, layout) is being referred to?"
+33,speech_act,qwen2.5:7b,51,"Which aspect of furniture for small spaces (e.g., storage, seating, layout) is being referred to?"
+33,speech_act_surgical,qwen3.5:4b,55,Which type of furniture is being referred to in the query?
+33,speech_act_surgical,qwen2.5:7b,51,Which type of furniture is being referred to in the query?
+34,vanilla,qwen3.5:4b,85,"What would you like to know about Bowflex Power Pro—specifically about the product itself, the company, or its features?"
+34,vanilla,qwen2.5:7b,85,"What would you like to know about Bowflex Power Pro—specifically about the product itself, the company, or its features?"
+34,speech_act,qwen3.5:4b,95,"Which aspect of Bowflex Power Pro (e.g., history, features, reviews, price, etc.) is being requested?"
+34,speech_act,qwen2.5:7b,85,"Which aspect of Bowflex Power Pro (e.g., history, features, reviews, price, etc.) is being requested?"
+34,speech_act_surgical,qwen3.5:4b,100,"Which aspect of Bowflex Power Pro: product type, features, or pricing?"
+34,speech_act_surgical,qwen2.5:7b,85,"Which aspect of Bowflex Power Pro: product type, features, or pricing?"
+35,vanilla,qwen3.5:4b,10,"Is ""brooks brothers clearance"" referring to two people needing clearance or a document for two people?"
+35,vanilla,qwen2.5:7b,21,"Is ""brooks brothers clearance"" referring to two people needing clearance or a document for two people?"
+35,speech_act,qwen3.5:4b,85,"Which specific parameter of Brooks Brothers clearance are you referring to—location, product type, or time frame?"
+35,speech_act,qwen2.5:7b,85,"Which specific parameter of Brooks Brothers clearance are you referring to—location, product type, or time frame?"
+35,speech_act_surgical,qwen3.5:4b,25,Which aspect of Brooks Brothers clearance is being requested?
+35,speech_act_surgical,qwen2.5:7b,51,Which aspect of Brooks Brothers clearance is being requested?
+36,vanilla,qwen3.5:4b,85,"Could you clarify what type of information you're looking for about diabetes education? (e.g., prevention, management, resources, courses, etc.)"
+36,vanilla,qwen2.5:7b,85,"Could you clarify what type of information you're looking for about diabetes education? (e.g., prevention, management, resources, courses, etc.)"
+36,speech_act,qwen3.5:4b,55,"Which aspect of diabetes education: history, location, or reviews?"
+36,speech_act,qwen2.5:7b,51,"Which aspect of diabetes education: history, location, or reviews?"
+36,speech_act_surgical,qwen3.5:4b,20,"Which aspect of diabetes education: history, location, or reviews?"
+36,speech_act_surgical,qwen2.5:7b,85,"Which aspect of diabetes education: history, location, or reviews?"
+37,vanilla,qwen3.5:4b,20,Are you referring to pork tenderloin or pork loin?
+37,vanilla,qwen2.5:7b,85,Are you referring to pork tenderloin or pork loin?
+37,speech_act,qwen3.5:4b,85,"Which specific aspect of pork tenderloin (e.g., cooking method, seasoning, serving suggestion) is being asked for?"
+37,speech_act,qwen2.5:7b,85,"Which specific aspect of pork tenderloin (e.g., cooking method, seasoning, serving suggestion) is being asked for?"
+37,speech_act_surgical,qwen3.5:4b,55,Which cooking method should be used for pork tenderloin?
+37,speech_act_surgical,qwen2.5:7b,85,Which cooking method should be used for pork tenderloin?
+38,vanilla,qwen3.5:4b,92,"Could you clarify what type of information you're seeking about tornadoes? (e.g., weather forecasts, historical data, safety tips, scientific explanations, etc.)"
+38,vanilla,qwen2.5:7b,85,"Could you clarify what type of information you're seeking about tornadoes? (e.g., weather forecasts, historical data, safety tips, scientific explanations, etc.)"
+38,speech_act,qwen3.5:4b,85,"Which aspect of tornadoes: history, location, reviews, or parameters is unspecified?"
+38,speech_act,qwen2.5:7b,85,"Which aspect of tornadoes: history, location, reviews, or parameters is unspecified?"
+38,speech_act_surgical,qwen3.5:4b,25,Which type of tornado should be included in the information?
+38,speech_act_surgical,qwen2.5:7b,51,Which type of tornado should be included in the information?
+39,vanilla,qwen3.5:4b,65,Are you referring to a regular tenderloin or a pork tenderloin?
+39,vanilla,qwen2.5:7b,85,Are you referring to a regular tenderloin or a pork tenderloin?
+39,speech_act,qwen3.5:4b,25,"Which aspect of pork tenderloin: history, location, or reviews?"
+39,speech_act,qwen2.5:7b,50,"Which aspect of pork tenderloin: history, location, or reviews?"
+39,speech_act_surgical,qwen3.5:4b,0,Which type of car is being referred to in the detail missing?
+39,speech_act_surgical,qwen2.5:7b,0,Which type of car is being referred to in the detail missing?
+40,vanilla,qwen3.5:4b,85,"What specific aspect of septic system design are you referring to (e.g., installation, maintenance, regulatory requirements, or materials)?"
+40,vanilla,qwen2.5:7b,85,"What specific aspect of septic system design are you referring to (e.g., installation, maintenance, regulatory requirements, or materials)?"
+40,speech_act,qwen3.5:4b,25,"Which aspect of septic system design—location, size, or type—is unspecified?"
+40,speech_act,qwen2.5:7b,85,"Which aspect of septic system design—location, size, or type—is unspecified?"
+40,speech_act_surgical,qwen3.5:4b,25,Which type of septic system design should be used?
+40,speech_act_surgical,qwen2.5:7b,51,Which type of septic system design should be used?
+41,vanilla,qwen3.5:4b,85,"Could you clarify whether ""Madam"" refers to a title or a different name, and provide more details about the context you're interested in?"
+41,vanilla,qwen2.5:7b,85,"Could you clarify whether ""Madam"" refers to a title or a different name, and provide more details about the context you're interested in?"
+41,speech_act,qwen3.5:4b,51,"Which aspect of Madam C.J. Walker: history, contributions, or legacy?"
+41,speech_act,qwen2.5:7b,85,"Which aspect of Madam C.J. Walker: history, contributions, or legacy?"
+41,speech_act_surgical,qwen3.5:4b,51,"Which aspect of Madam C.J. Walker: history, location, or reviews?"
+41,speech_act_surgical,qwen2.5:7b,65,"Which aspect of Madam C.J. Walker: history, location, or reviews?"
+42,vanilla,qwen3.5:4b,85,"What specific context or scenario are you referring to when asking about ""flushing""?"
+42,vanilla,qwen2.5:7b,85,"What specific context or scenario are you referring to when asking about ""flushing""?"
+42,speech_act,qwen3.5:4b,10,"Which aspect of flushing—process, function, or example—is being requested?"
+42,speech_act,qwen2.5:7b,85,"Which aspect of flushing—process, function, or example—is being requested?"
+42,speech_act_surgical,qwen3.5:4b,65,"Which aspect of flushing: definition, method, or common cause?"
+42,speech_act_surgical,qwen2.5:7b,50,"Which aspect of flushing: definition, method, or common cause?"
+43,vanilla,qwen3.5:4b,85,"Would you like to know about the educational advantages of social networking sites in general, or specific aspects like academic resources, professional development, or collaborative learning tools?"
+43,vanilla,qwen2.5:7b,85,"Would you like to know about the educational advantages of social networking sites in general, or specific aspects like academic resources, professional development, or collaborative learning tools?"
+43,speech_act,qwen3.5:4b,25,"Which specific educational platform, subject, or age group is being referred to?"
+43,speech_act,qwen2.5:7b,85,"Which specific educational platform, subject, or age group is being referred to?"
+43,speech_act_surgical,qwen3.5:4b,85,"Which aspect of social networking sites—learning resources, collaborative learning, or skill development—is being referred to in the query?"
+43,speech_act_surgical,qwen2.5:7b,83,"Which aspect of social networking sites—learning resources, collaborative learning, or skill development—is being referred to in the query?"
+44,vanilla,qwen3.5:4b,25,Are you referring to the practice of writing code or a specific area within computer science?
+44,vanilla,qwen2.5:7b,85,Are you referring to the practice of writing code or a specific area within computer science?
+44,speech_act,qwen3.5:4b,35,"Which aspect of computer programming (history, location, reviews) is being referred to?"
+44,speech_act,qwen2.5:7b,85,"Which aspect of computer programming (history, location, reviews) is being referred to?"
+44,speech_act_surgical,qwen3.5:4b,85,"Which aspect of computer programming: history, location, or reviews?"
+44,speech_act_surgical,qwen2.5:7b,85,"Which aspect of computer programming: history, location, or reviews?"
+45,vanilla,qwen3.5:4b,85,What specific type of tumor are you referring to when asking about the causes of lipoma tumors?
+45,vanilla,qwen2.5:7b,85,What specific type of tumor are you referring to when asking about the causes of lipoma tumors?
+45,speech_act,qwen3.5:4b,85,"Which aspect of lipoma tumors (medical cause, biological mechanism, or related condition) is being referred to?"
+45,speech_act,qwen2.5:7b,85,"Which aspect of lipoma tumors (medical cause, biological mechanism, or related condition) is being referred to?"
+45,speech_act_surgical,qwen3.5:4b,15,"Which aspect of lipoma: history, location, or reviews?"
+45,speech_act_surgical,qwen2.5:7b,51,"Which aspect of lipoma: history, location, or reviews?"
+46,vanilla,qwen3.5:4b,85,"What specific method or context do you prefer for lowering your heart rate (e.g., medical advice, exercise, lifestyle changes, etc.)?"
+46,vanilla,qwen2.5:7b,85,"What specific method or context do you prefer for lowering your heart rate (e.g., medical advice, exercise, lifestyle changes, etc.)?"
+46,speech_act,qwen3.5:4b,85,"Which specific aspect of heart rate regulation, such as tachycardia, exercise, or stress, is being referred to?"
+46,speech_act,qwen2.5:7b,85,"Which specific aspect of heart rate regulation, such as tachycardia, exercise, or stress, is being referred to?"
+46,speech_act_surgical,qwen3.5:4b,10,"Which aspect of heart rate—exercise, medication, or lifestyle—should be targeted to lower it?"
+46,speech_act_surgical,qwen2.5:7b,85,"Which aspect of heart rate—exercise, medication, or lifestyle—should be targeted to lower it?"
+47,vanilla,qwen3.5:4b,55,"What type of fence (e.g., wooden, concrete, metal, privacy, garden) are you planning to build?"
+47,vanilla,qwen2.5:7b,85,"What type of fence (e.g., wooden, concrete, metal, privacy, garden) are you planning to build?"
+47,speech_act,qwen3.5:4b,20,"Which aspect of the fence (type, location, materials, size) is unspecified?"
+47,speech_act,qwen2.5:7b,85,"Which aspect of the fence (type, location, materials, size) is unspecified?"
+47,speech_act_surgical,qwen3.5:4b,55,Which type of fence is being referred to in the query?
+47,speech_act_surgical,qwen2.5:7b,51,Which type of fence is being referred to in the query?
+48,vanilla,qwen3.5:4b,85,"What specific aspect of diversity are you interested in (e.g., cultural, gender, racial, etc.)?"
+48,vanilla,qwen2.5:7b,85,"What specific aspect of diversity are you interested in (e.g., cultural, gender, racial, etc.)?"
+48,speech_act,qwen3.5:4b,55,"Which aspect of diversity: history, location, reviews, or other subtopics?"
+48,speech_act,qwen2.5:7b,51,"Which aspect of diversity: history, location, reviews, or other subtopics?"
+48,speech_act_surgical,qwen3.5:4b,55,"Which aspect of diversity: history, location, or reviews?"
+48,speech_act_surgical,qwen2.5:7b,51,"Which aspect of diversity: history, location, or reviews?"
+49,vanilla,qwen3.5:4b,55,"Could you clarify which context or area you're referring to when you say ""penguins""?"
+49,vanilla,qwen2.5:7b,85,"Could you clarify which context or area you're referring to when you say ""penguins""?"
+49,speech_act,qwen3.5:4b,0,"Which aspect of penguins: history, location, or reviews?"
+49,speech_act,qwen2.5:7b,85,"Which aspect of penguins: history, location, or reviews?"
+49,speech_act_surgical,qwen3.5:4b,51,"Which aspect of penguins: species, habitat, or behavior?"
+49,speech_act_surgical,qwen2.5:7b,85,"Which aspect of penguins: species, habitat, or behavior?"
+50,vanilla,qwen3.5:4b,65,"Who is the artist of the song ""Love Lift Us Up Where We Belong""?"
+50,vanilla,qwen2.5:7b,85,"Who is the artist of the song ""Love Lift Us Up Where We Belong""?"
+50,speech_act,qwen3.5:4b,25,Which version of 'Love Lift Us Up Where We Belong' is being referred to?
+50,speech_act,qwen2.5:7b,53,Which version of 'Love Lift Us Up Where We Belong' is being referred to?
+50,speech_act_surgical,qwen3.5:4b,20,Which artist is credited with performing 'Love Lift Us Up' in the final round stance?
+50,speech_act_surgical,qwen2.5:7b,53,Which artist is credited with performing 'Love Lift Us Up' in the final round stance?
