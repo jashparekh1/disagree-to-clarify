@@ -18,7 +18,7 @@ Grounding in the Clark sense (Clark & Brennan 1991; Clark 1996) is the anchoring
 ### Prerequisites
 
 - Python >= 3.10
-- [Ollama](https://ollama.com) installed locally
+- [Ollama](https://ollama.com) installed locally **or** a vLLM server running on an OpenAI-compatible endpoint
 - [uv](https://github.com/astral-sh/uv) (recommended) or pip
 
 ### Installation
@@ -32,14 +32,30 @@ cd disagree-to-clarify
 uv venv .venv
 source .venv/bin/activate
 uv pip install -r requirements.txt
+```
 
-# 3. Start Ollama (in a separate terminal)
+### Backend: Ollama (default)
+
+```bash
+# Start Ollama
 brew install ollama   # if not already installed
 ollama serve
 
-# 4. Pull a model
+# Pull a model
 ollama pull qwen3:4b
 ```
+
+### Backend: vLLM (OpenAI-compatible)
+
+```bash
+# Start a vLLM server (example)
+vllm serve Qwen/Qwen3-4B --port 8000
+
+# Pass --backend openai and the HuggingFace model ID to all scripts
+python -m scripts.run_demo "..." --backend openai --model Qwen/Qwen3-4B --no-think
+```
+
+> **Note on `--no-think`**: Qwen3 models default to thinking mode. When running on vLLM, pass `--no-think` to disable `<think>` token generation — otherwise agents output empty JSON. Ollama handles this automatically via its `think` field.
 
 ### Download evaluation datasets
 
@@ -52,8 +68,12 @@ This clones CLAMBER, Qulac, and ClariQ into `data/`.
 ## Quick Start
 
 ```bash
-# Run D2C on a single query (defaults to the SAT-grounded variant)
+# Run D2C on a single query (defaults to the SAT-grounded variant, Ollama)
 python -m scripts.run_demo "What is the best way to handle a Python crash?" --verbose
+
+# Same query on vLLM
+python -m scripts.run_demo "What is the best way to handle a Python crash?" --verbose \
+  --backend openai --model Qwen/Qwen3-4B --no-think
 
 # Run the pre-theory ablation (Literalist / Intent Seeker / Scope Expander)
 python -m scripts.run_demo "How do I set up a table?" --verbose --variant original
@@ -69,10 +89,36 @@ python -m scripts.run_demo "Your ambiguous query here" [OPTIONS]
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--model` | `qwen3:4b` | Ollama model name |
+| `--model` | `qwen3:4b` | Model name (Ollama tag or HuggingFace ID) |
+| `--backend` | `ollama` | `ollama` or `openai` (vLLM / any OpenAI-compatible server) |
+| `--base-url` | auto | Override server URL (default: `localhost:11434` for ollama, `localhost:8000` for openai) |
 | `--rounds` | `3` | Number of dialogue rounds |
 | `--max-tokens` | `2048` | Max tokens per LLM call |
+| `--variant` | `speech_act` | Agent set: `speech_act` or `original` |
+| `--no-think` | off | Disable thinking mode (recommended for vLLM + Qwen3) |
 | `--verbose` | off | Print full round-by-round dialogue |
+
+### Smoke test across datasets
+
+```bash
+# Run 3 examples from each of CLAMBER, ClariQ, Qulac — print traces + judge scores
+python -m scripts.smoke_testsets
+
+# With vLLM
+python -m scripts.smoke_testsets --backend openai --model Qwen/Qwen3-4B --no-think
+
+# More examples, specific dataset, skip judge
+python -m scripts.smoke_testsets --n 10 --dataset clamber --no-judge
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--n` | `3` | Examples per dataset |
+| `--dataset` | `all` | `clariq`, `qulac`, `clamber`, or `all` |
+| `--judge-model` | same as `--model` | Separate model for the LLM judge |
+| `--no-judge` | off | Skip judge scoring, just print traces |
+| `--rounds` | `3` | Dialogue rounds |
+| `--backend` / `--base-url` / `--no-think` | — | Same as run_demo |
 
 ### Batch run
 
@@ -81,19 +127,6 @@ python -m scripts.run_batch --input data/queries.jsonl --output outputs/results.
 ```
 
 Input JSONL format: one `{"query": "..."}` per line. Supports `--resume` to skip already-processed queries and `--max-workers` for parallel execution.
-
-### ClarifyMT-Bench evaluation
-
-```bash
-# Run on a small sample
-python -m scripts.run_clarifymt --limit 10 --output outputs/clarifymt_results.jsonl
-
-# Run with LLM-as-judge scoring
-python -m scripts.run_clarifymt --limit 10 --judge --output outputs/clarifymt_scored.jsonl
-
-# Evaluate existing results
-python -m scripts.run_clarifymt --eval-only --input outputs/clarifymt_scored.jsonl
-```
 
 ### Full evaluation suite (CLAMBER, Qulac, ClariQ)
 
@@ -110,9 +143,6 @@ python -m scripts.dataset_stats
 # Run evaluation
 python -m eval.run_eval --dataset clamber --input outputs/d2c_clamber.jsonl --judge-model qwen3:8b
 
-# Run on all datasets
-python -m eval.run_eval --dataset all --input-dir outputs/ --skip-judge
-
 # Analyze results
 python -m eval.analyze --results-dir results/
 ```
@@ -120,7 +150,7 @@ python -m eval.analyze --results-dir results/
 ### Baselines
 
 ```bash
-# Run vanilla and parallel baselines
+# Run vanilla CQG and parallel baselines
 python -m scripts.run_baselines --input data/ambigqa_sample.jsonl --output outputs/baselines.jsonl
 
 # Run RL baseline
@@ -153,6 +183,33 @@ python -m scripts.run_rl_baseline --input data/ambigqa_sample.jsonl --output out
                     │ Clarifying Question │
                     └─────────────────────┘
 ```
+
+### Dialogue mechanics
+
+Each agent maintains its own **multi-turn message history** across rounds:
+
+```
+[system: role definition]
+[user:   original query]          ← round 0
+[asst:   interpretation]
+[user:   other agents' round-0 readings + decision tree]   ← round 1
+[asst:   interpretation + stance + reason]
+[user:   other agents' round-1 readings + decision tree]   ← round 2
+[asst:   interpretation + stance + reason]
+...
+```
+
+In rounds 1+, each agent sees only the **previous round's** readings from other **active** agents (already-conceded agents are listed as dropped, not shown). This means each agent's context grows naturally with the conversation without carrying redundant cross-agent history.
+
+**Stance mechanics:**
+
+| Stance | When to use |
+|--------|-------------|
+| `HOLD` | You can name a specific gap no other agent has captured (default) |
+| `UPDATE` | Others have partially shifted your view but not fully covered your concern |
+| `CONCEDE` | Another agent's reading covers your exact concern — name who and why |
+
+Conceded agents drop out of subsequent rounds (sticky). The dialogue stops early if all active agents concede in the same round. The synthesizer always receives the full transcript regardless of early stopping, but focuses on HOLD/UPDATE agents' final stances as its primary signal.
 
 ### Agent variants
 
@@ -192,34 +249,38 @@ For Qulac and ClariQ, metrics use max-over-facets scoring (multiple valid clarif
 ```
 d2c/
 ├── d2c/
-│   ├── llm.py              # Ollama HTTP client
-│   ├── prompts.py           # All prompt templates
-│   ├── agents.py            # Agent roles and response parsing
-│   ├── dialogue.py          # Multi-round dialogue loop
-│   ├── synthesizer.py       # Dialogue → clarifying question
-│   ├── pipeline.py          # End-to-end orchestration
-│   └── data.py              # ClarifyMT-Bench data loader
+│   ├── llm.py              # Ollama + OpenAI-compatible (vLLM) HTTP client
+│   ├── prompts.py          # All prompt templates
+│   ├── agents.py           # Agent roles, stance mechanics, per-agent message history
+│   ├── dialogue.py         # Multi-round dialogue loop with sticky CONCEDE
+│   ├── synthesizer.py      # Dialogue transcript → clarifying question
+│   ├── pipeline.py         # End-to-end orchestration
+│   └── baseline.py         # Vanilla CQG baseline
 ├── eval/
-│   ├── datasets/            # Unified loaders for CLAMBER, Qulac, ClariQ
-│   ├── metrics.py           # F1, semantic similarity, LLM judge
-│   ├── judge_prompts.py     # LLM-as-judge prompt templates
-│   ├── run_eval.py          # Evaluation runner CLI
-│   └── analyze.py           # Results tables and analysis
+│   ├── datasets/           # Unified loaders for CLAMBER, Qulac, ClariQ
+│   ├── judge.py            # Binary LLM-as-judge (match / no-match)
+│   ├── judge_prompts.py    # Judge prompt templates
+│   ├── metrics.py          # F1, semantic similarity
+│   ├── run_eval.py         # Evaluation runner CLI
+│   └── analyze.py          # Results tables and analysis
 ├── scripts/
-│   ├── run_demo.py          # Single query demo
-│   ├── run_batch.py         # Batch processing
-│   ├── run_clarifymt.py     # ClarifyMT-Bench runner
-│   ├── run_baselines.py     # Vanilla + parallel baselines
-│   ├── run_rl_baseline.py   # RL baseline
-│   ├── inspect_data.py      # Dataset inspection
-│   └── dataset_stats.py     # Dataset statistics
-├── data/                    # Datasets (downloaded separately)
-├── outputs/                 # D2C outputs (JSONL)
-└── results/                 # Evaluation results
+│   ├── run_demo.py         # Single query demo
+│   ├── smoke_testsets.py   # N examples × dataset, traces + judge scores
+│   ├── run_batch.py        # Batch processing
+│   ├── run_baselines.py    # Vanilla + parallel baselines
+│   ├── run_rl_baseline.py  # RL baseline
+│   ├── inspect_data.py     # Dataset inspection
+│   ├── dataset_stats.py    # Dataset statistics
+│   └── build_test_sets.py  # Build JSONL test sets from raw datasets
+├── test_sets/              # Pre-built JSONL test sets (clariq, qulac, clamber)
+├── data/                   # Raw datasets (downloaded separately)
+├── outputs/                # D2C outputs (JSONL)
+└── results/                # Evaluation results
 ```
 
 ## Notes
 
-- **Model choice**: `qwen3:4b` is the default. Larger models (e.g., `qwen3:8b`) produce more consistent structured output. Use a different model for the judge than for agents.
-- **Thinking tags**: qwen3 models produce `<think>...</think>` blocks which are stripped automatically.
+- **Model choice**: `qwen3:4b` is the minimum recommended size.
+- **Thinking tags**: Qwen3 models produce `<think>...</think>` blocks which are stripped automatically. On vLLM, pass `--no-think` to disable thinking entirely — without it, models put reasoning inside `<think>` tags and emit empty JSON content.
 - **Token budget**: Default `max_tokens=2048` accounts for thinking token overhead. Lower values may produce empty responses with reasoning models.
+- **Structured output**: Ollama enforces JSON schemas natively via the `format` field. vLLM uses `response_format: {type: "json_object"}` which enforces valid JSON but not field-level constraints — prompt-level hints in every user turn compensate for this.
