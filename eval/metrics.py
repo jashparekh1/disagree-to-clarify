@@ -107,6 +107,52 @@ def semantic_similarity_multi_ref(
     return max(semantic_similarity(generated, gold) for gold in gold_questions)
 
 
+def semantic_similarity_batch(
+    generated: list[str],
+    references: list[list[str]],
+) -> dict[str, float]:
+    """Compute max cosine similarity for a batch of predictions against multi-ref golds."""
+    scores = []
+    for gen, refs in zip(generated, references):
+        if not gen or not refs:
+            scores.append(0.0)
+            continue
+        scores.append(semantic_similarity_multi_ref(gen, refs))
+    
+    return {
+        "mean": statistics.mean(scores) if scores else 0.0,
+        "median": statistics.median(scores) if scores else 0.0,
+    }
+
+
+def bert_score_compute(
+    generated: list[str],
+    references: list[list[str]],
+    model_type: str = "roberta-large",
+) -> dict[str, float]:
+    """Compute BERTScore (P, R, F1) using the bert_score library.
+
+    Args:
+        generated: List of generated questions.
+        references: List of lists of gold questions (multi-reference).
+    """
+    from bert_score import score
+
+    # bert_score.score handles multi-reference if references is a list of lists of strings
+    # but it expects a list of references for EACH candidate.
+    # Actually, the standard way is to just repeat the candidate for each reference or use the built-in.
+    # For simplicity, we'll take the max over references manually if needed, 
+    # but bert_score supports list[list[str]] for references.
+    
+    P, R, F1 = score(generated, references, model_type=model_type, lang="en", verbose=False)
+    
+    return {
+        "precision": float(P.mean()),
+        "recall": float(R.mean()),
+        "f1": float(F1.mean()),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Metric 2: Clarifying Question Quality (LLM-as-Judge)
 # ---------------------------------------------------------------------------

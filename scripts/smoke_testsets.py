@@ -1,11 +1,9 @@
-"""Run D2C on N examples from each test set, print full traces, and judge.
-
-Usage:
-    python -m scripts.smoke_testsets
-    python -m scripts.smoke_testsets --n 3 --model qwen3:4b --no-think
-    python -m scripts.smoke_testsets --backend openai --model Qwen/Qwen3-4B --no-think
-    python -m scripts.smoke_testsets --dataset qulac --n 10
-    python -m scripts.smoke_testsets --no-judge   # skip LLM judge, just print traces
+"""Comprehensive D2C Benchmarking Script.
+Compares:
+1. Vanilla (Single-turn)
+2. Single-Round (Multi-agent synthesis, no debate)
+3. D2C Original (Debate, Heuristic roles)
+4. D2C Speech Act (Debate, Linguistic roles)
 """
 
 from __future__ import annotations
@@ -13,173 +11,118 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import statistics
 from pathlib import Path
+from typing import Any
 
-from d2c.agents import _ROLE_DISPLAY
+from d2c.agents import _ROLE_DISPLAY, Agent, AgentRole
 from d2c.llm import LLMClient
 from d2c.pipeline import run_d2c
-from eval.judge import JudgeResult, binary_judge
+from d2c.synthesizer import synthesize
+from d2c.dialogue import run_dialogue
+from eval.judge import binary_judge, pairwise_judge
+from eval.metrics import bert_score_compute, semantic_similarity_batch
+from d2c.prompts import VANILLA_CQG_SYSTEM, VANILLA_CQG_USER
 
 logger = logging.getLogger(__name__)
 
 DATASETS = ["clariq", "qulac", "clamber"]
 
+def run_vanilla(query: str, llm: LLMClient) -> str:
+    user_prompt = VANILLA_CQG_USER.format(query=query)
+    raw = llm.chat(
+        system_prompt=VANILLA_CQG_SYSTEM,
+        user_prompt=user_prompt,
+        format_schema={"type": "object", "properties": {"clarifying_question": {"type": "string"}}, "required": ["clarifying_question"]}
+    )
+    try:
+        return json.loads(raw)["clarifying_question"]
+    except:
+        return raw
 
 def load_test_set(dataset: str, n: int) -> list[dict]:
     path = Path("test_sets") / f"{dataset}_test.jsonl"
-    if not path.exists():
-        raise FileNotFoundError(f"No test set at {path}. Run `python -m scripts.build_test_sets`.")
     records = []
     with open(path) as f:
         for line in f:
-            line = line.strip()
-            if line:
-                records.append(json.loads(line))
-            if len(records) >= n:
-                break
+            if line.strip(): records.append(json.loads(line))
+            if len(records) >= n: break
     return records
-
-
-def print_trace(dataset: str, idx: int, item: dict, result, judge_result: JudgeResult | None) -> None:
-    bar = "=" * 72
-    print(f"\n{bar}")
-    print(f"  [{dataset.upper()}] EXAMPLE {idx + 1}")
-    print(bar)
-    print(f"QUERY: \"{item['query']}\"")
-
-    golds = item.get("gold_clarifying_questions", [])
-    if golds:
-        print(f"\nGOLD CLARIFYING QUESTIONS ({len(golds)}):")
-        for g in golds[:8]:
-            print(f"  - {g}")
-        if len(golds) > 8:
-            print(f"  ... and {len(golds) - 8} more")
-
-    for round_idx, rnd in enumerate(result.dialogue.rounds):
-        print(f"\n--- Round {round_idx} ---")
-        for resp in rnd:
-            flag = " [FORMAT FAIL]" if resp.format_failed else ""
-            stance = f" [{resp.stance.value}]" if round_idx > 0 else ""
-            if resp.stance.value == "CONCEDE" and round_idx > 0:
-                stance = " [CONCEDE — dropped out]"
-            print(f"  [{_ROLE_DISPLAY[resp.role]}]{stance}{flag}")
-            print(f"    {resp.interpretation}")
-            if round_idx > 0 and resp.stance_reason:
-                print(f"    Reason: {resp.stance_reason}")
-
-    sr = result.synthesizer_result
-    sfail = " [FORMAT FAIL]" if sr.format_failed else ""
-    print(f"\n--- Synthesizer ---")
-    print(f"  CLARIFYING QUESTION{sfail}: {sr.clarifying_question}")
-
-    if judge_result is not None:
-        verdict = "MATCH" if judge_result.match else "FAIL"
-        print(f"\n--- Judge ---")
-        print(f"  Result:  {verdict}")
-        print(f"  Reason:  {judge_result.reason}")
-
-    print(f"\n--- Meta ---")
-    d = result.dialogue
-    print(
-        f"  converged={d.converged}  "
-        f"converged_at={d.converged_at_round}  "
-        f"format_failure_rate={d.format_failure_rate:.2f}"
-    )
-    print()
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--n", type=int, default=3, help="Examples per dataset")
-    parser.add_argument(
-        "--dataset", choices=DATASETS + ["all"], default="all",
-        help="Which dataset(s) to sample from (default: all)",
-    )
-    parser.add_argument("--model", default="qwen3:4b", help="Model name")
-    parser.add_argument("--judge-model", default=None,
-                        help="Judge model (default: same as --model)")
-    parser.add_argument("--rounds", type=int, default=3, help="Dialogue rounds")
-    parser.add_argument("--max-tokens", type=int, default=2048, help="Max tokens per LLM call")
-    parser.add_argument(
-        "--variant", default="speech_act", choices=["original", "speech_act"],
-    )
-    parser.add_argument("--no-think", action="store_true", help="Disable thinking mode")
-    parser.add_argument("--no-judge", action="store_true", help="Skip LLM judge scoring")
-    parser.add_argument(
-        "--backend", default="ollama", choices=["ollama", "openai"],
-        help="LLM backend",
-    )
-    parser.add_argument("--base-url", default=None, help="Override LLM server URL")
+    parser.add_argument("--n", type=int, default=10)
+    parser.add_argument("--model", default="qwen3:1.7b")
+    parser.add_argument("--judge-model", default="qwen2.5:7b")
+    parser.add_argument("--rounds", type=int, default=3)
+    parser.add_argument("--no-think", action="store_true")
+    parser.add_argument("--backend", default="ollama")
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
+    llm = LLMClient(model=args.model, backend=args.backend, think=not args.no_think)
+    judge_llm = LLMClient(model=args.judge_model, backend=args.backend, think=False)
 
-    judge_model = args.judge_model or args.model
-    judge_llm = None if args.no_judge else LLMClient(
-        model=judge_model,
-        base_url=args.base_url,
-        backend=args.backend,
-        think=False,
-    )
+    print(f"\n{'='*80}\n  D2C COMPREHENSIVE BENCHMARK (n={args.n})\n{'='*80}")
+    
+    overall_report = {}
 
-    datasets = DATASETS if args.dataset == "all" else [args.dataset]
+    for dataset in DATASETS:
+        items = load_test_set(dataset, args.n)
+        print(f"\nProcessing {dataset.upper()}...")
+        
+        results = {
+            "vanilla": {"qs": [], "matches": [], "rounds": []},
+            "single_round": {"qs": [], "matches": [], "rounds": []},
+            "original": {"qs": [], "matches": [], "rounds": []},
+            "speech_act": {"qs": [], "matches": [], "rounds": []},
+            "golds": []
+        }
 
-    print(f"\nD2C SMOKE — {args.n} examples × {len(datasets)} dataset(s)")
-    print(f"model={args.model}  judge={judge_model if not args.no_judge else 'OFF'}  "
-          f"backend={args.backend}  variant={args.variant}  "
-          f"rounds={args.rounds}  think={'OFF' if args.no_think else 'on'}\n")
+        for item in items:
+            query = item["query"]
+            golds = item.get("gold_clarifying_questions", [])
+            results["golds"].append(golds)
 
-    totals: dict[str, list[int]] = {}
+            # 1. Vanilla
+            q_v = run_vanilla(query, llm)
+            results["vanilla"]["qs"].append(q_v)
+            results["vanilla"]["matches"].append(binary_judge(query, q_v, golds, judge_llm).match)
+            results["vanilla"]["rounds"].append(0)
 
-    for dataset in datasets:
-        try:
-            items = load_test_set(dataset, args.n)
-        except FileNotFoundError as e:
-            print(f"[SKIP] {e}")
-            continue
+            # 2. Single-Round (Speech Act roles)
+            res_sr = run_d2c(query, model=args.model, num_rounds=1, variant="speech_act", backend=args.backend, think=not args.no_think)
+            q_sr = res_sr.synthesizer_result.clarifying_question
+            results["single_round"]["qs"].append(q_sr)
+            results["single_round"]["matches"].append(binary_judge(query, q_sr, golds, judge_llm).match)
+            results["single_round"]["rounds"].append(1)
 
-        print(f"\n{'#' * 72}")
-        print(f"  DATASET: {dataset.upper()}  ({len(items)} items)")
-        print(f"{'#' * 72}")
+            # 3. D2C Original
+            res_orig = run_d2c(query, model=args.model, num_rounds=args.rounds, variant="original", backend=args.backend, think=not args.no_think)
+            q_orig = res_orig.synthesizer_result.clarifying_question
+            results["original"]["qs"].append(q_orig)
+            results["original"]["matches"].append(binary_judge(query, q_orig, golds, judge_llm).match)
+            results["original"]["rounds"].append(res_orig.dialogue.converged_at_round or args.rounds)
 
-        matches: list[int] = []
+            # 4. D2C Speech Act
+            res_sa = run_d2c(query, model=args.model, num_rounds=args.rounds, variant="speech_act", backend=args.backend, think=not args.no_think)
+            q_sa = res_sa.synthesizer_result.clarifying_question
+            results["speech_act"]["qs"].append(q_sa)
+            results["speech_act"]["matches"].append(binary_judge(query, q_sa, golds, judge_llm).match)
+            results["speech_act"]["rounds"].append(res_sa.dialogue.converged_at_round or args.rounds)
 
-        for idx, item in enumerate(items):
-            try:
-                result = run_d2c(
-                    item["query"],
-                    model=args.model,
-                    num_rounds=args.rounds,
-                    max_tokens=args.max_tokens,
-                    variant=args.variant,
-                    think=False if args.no_think else None,
-                    base_url=args.base_url,
-                    backend=args.backend,
-                )
+        # Dataset Summary Table
+        print(f"\nResults for {dataset.upper()}:")
+        print(f"{'Method':<15} | {'Match':<6} | {'Sim':<6} | {'B-S':<6} | {'Rnds':<4}")
+        print("-" * 45)
+        
+        for name in ["vanilla", "single_round", "original", "speech_act"]:
+            m = sum(results[name]["matches"]) / len(items)
+            sim = semantic_similarity_batch(results[name]["qs"], results["golds"])["mean"]
+            bs = bert_score_compute(results[name]["qs"], results["golds"])["f1"]
+            rnd = statistics.mean(results[name]["rounds"])
+            print(f"{name:<15} | {m*100:>5.1f}% | {sim:>6.3f} | {bs:>6.3f} | {rnd:>4.1f}")
 
-                judge_result = None
-                if judge_llm is not None:
-                    golds = item.get("gold_clarifying_questions", [])
-                    pred = result.synthesizer_result.clarifying_question
-                    judge_result = binary_judge(item["query"], pred, golds, judge_llm)
-                    matches.append(judge_result.match)
-
-                print_trace(dataset, idx, item, result, judge_result)
-            except Exception:
-                logger.exception("Failed on %s example %d: %s", dataset, idx + 1, item.get("query"))
-
-        if matches:
-            rate = sum(matches) / len(matches)
-            print(f"  >> {dataset.upper()} match rate: {sum(matches)}/{len(matches)} = {rate*100:.0f}%\n")
-            totals[dataset] = matches
-
-    if len(totals) > 1:
-        all_matches = [m for ms in totals.values() for m in ms]
-        rate = sum(all_matches) / len(all_matches)
-        print(f"\n{'=' * 72}")
-        print(f"  OVERALL: {sum(all_matches)}/{len(all_matches)} = {rate*100:.0f}%")
-        print(f"{'=' * 72}\n")
-
+    print("\nDone.")
 
 if __name__ == "__main__":
     main()
