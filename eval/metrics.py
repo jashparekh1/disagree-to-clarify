@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 _EMBED_MODEL = None
 _EMBED_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
+_BERT_SCORER = None
+
 
 def _get_embed_model():
     """Load the sentence-transformer model once, cache globally."""
@@ -36,6 +38,15 @@ def _get_embed_model():
         from sentence_transformers import SentenceTransformer
         _EMBED_MODEL = SentenceTransformer(_EMBED_MODEL_NAME)
     return _EMBED_MODEL
+
+
+def _get_bert_scorer(model_type: str = "roberta-large"):
+    """Load the BERTScorer once, cache globally."""
+    global _BERT_SCORER
+    if _BERT_SCORER is None:
+        from bert_score import BERTScorer
+        _BERT_SCORER = BERTScorer(model_type=model_type, lang="en")
+    return _BERT_SCORER
 
 
 # ---------------------------------------------------------------------------
@@ -130,27 +141,51 @@ def bert_score_compute(
     references: list[list[str]],
     model_type: str = "roberta-large",
 ) -> dict[str, float]:
-    """Compute BERTScore (P, R, F1) using the bert_score library.
+    """Compute BERTScore (P, R, F1) using a cached Scorer.
 
     Args:
         generated: List of generated questions.
         references: List of lists of gold questions (multi-reference).
     """
-    from bert_score import score
-
-    # bert_score.score handles multi-reference if references is a list of lists of strings
-    # but it expects a list of references for EACH candidate.
-    # Actually, the standard way is to just repeat the candidate for each reference or use the built-in.
-    # For simplicity, we'll take the max over references manually if needed, 
-    # but bert_score supports list[list[str]] for references.
+    scorer = _get_bert_scorer(model_type)
     
-    P, R, F1 = score(generated, references, model_type=model_type, lang="en", verbose=False)
+    # scorer.score expects references as list[list[str]] where inner list
+    # are multiple references for EACH candidate.
+    P, R, F1 = scorer.score(generated, references)
     
     return {
         "precision": float(P.mean()),
         "recall": float(R.mean()),
         "f1": float(F1.mean()),
     }
+
+
+def mrr_score(relevant_indices: list[int], k: int = 20) -> float:
+    """Compute Reciprocal Rank.
+    Args:
+        relevant_indices: Indices (0-based) of relevant items in the ranked list.
+        k: Cutoff.
+    """
+    for idx in sorted(relevant_indices):
+        if idx < k:
+            return 1.0 / (idx + 1)
+    return 0.0
+
+
+def ndcg_score(relevance_scores: list[float], k: int = 20) -> float:
+    """Compute Discounted Cumulative Gain (nDCG).
+    Args:
+        relevance_scores: Relevance scores in the ranked order.
+    """
+    import math
+    
+    def dcg(scores):
+        return sum(s / math.log2(i + 2) for i, s in enumerate(scores[:k]))
+
+    actual_dcg = dcg(relevance_scores)
+    ideal_dcg = dcg(sorted(relevance_scores, reverse=True))
+    
+    return actual_dcg / ideal_dcg if ideal_dcg > 0 else 0.0
 
 
 # ---------------------------------------------------------------------------

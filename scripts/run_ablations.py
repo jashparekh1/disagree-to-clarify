@@ -38,11 +38,13 @@ def run_dialogue_no_concede(
     
     with ThreadPoolExecutor(max_workers=len(agents)) as executor:
         # Round 0
+        logger.info("Starting Round 0 (No-Concede)")
         futures = [executor.submit(agent.respond_initial, query) for agent in agents]
         all_rounds.append([f.result() for f in futures])
 
         # Rounds 1+
         for round_num in range(1, num_rounds):
+            logger.info("Starting Round %d (No-Concede, 3 active agents)", round_num)
             def _get_resp(agent: Agent, prior_rounds: list, r_num: int):
                 # We pass an empty set for conceded_roles to force everyone to stay
                 return agent.respond_dialogue(query, prior_rounds, r_num, conceded_roles=set())

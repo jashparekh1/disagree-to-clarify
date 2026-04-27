@@ -1,9 +1,6 @@
-"""Comprehensive D2C Benchmarking Script.
-Compares:
-1. Vanilla (Single-turn)
-2. Single-Round (Multi-agent synthesis, no debate)
-3. D2C Original (Debate, Heuristic roles)
-4. D2C Speech Act (Debate, Linguistic roles)
+"""Exhaustive D2C Benchmarking with Informative Sampling.
+Target: 5 informative queries per dataset (where models disagree).
+Metrics: Detection F1, Quality, Semantic Sim, nDCG, and Average Rounds.
 """
 
 from __future__ import annotations
@@ -15,114 +12,134 @@ import statistics
 from pathlib import Path
 from typing import Any
 
-from d2c.agents import _ROLE_DISPLAY, Agent, AgentRole
 from d2c.llm import LLMClient
 from d2c.pipeline import run_d2c
-from d2c.synthesizer import synthesize
-from d2c.dialogue import run_dialogue
-from eval.judge import binary_judge, pairwise_judge
-from eval.metrics import bert_score_compute, semantic_similarity_batch
-from d2c.prompts import VANILLA_CQG_SYSTEM, VANILLA_CQG_USER
+from d2c.baseline import run_vanilla_cqg
+from eval.metrics import (
+    semantic_similarity, 
+    semantic_similarity_batch, 
+    mrr_score, 
+    ndcg_score, 
+    llm_judge_quality, 
+    clarification_need_f1
+)
 
 logger = logging.getLogger(__name__)
 
-DATASETS = ["clariq", "qulac", "clamber"]
+DATASETS = ["clamber", "clariq", "qulac"]
 
-def run_vanilla(query: str, llm: LLMClient) -> str:
-    user_prompt = VANILLA_CQG_USER.format(query=query)
-    raw = llm.chat(
-        system_prompt=VANILLA_CQG_SYSTEM,
-        user_prompt=user_prompt,
-        format_schema={"type": "object", "properties": {"clarifying_question": {"type": "string"}}, "required": ["clarifying_question"]}
-    )
-    try:
-        return json.loads(raw)["clarifying_question"]
-    except:
-        return raw
-
-def load_test_set(dataset: str, n: int) -> list[dict]:
+def load_full_test_set(dataset: str) -> list[dict]:
     path = Path("test_sets") / f"{dataset}_test.jsonl"
-    records = []
+    if not path.exists(): return []
     with open(path) as f:
-        for line in f:
-            if line.strip(): records.append(json.loads(line))
-            if len(records) >= n: break
-    return records
+        return [json.loads(line) for line in f if line.strip()]
 
-def main() -> None:
+def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--n", type=int, default=10)
-    parser.add_argument("--model", default="qwen3:1.7b")
-    parser.add_argument("--judge-model", default="qwen2.5:7b")
-    parser.add_argument("--rounds", type=int, default=3)
-    parser.add_argument("--no-think", action="store_true")
-    parser.add_argument("--backend", default="ollama")
+    parser.add_argument("--target-n", type=int, default=5, help="Find this many informative queries")
+    parser.add_argument("--max-look", type=int, default=30, help="Max queries to check per dataset")
+    parser.add_argument("--model", default="qwen2.5:1.5b")
+    parser.add_argument("--judge-model", default="qwen2.5:1.5b")
     args = parser.parse_args()
 
-    llm = LLMClient(model=args.model, backend=args.backend, think=not args.no_think)
-    judge_llm = LLMClient(model=args.judge_model, backend=args.backend, think=False)
+    llm = LLMClient(model=args.model, think=False)
+    judge_llm = LLMClient(model=args.judge_model, think=False)
 
-    print(f"\n{'='*80}\n  D2C COMPREHENSIVE BENCHMARK (n={args.n})\n{'='*80}")
-    
-    overall_report = {}
+    print(f"\n{'='*110}")
+    print(f"  D2C INFORMATIVE BENCHMARK (Target: {args.target_n} informative results per dataset)")
+    print(f"  Models: {args.model} | Judge: {args.judge_model}")
+    print(f"{'='*110}")
 
     for dataset in DATASETS:
-        items = load_test_set(dataset, args.n)
-        print(f"\nProcessing {dataset.upper()}...")
+        all_items = load_full_test_set(dataset)
+        if not all_items:
+            print(f"\nSkipping {dataset.upper()} (no test set found)")
+            continue
+            
+        print(f"\n>>> Searching {dataset.upper()} for informative examples...")
         
-        results = {
-            "vanilla": {"qs": [], "matches": [], "rounds": []},
-            "single_round": {"qs": [], "matches": [], "rounds": []},
-            "original": {"qs": [], "matches": [], "rounds": []},
-            "speech_act": {"qs": [], "matches": [], "rounds": []},
-            "golds": []
-        }
-
-        for item in items:
+        methods = ["vanilla", "speech_act", "madisse", "taxonomy"]
+        results = {m: {
+            "qs": [], "matches": [], "scores": [], "sim_lists": [], 
+            "preds_ambig": [], "gold_ambig": [], "rounds": []
+        } for m in methods}
+        golds_batch = []
+        
+        found_count = 0
+        look_count = 0
+        
+        for item in all_items:
+            if found_count >= args.target_n or look_count >= args.max_look:
+                break
+            
+            look_count += 1
             query = item["query"]
+            is_ambig = item["is_ambiguous"]
             golds = item.get("gold_clarifying_questions", [])
-            results["golds"].append(golds)
+            
+            q_data = {}
+            for name in methods:
+                if name == "vanilla":
+                    res = run_vanilla_cqg(query, llm, max_tokens=300)
+                    q_text = res.clarifying_question
+                    pred_ambig = True
+                    rnd = 0
+                else:
+                    # Let run_d2c handle the default num_rounds for the variant
+                    res = run_d2c(query, variant=name, model=args.model)
+                    q_text = res.synthesizer_result.clarifying_question
+                    # Decision: If any agent held or updated, it's ambiguous
+                    pred_ambig = any(resp.stance.value != "CONCEDE" for rnd_data in res.dialogue.rounds for resp in rnd_data)
+                    rnd = res.dialogue.rounds_completed
 
-            # 1. Vanilla
-            q_v = run_vanilla(query, llm)
-            results["vanilla"]["qs"].append(q_v)
-            results["vanilla"]["matches"].append(binary_judge(query, q_v, golds, judge_llm).match)
-            results["vanilla"]["rounds"].append(0)
+                j_res = llm_judge_quality(query, q_text, golds[0] if golds else "N/A", judge_llm)
+                q_data[name] = {
+                    "score": j_res["score"],
+                    "pred_ambig": pred_ambig,
+                    "text": q_text,
+                    "sims": [semantic_similarity(q_text, g) for g in golds],
+                    "rnd": rnd
+                }
 
-            # 2. Single-Round (Speech Act roles)
-            res_sr = run_d2c(query, model=args.model, num_rounds=1, variant="speech_act", backend=args.backend, think=not args.no_think)
-            q_sr = res_sr.synthesizer_result.clarifying_question
-            results["single_round"]["qs"].append(q_sr)
-            results["single_round"]["matches"].append(binary_judge(query, q_sr, golds, judge_llm).match)
-            results["single_round"]["rounds"].append(1)
+            # INFORMATIVE CHECK: Do the models actually differ?
+            scores = [v["score"] for v in q_data.values()]
+            preds = [v["pred_ambig"] for v in q_data.values()]
+            
+            # Informative if scores or predictions vary
+            is_informative = (len(set(scores)) > 1) or (len(set(preds)) > 1)
+            
+            if is_informative:
+                found_count += 1
+                golds_batch.append(golds)
+                print(f"  [{found_count}/{args.target_n}] Found informative query: {query[:60]}...")
+                for name in methods:
+                    results[name]["qs"].append(q_data[name]["text"])
+                    results[name]["matches"].append(1 if q_data[name]["score"] >= 3 else 0)
+                    results[name]["scores"].append(q_data[name]["score"])
+                    results[name]["sim_lists"].append(q_data[name]["sims"])
+                    results[name]["preds_ambig"].append(q_data[name]["pred_ambig"])
+                    results[name]["gold_ambig"].append(is_ambig)
+                    results[name]["rounds"].append(q_data[name]["rnd"])
 
-            # 3. D2C Original
-            res_orig = run_d2c(query, model=args.model, num_rounds=args.rounds, variant="original", backend=args.backend, think=not args.no_think)
-            q_orig = res_orig.synthesizer_result.clarifying_question
-            results["original"]["qs"].append(q_orig)
-            results["original"]["matches"].append(binary_judge(query, q_orig, golds, judge_llm).match)
-            results["original"]["rounds"].append(res_orig.dialogue.converged_at_round or args.rounds)
-
-            # 4. D2C Speech Act
-            res_sa = run_d2c(query, model=args.model, num_rounds=args.rounds, variant="speech_act", backend=args.backend, think=not args.no_think)
-            q_sa = res_sa.synthesizer_result.clarifying_question
-            results["speech_act"]["qs"].append(q_sa)
-            results["speech_act"]["matches"].append(binary_judge(query, q_sa, golds, judge_llm).match)
-            results["speech_act"]["rounds"].append(res_sa.dialogue.converged_at_round or args.rounds)
+        if found_count == 0:
+            print(f"  No informative queries found in first {look_count} items. Skipping summary.")
+            continue
 
         # Dataset Summary Table
-        print(f"\nResults for {dataset.upper()}:")
-        print(f"{'Method':<15} | {'Match':<6} | {'Sim':<6} | {'B-S':<6} | {'Rnds':<4}")
-        print("-" * 45)
+        print(f"\nSUMMARY FOR {dataset.upper()} ({found_count} informative queries):")
+        header = f"{'Method':<12} | {'F1':<5} | {'Prec':<5} | {'Rec':<5} | {'Qual':<4} | {'Sim':<6} | {'nDCG':<5} | {'Rnd':<4}"
+        print(header)
+        print("-" * len(header))
         
-        for name in ["vanilla", "single_round", "original", "speech_act"]:
-            m = sum(results[name]["matches"]) / len(items)
-            sim = semantic_similarity_batch(results[name]["qs"], results["golds"])["mean"]
-            bs = bert_score_compute(results[name]["qs"], results["golds"])["f1"]
-            rnd = statistics.mean(results[name]["rounds"])
-            print(f"{name:<15} | {m*100:>5.1f}% | {sim:>6.3f} | {bs:>6.3f} | {rnd:>4.1f}")
+        for name in methods:
+            det = clarification_need_f1(results[name]["preds_ambig"], results[name]["gold_ambig"])
+            q_mean = statistics.mean(results[name]["scores"])
+            sim_mean = semantic_similarity_batch(results[name]["qs"], golds_batch)["mean"]
+            ndcg_val = statistics.mean([ndcg_score(s, k=5) for s in results[name]["sim_lists"]])
+            rnd_avg = statistics.mean(results[name]["rounds"])
+            print(f"{name:<12} | {det['f1']:>5.2f} | {det['precision']:>5.2f} | {det['recall']:>5.2f} | {q_mean:>4.1f} | {sim_mean:>6.3f} | {ndcg_val:>5.3f} | {rnd_avg:>4.1f}")
 
-    print("\nDone.")
+    print("\nBenchmark Complete.")
 
 if __name__ == "__main__":
     main()

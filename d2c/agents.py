@@ -14,10 +14,22 @@ from enum import Enum
 
 from d2c.llm import LLMClient
 from d2c.prompts import (
+    ALEATORIC_AGENT_SYSTEM,
+    CLARIFIER_AGENT_SYSTEM,
+    CLASSIFIER_AGENT_SYSTEM,
+    CRITIC_AGENT_SYSTEM,
+    ENTITY_GENERATOR_SYSTEM,
+    EPISTEMIC_AGENT_SYSTEM,
+    FACET_FINDER_SYSTEM,
+    FACT_FINDER_SYSTEM,
     ILLOCUTIONARY_SYSTEM,
+    INTENT_FINDER_SYSTEM,
+    INTENT_GENERATOR_SYSTEM,
     INTENT_SEEKER_SYSTEM,
+    LEXICAL_AGENT_SYSTEM,
     LITERALIST_SYSTEM,
     LOCUTIONARY_SYSTEM,
+    ORACLE_AGENT_SYSTEM,
     PERLOCUTIONARY_SYSTEM,
     ROUND_N_FORMAT,
     ROUND_ZERO_USER_SUFFIX,
@@ -38,6 +50,18 @@ class AgentRole(Enum):
     LOCUTIONARY = "locutionary"
     ILLOCUTIONARY = "illocutionary"
     PERLOCUTIONARY = "perlocutionary"
+    FACT_FINDER = "fact_finder"
+    FACET_FINDER = "facet_finder"
+    INTENT_FINDER = "intent_finder"
+    LEXICAL = "lexical"
+    ALEATORIC = "aleatoric"
+    EPISTEMIC = "epistemic"
+    CLASSIFIER = "classifier"
+    INTENT_GEN = "intent_gen"
+    ENTITY_GEN = "entity_gen"
+    ORACLE = "oracle"
+    CRITIC = "critic"
+    CLARIFIER = "clarifier"
 
 
 class Stance(Enum):
@@ -53,6 +77,18 @@ _ROLE_TO_SYSTEM_PROMPT = {
     AgentRole.LOCUTIONARY: LOCUTIONARY_SYSTEM,
     AgentRole.ILLOCUTIONARY: ILLOCUTIONARY_SYSTEM,
     AgentRole.PERLOCUTIONARY: PERLOCUTIONARY_SYSTEM,
+    AgentRole.FACT_FINDER: FACT_FINDER_SYSTEM,
+    AgentRole.FACET_FINDER: FACET_FINDER_SYSTEM,
+    AgentRole.INTENT_FINDER: INTENT_FINDER_SYSTEM,
+    AgentRole.LEXICAL: LEXICAL_AGENT_SYSTEM,
+    AgentRole.ALEATORIC: ALEATORIC_AGENT_SYSTEM,
+    AgentRole.EPISTEMIC: EPISTEMIC_AGENT_SYSTEM,
+    AgentRole.CLASSIFIER: CLASSIFIER_AGENT_SYSTEM,
+    AgentRole.INTENT_GEN: INTENT_GENERATOR_SYSTEM,
+    AgentRole.ENTITY_GEN: ENTITY_GENERATOR_SYSTEM,
+    AgentRole.ORACLE: ORACLE_AGENT_SYSTEM,
+    AgentRole.CRITIC: CRITIC_AGENT_SYSTEM,
+    AgentRole.CLARIFIER: CLARIFIER_AGENT_SYSTEM,
 }
 
 _ROLE_DISPLAY = {
@@ -62,6 +98,18 @@ _ROLE_DISPLAY = {
     AgentRole.LOCUTIONARY: "Locutionary",
     AgentRole.ILLOCUTIONARY: "Illocutionary",
     AgentRole.PERLOCUTIONARY: "Perlocutionary",
+    AgentRole.FACT_FINDER: "Fact Finder",
+    AgentRole.FACET_FINDER: "Facet Finder",
+    AgentRole.INTENT_FINDER: "Intent Finder",
+    AgentRole.LEXICAL: "Lexical Agent",
+    AgentRole.ALEATORIC: "Aleatoric Agent",
+    AgentRole.EPISTEMIC: "Epistemic Agent",
+    AgentRole.CLASSIFIER: "Classifier",
+    AgentRole.INTENT_GEN: "Intent Generator",
+    AgentRole.ENTITY_GEN: "Entity Generator",
+    AgentRole.ORACLE: "Oracle",
+    AgentRole.CRITIC: "Critic",
+    AgentRole.CLARIFIER: "Clarifier",
 }
 
 

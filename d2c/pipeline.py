@@ -57,12 +57,24 @@ def run_d2c(
     
     if variant == "speech_act":
         roles = [AgentRole.LOCUTIONARY, AgentRole.ILLOCUTIONARY, AgentRole.PERLOCUTIONARY]
+    elif variant == "madisse":
+        roles = [AgentRole.FACT_FINDER, AgentRole.FACET_FINDER, AgentRole.INTENT_FINDER]
+        num_rounds = 1
+    elif variant == "taxonomy":
+        roles = [AgentRole.LEXICAL, AgentRole.ALEATORIC, AgentRole.EPISTEMIC]
+        num_rounds = 1
+    elif variant == "at_cot":
+        roles = [AgentRole.CLASSIFIER, AgentRole.INTENT_GEN, AgentRole.ENTITY_GEN]
+        num_rounds = 1
+    elif variant == "threshold":
+        roles = [AgentRole.ORACLE, AgentRole.CRITIC, AgentRole.CLARIFIER]
+        num_rounds = 1
     else:
         roles = [AgentRole.LITERALIST, AgentRole.INTENT_SEEKER, AgentRole.SCOPE_EXPANDER]
         
     agents = [Agent(role, llm, max_tokens=max_tokens) for role in roles]
     dialogue = run_dialogue(query, agents, num_rounds)
-    synth = synthesize(query, dialogue, llm, max_tokens=max_tokens)
+    synth = synthesize(query, dialogue, llm, max_tokens=max_tokens, variant=variant)
     return D2CResult(
         query=query,
         dialogue=dialogue,

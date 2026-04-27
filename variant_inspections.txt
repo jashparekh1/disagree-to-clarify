@@ -1,0 +1,247 @@
+D2C EXHAUSTIVE VARIANT INSPECTION
+System: qwen2.5:1.5b | Judge: qwen2.5:1.5b | n=2
+====================================================================================================
+
+QUERY 1 [CLAMBER]: The all possible word categories are either "female pronoun" or "secular leader".
+The following two examples share a specific word category. You need to first infer the specific word category from the examples.
+Please output "X" if the given sentence mentions the specific word category. Please output "Y" if the given sentence does not mention the word category.
+
+Examples: 
+She is in the theatre with the prime minister.
+He is in the laboratory with the ayatollah.
+
+The Given Sentence: 
+She is in the laboratory with the ayatollah.
+Gold Ambiguous: True
+----------------------------------------
+[VANILLA]
+  Question: Does 'the ayatollah' refer to a specific person or category?
+  Detected: True (Gold: True)
+  Score: 5/5
+  Logic:
+Vanilla CQG
+
+[SPEECH_ACT]
+  Question: What specific word category does the given sentence mention? Is it 'female pronoun' or 'secular leader'?
+  Detected: True (Gold: True)
+  Score: 5/5
+  Logic:
+    - locutionary: The given sentence mentions the specific word category....
+    - illocutionary: The given sentence does not mention any specific word category....
+    - perlocutionary: The given sentence mentions the specific word category....
+
+[MADISSE]
+  Question: What is the specific word category for the examples provided?
+  Detected: True (Gold: True)
+  Score: 5/5
+  Logic:
+    - fact_finder: The given sentence mentions the specific word category. The examples provided are already of that ca...
+    - facet_finder: The given sentence mentions the specific word category of 'secular leader'....
+    - intent_finder: The given sentence does not mention the specific word category....
+
+[TAXONOMY]
+  Question: Does 'female pronoun' or 'secular leader' apply to the specific example provided?
+  Detected: True (Gold: True)
+  Score: 4/5
+  Logic:
+    - lexical: The given sentence mentions the specific word category....
+    - aleatoric: The given sentence mentions the specific word category....
+    - epistemic: The given sentence does not mention a specific word category....
+
+====================================================================================================
+
+QUERY 2 [CLAMBER]: List five words associated with sadness
+Gold Ambiguous: False
+----------------------------------------
+[VANILLA]
+  Question: Are you looking for synonyms, antonyms, or a list of words related to the concept of sadness?
+  Detected: True (Gold: False)
+  Score: 4/5
+  Logic:
+Vanilla CQG
+
+[SPEECH_ACT]
+  Question: Can you provide a specific list of five words commonly used to express feelings of sadness?
+  Detected: True (Gold: False)
+  Score: 3/5
+  Logic:
+    - locutionary: The five words commonly associated with sadness are 'sad', 'melancholy', 'depressed', 'heartbroken',...
+    - illocutionary: The five words commonly associated with sadness are 'sad', 'melancholy', 'depressed', 'heartbroken',...
+    - perlocutionary: The request is asking for the specific list of five words commonly associated with sadness, which co...
+
+[MADISSE]
+  Question: Could you specify if you're looking for synonyms, antonyms, or a list of five specific related terms?
+  Detected: True (Gold: False)
+  Score: 4/5
+  Logic:
+    - fact_finder: The words associated with sadness include melancholy, sorrow, grief, depression, and misery....
+    - facet_finder: The user's query suggests a list of words commonly associated with feelings of sadness, which could ...
+    - intent_finder: The query is asking for a list of five words that are commonly associated with the emotion of sadnes...
+
+[TAXONOMY]
+  Question: What specific type of sadness are you interested in? For example, is it related to personal loss, clinical depression, or everyday feelings of melancholy?
+  Detected: True (Gold: False)
+  Score: 5/5
+  Logic:
+    - lexical: The word 'sadness' can be associated with a feeling of sorrow, disappointment, or melancholy. Other ...
+    - aleatoric: Sadness is often characterized by feelings of grief, loneliness, and disappointment....
+    - epistemic: The user is asking for a list of five words that are typically associated with sadness, which can be...
+
+====================================================================================================
+
+QUERY 1 [CLARIQ]: What are the best recepies for grilling
+Gold Ambiguous: True
+----------------------------------------
+[VANILLA]
+  Question: Do you want recipes for specific types of food, like meat or vegetables, or general grilling tips?
+  Detected: True (Gold: True)
+  Score: 3/5
+  Logic:
+Vanilla CQG
+
+[SPEECH_ACT]
+  Question: What type of food should I grill, and what kind of recipe are you referring to?
+  Detected: True (Gold: True)
+  Score: 4/5
+  Logic:
+    - locutionary: The original question asks for the best recipes for grilling, which could be interpreted as a list o...
+    - illocutionary: The utterance is directive, instructing readers to provide a recipe for grilling. The ambiguity aris...
+    - perlocutionary: The question is unclear about the type of food that should be grilled, making the answer potentially...
+
+[MADISSE]
+  Question: Could you please provide more details such as cuisine type, desired outcome (e.g., vegetarian, meat), or specific cooking method?
+  Detected: True (Gold: True)
+  Score: 3/5
+  Logic:
+    - fact_finder: The question asks for the best recipes for grilling....
+    - facet_finder: The query 'What are the best recipes for grilling' is too broad and lacks specific constraints on th...
+    - intent_finder: The query is asking about the most effective recipes for grilling, but does not specify what kind of...
+
+[TAXONOMY]
+  Question: What type of cuisine are you interested in? Grilled steak, burgers, chicken, vegetables, or something else?
+  Detected: True (Gold: True)
+  Score: 5/5
+  Logic:
+    - lexical: The query 'What are the best recipes for grilling' refers to cooking methods and dishes that can be ...
+    - aleatoric: The query is asking about recipes suitable for outdoor cooking, specifically using a grill....
+    - epistemic: The question asks about recipes for grilling, which is a common topic and can be found easily with s...
+
+====================================================================================================
+
+QUERY 2 [CLARIQ]: Find information about the sun.
+Gold Ambiguous: True
+----------------------------------------
+[VANILLA]
+  Question: What specific type of information are you looking for about the sun?
+  Detected: True (Gold: True)
+  Score: 3/5
+  Logic:
+Vanilla CQG
+
+[SPEECH_ACT]
+  Question: Can you specify which aspect of the sun's properties or characteristics you need information about?
+  Detected: True (Gold: True)
+  Score: 4/5
+  Logic:
+    - locutionary: The instruction 'find information about the sun' can be interpreted as seeking a broad overview of t...
+    - illocutionary: The speaker is directing someone to research the sun, potentially focusing on its scientific propert...
+    - perlocutionary: The task is to find information about the sun, which can refer to various aspects such as its astron...
+
+[MADISSE]
+  Question: What specific aspect of the sun would you like to know more about? For example, scientific properties, historical context, or solar activity.
+  Detected: True (Gold: True)
+  Score: 3/5
+  Logic:
+    - fact_finder: The query asks for details or facts related to the Sun, including its position in our solar system, ...
+    - facet_finder: The query 'find information about the sun' is too broad, as it lacks specific subtopics or facets su...
+    - intent_finder: The user is seeking to learn more details or facts related to the Sun....
+
+[TAXONOMY]
+  Question: What specific information about the Sun do you need?
+  Detected: True (Gold: True)
+  Score: 4/5
+  Logic:
+    - lexical: The Sun is a star at the center of our solar system, providing light and heat for Earth and other pl...
+    - aleatoric: The Sun is a star located at the center of our solar system, emitting light and heat through nuclear...
+    - epistemic: The Sun is a star at the center of the Solar System, providing light and warmth to Earth....
+
+====================================================================================================
+
+QUERY 1 [QULAC]: french lick resort and casino
+Gold Ambiguous: True
+----------------------------------------
+[VANILLA]
+  Question: Is the French Lick Resort located near a casino?
+  Detected: True (Gold: True)
+  Score: 3/5
+  Logic:
+Vanilla CQG
+
+[SPEECH_ACT]
+  Question: Can you provide any additional information about the specific location or theme of 'French lick resort and casino'?
+  Detected: True (Gold: True)
+  Score: 4/5
+  Logic:
+    - locutionary: The phrase 'French lick resort and casino' could be interpreted as a combination of a French-style r...
+    - illocutionary: The phrase 'French lick resort and casino' appears to be a play on words, possibly referring to a pl...
+    - perlocutionary: The phrase 'French lick resort and casino' could refer to a place named after the word 'lick,' which...
+
+[MADISSE]
+  Question: Could you please specify if you are interested in visiting, staying at, or enjoying any specific activities at a French Lick Resort and Casino?
+  Detected: True (Gold: True)
+  Score: 3/5
+  Logic:
+    - fact_finder: A French lick resort and casino refers to a place where one can enjoy the amenities of a luxury vaca...
+    - facet_finder: The term 'French Lick Resort and Casino' refers to a specific location, likely referring to the Fren...
+    - intent_finder: The query 'French Lick Resort and Casino' is missing an action. It does not specify what specific ac...
+
+[TAXONOMY]
+  Question: Is 'French Lick Resort and Casino' referring to a specific place or just a playful combination of names?
+  Detected: True (Gold: True)
+  Score: 5/5
+  Logic:
+    - lexical: The query refers to a French-themed, upscale gambling destination where visitors can partake in both...
+    - aleatoric: A French-Lick resort and casino refers to a place where you can enjoy luxury accommodations, specifi...
+    - epistemic: The phrase 'French lick resort and casino' is a playful way of referring to the French Lick Resort C...
+
+====================================================================================================
+
+QUERY 2 [QULAC]: jax chemical company
+Gold Ambiguous: True
+----------------------------------------
+[VANILLA]
+  Question: Is it referring to a specific JAX Chemical Company or just the location 'JAX'?
+  Detected: True (Gold: True)
+  Score: 5/5
+  Logic:
+Vanilla CQG
+
+[SPEECH_ACT]
+  Question: What does 'jax' specifically refer to in this context? Is it a product, location, person's name, or something related to the Jacksonville area?
+  Detected: True (Gold: True)
+  Score: 4/5
+  Logic:
+    - locutionary: The phrase 'jax chemical company' contains an unambiguous but confusing combination of a person's na...
+    - illocutionary: The phrase 'jax chemical company' is ambiguous as it could refer to a specific product, location, pe...
+    - perlocutionary: The term 'jax' is unclear and could refer to a specific product, location, person's name, or somethi...
+
+[MADISSE]
+  Question: Could you please specify if this is referring to a location in Jacksonville (FL) or a chemical company based there?
+  Detected: True (Gold: True)
+  Score: 4/5
+  Logic:
+    - fact_finder: A company involved in chemical production or manufacture....
+    - facet_finder: The term 'jax chemical company' refers to a specific business entity, but no additional context is p...
+    - intent_finder: The query 'jax chemical company' does not provide enough context or specify an action related to the...
+
+[TAXONOMY]
+  Question: What do you mean by 'jax chemical company'? Is it referring to a specific location, product line, or something else?
+  Detected: True (Gold: True)
+  Score: 3/5
+  Logic:
+    - lexical: The query is unclear as it does not specify which 'JAX' refers to, either a location or the name of ...
+    - aleatoric: The query 'jax chemical company' is too broad and does not specify a particular aspect or function o...
+    - epistemic: This is a made-up term that doesn't have a clear meaning or relevance to any known companies, which ...
+
+====================================================================================================
+

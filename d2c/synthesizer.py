@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from d2c.agents import _ROLE_DISPLAY
 from d2c.dialogue import DialogueResult
 from d2c.llm import LLMClient
-from d2c.prompts import SYNTHESIZER_SYSTEM, SYNTHESIZER_USER
+from d2c.prompts import SYNTHESIZER_SYSTEM, SYNTHESIZER_USER, MADISSE_SYNTHESIZER_SYSTEM, IR_HACK_SYNTHESIZER_SYSTEM
 
 logger = logging.getLogger(__name__)
 
@@ -113,12 +113,20 @@ def synthesize(
     dialogue: DialogueResult,
     llm: LLMClient,
     max_tokens: int = 300,
+    variant: str = "speech_act",
 ) -> SynthesizerResult:
     transcript = _format_transcript(dialogue)
     user_prompt = SYNTHESIZER_USER.format(query=query, transcript=transcript)
 
+    if variant == "madisse":
+        system_prompt = MADISSE_SYNTHESIZER_SYSTEM
+    elif variant == "taxonomy":
+        system_prompt = IR_HACK_SYNTHESIZER_SYSTEM
+    else:
+        system_prompt = SYNTHESIZER_SYSTEM
+
     raw = llm.chat(
-        system_prompt=SYNTHESIZER_SYSTEM,
+        system_prompt=system_prompt,
         user_prompt=user_prompt,
         temperature=0.3,
         max_tokens=max_tokens,

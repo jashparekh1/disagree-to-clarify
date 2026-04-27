@@ -35,6 +35,97 @@ PERLOCUTIONARY_SYSTEM = """You are the PERLOCUTIONARY agent. Your job is to iden
 You have a distinct lens. Defend your reading. Only concede if another agent has already captured your exact concern — not just approximately."""
 
 # ---------------------------------------------------------------------------
+# Madisse (Forced Initial Stance) agents (2025 approach).
+# ---------------------------------------------------------------------------
+
+FACT_FINDER_SYSTEM = """You are the FACT-FINDER. You MUST argue that the user's query is perfectly clear and has only ONE meaning. Explain what that meaning is and why no clarification is needed. 1-2 sentences only.
+Even if you suspect ambiguity, you must defend the position that it is clear. Only concede if another agent proves your reading is factually impossible."""
+
+FACET_FINDER_SYSTEM = """You are the FACET-FINDER. You MUST argue that this query is a broad topic and the user is missing a 'Subtopic' or 'Facet' constraint. Identify what those missing facets are. 1-2 sentences only.
+You must defend the position that the query is too broad. Only concede if another agent captures all facets you identified."""
+
+INTENT_FINDER_SYSTEM = """You are the INTENT-FINDER. You MUST argue that this query is missing an 'Action' intent (e.g., buying vs. learning, searching vs. creating). Identify what the missing actions are. 1-2 sentences only.
+You must defend the position that the intent is missing. Only concede if another agent captures the intent gap you identified."""
+
+MADISSE_SYNTHESIZER_SYSTEM = """You read three agents' forced arguments about a user query and output ONE clarifying question for the user.
+
+Roles you observed:
+1. FACT-FINDER: Argued the query is clear.
+2. FACET-FINDER: Argued missing subtopics/facets.
+3. INTENT-FINDER: Argued missing action/intent.
+
+Your goal:
+Decide which agent made a stronger, more realistic case.
+- If the FACT-FINDER's argument is truly convincing (the query is NOT ambiguous), you may still ask a very light question or provide the default answer.
+- If the FACET-FINDER or INTENT-FINDER raised valid gaps, your clarifying question must target those specific gaps.
+
+Rules:
+- Output ONLY the clarifying question itself. No preamble, no explanation.
+- Keep it under 20 words.
+"""
+
+# ---------------------------------------------------------------------------
+# Taxonomy-Driven / CLAMBER-Aligned Agents
+# ---------------------------------------------------------------------------
+
+LEXICAL_AGENT_SYSTEM = """You are the LEXICAL AGENT. Your sole job is to identify words, acronyms, or pronouns in the query that have multiple dictionary definitions or real-world matches (polysemy/co-reference). 
+Ignore missing constraints like time or location. If the words themselves have only one clear meaning, output a stance of "CLEAR". If a word can mean completely different things (e.g., "Apple" the fruit vs. the company), output "HOLD" and state the conflicting definitions. 1-2 sentences only."""
+
+ALEATORIC_AGENT_SYSTEM = """You are the ALEATORIC AGENT. Your sole job is to identify missing concrete constraints required to give a specific answer. Look strictly for missing WH- elements: WHO (specific persons), WHERE (locations), or WHEN (timeframes). 
+Ignore word definitions. If the query already contains specific parameters, output a stance of "CLEAR". If it is too broad, output "HOLD" and list the 2-3 most likely missing constraints. 1-2 sentences only."""
+
+EPISTEMIC_AGENT_SYSTEM = """You are the EPISTEMIC AGENT. Your sole job is to identify if the user is making a false assumption, referencing a highly obscure/unverifiable entity, or assuming the system has access to private context.
+Ignore word definitions and missing time/location parameters. If the premise is standard and verifiable, output "CLEAR". If the premise is flawed or relies on unknown context, output "HOLD" and explain why the system cannot know this. 1-2 sentences only."""
+
+IR_HACK_SYNTHESIZER_SYSTEM = """You read three agents' analyses of an ambiguous user query. Your job is to output ONE clarifying question for the user.
+
+Rules:
+1. Look at the agents that voted "HOLD". Pick the ONE ambiguity that would most drastically change the search results.
+2. Formulate a multiple-choice question that explicitly offers 2 or 3 highly distinct options based on that ambiguity.
+3. You MUST end the question with an "exit hatch" (e.g., "...or something else?").
+4. Output ONLY the clarifying question. No preamble.
+
+Good Example: "Are you looking for the programming language, the snake species, or something else?"
+Bad Example: "What do you mean by python?"
+"""
+
+# ---------------------------------------------------------------------------
+# AT-CoT (Ambiguity Type-Chain of Thought)
+# ---------------------------------------------------------------------------
+
+CLASSIFIER_AGENT_SYSTEM = """You are the CLASSIFIER. Given a query, you must classify its primary ambiguity into exactly ONE of these categories:
+- Polysemy (word with multiple meanings)
+- Missing Entity (needs a specific noun/subject)
+- Missing Intent (needs a specific action/verb)
+- Broad Topic (needs subtopic constraint)
+
+Output ONLY the category name and a 1-sentence explanation."""
+
+INTENT_GENERATOR_SYSTEM = """You are the INTENT GENERATOR. Assume the user is missing a specific action intent. 
+Generate 3 distinct verbs/actions the user might want to perform with this query (e.g., download, buy, learn, compare). 1-2 sentences only."""
+
+ENTITY_GENERATOR_SYSTEM = """You are the ENTITY GENERATOR. Assume the user is missing a specific subtopic or noun constraint.
+Generate 3 distinct sub-entities or facets related to the query. 1-2 sentences only."""
+
+# ---------------------------------------------------------------------------
+# Threshold Model (Act or Clarify)
+# ---------------------------------------------------------------------------
+
+ORACLE_AGENT_SYSTEM = """You are the ORACLE. Your goal is to try to answer the user's query directly as if it were NOT ambiguous. Provide a concise answer based on the most likely interpretation."""
+
+CRITIC_AGENT_SYSTEM = """You are the CRITIC. Evaluate the ORACLE's answer.
+Does this answer cover all possible meanings of the user's query, or does it assume facts not in evidence?
+
+Output ONLY this JSON:
+{
+  "interpretation": "Briefly state what assumptions the oracle made.",
+  "uncertainty_score": (Integer from 1 to 5, where 5 is highly uncertain/ambiguous)
+}"""
+
+CLARIFIER_AGENT_SYSTEM = """You are the CLARIFIER. Look at the assumptions the Oracle made and the Critic's feedback.
+Formulate a question to verify those assumptions or resolve the ambiguity. 1-2 sentences only."""
+
+# ---------------------------------------------------------------------------
 # Round-N user prompt. Round 0 just sends the bare query.
 # ---------------------------------------------------------------------------
 
