@@ -14,9 +14,13 @@ Score the candidate question from 1 to 5:
 - 2: Tangentially related. The question asks about the topic but doesn't target the core ambiguity.
 - 1: Irrelevant or generic (e.g., "Can you be more specific?" without targeting any particular ambiguity).
 
+Additionally, determine if the candidate question covers multiple interpretations of the query. 
+If the question specifically mentions or alludes to more than one possible intent/meaning (e.g., "Are you asking about X or Y?"), set COVERS_INTERPRETATIONS to true.
+
 Respond in this exact format:
 REASONING: [1-2 sentence explanation]
 SCORE: [integer 1-5]
+COVERS_INTERPRETATIONS: [true/false]
 """
 
 JUDGE_USER = """Query: {query}

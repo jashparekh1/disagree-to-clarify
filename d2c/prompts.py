@@ -133,20 +133,18 @@ Formulate a question to verify those assumptions or resolve the ambiguity. 1-2 s
 # Synthesizer.
 # ---------------------------------------------------------------------------
 
-SYNTHESIZER_SYSTEM = """You read three agents' interpretations of an ambiguous user query and output ONE clarifying question for the user.
+SYNTHESIZER_SYSTEM = """You read three agents' interpretations of a user query and output ONE clarifying question for the user OR the word "CLEAR".
 
-The most important part of the transcript is the "FINAL-ROUND STANCES" block at the bottom. That block lists, for each agent, exactly what they still see after reading the others. Agents that are HOLD are flagging a specific grounding gap they refused to close. That is your primary signal: the clarifying question must target the gap(s) surfaced there.
+The most important part of the transcript is the "FINAL-ROUND STANCES" block.
+- If ALL agents have a stance of "CONCEDE", it means they reached consensus that the query is clear and unambiguous. In this case, output ONLY the word "CLEAR".
+- If any agent is "HOLD" or "UPDATE", they have flagged a grounding gap. Your clarifying question must target that gap.
 
 Rules:
-- Ground the question in what AT LEAST ONE agent's stance_reason in the final round explicitly points to. Do not invent a gap no agent raised.
-- If the agents disagree on DIFFERENT axes of ambiguity (e.g., one flags a pronoun, another flags a missing sub-topic, a third flags a word's polysemy), pick whichever ONE would most change the system's response and ask about it directly.
-- Output ONLY the clarifying question itself. No preamble, no explanation, no restatement of the agents' analyses.
-- The question must be specific — never "can you clarify?" or "what do you mean?".
-- Prefer asking about the SPECIFIC aspect, subtopic, or parameter that's unspecified (e.g., "which aspect of X: history, location, or reviews?") over generic reference disambiguation, unless reference is genuinely unclear.
-- Keep the question under 25 words. Answerable by the user in 1-2 sentences.
-- Agents that CONCEDEd have dropped out — ignore them entirely.
-- HOLD agents are flagging a specific gap they refused to close. That is your primary signal.
-- UPDATE agents have shifted but not conceded — their refined reading is secondary signal.
+- If consensus is reached (all CONCEDE), output: CLEAR
+- Otherwise, output ONLY the clarifying question itself. No preamble.
+- Ground the question in what AT LEAST ONE agent's stance_reason in the final round explicitly points to.
+- The question must be specific — never "can you clarify?".
+- Keep the question under 25 words.
 """
 
 SYNTHESIZER_USER = """Original query: {query}
@@ -154,22 +152,24 @@ SYNTHESIZER_USER = """Original query: {query}
 Dialogue transcript:
 {transcript}
 
-Produce the clarifying question.
+Produce the clarifying question or "CLEAR".
 
-Output ONLY this JSON: {{"clarifying_question": "<your question under 25 words>"}}"""
+Output ONLY this JSON: {{"clarifying_question": "<your question or CLEAR>"}}"""
 
 # ---------------------------------------------------------------------------
-# Baselines (unchanged).
+# Baselines (detection-aware).
 # ---------------------------------------------------------------------------
 
-VANILLA_CQG_SYSTEM = """You are a helpful assistant. Your goal is to generate a single, concise clarifying question for an ambiguous user query.
-The question should help resolve the most likely ambiguities and allow the user to specify their intent."""
+VANILLA_CQG_SYSTEM = """You are a helpful assistant. Your goal is to determine if a user query is ambiguous and requires clarification.
+If it is ambiguous, generate a single, concise clarifying question.
+If it is perfectly clear and specific, output "CLEAR"."""
 
-VANILLA_CQG_USER = """The following query is ambiguous: "{query}"
+VANILLA_CQG_USER = """Analyze the following query: "{query}"
 
-Generate ONE concise clarifying question to help resolve this ambiguity.
+If it needs clarification to be answered accurately, generate ONE concise clarifying question.
+If it is clear and requires no further information, output: "CLEAR"
 
-Output ONLY this JSON: {{"clarifying_question": "<your question>"}}"""
+Output ONLY this JSON: {{"clarifying_question": "<your question or CLEAR>"}}"""
 
 # ---------------------------------------------------------------------------
 # Simulated-user / RL prompts (legacy, unchanged).

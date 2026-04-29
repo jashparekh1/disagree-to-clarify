@@ -35,6 +35,7 @@ def _get_embed_model():
     """Load the sentence-transformer model once, cache globally."""
     global _EMBED_MODEL
     if _EMBED_MODEL is None:
+        print("Loading SentenceTransformer (one-time cost)...")
         from sentence_transformers import SentenceTransformer
         _EMBED_MODEL = SentenceTransformer(_EMBED_MODEL_NAME)
     return _EMBED_MODEL
@@ -193,17 +194,25 @@ def ndcg_score(relevance_scores: list[float], k: int = 20) -> float:
 # ---------------------------------------------------------------------------
 
 def _parse_judge_output(raw: str) -> dict[str, Any]:
-    """Parse REASONING and SCORE from judge output."""
-    result: dict[str, Any] = {"raw": raw, "score": 0, "reasoning": ""}
+    """Parse REASONING, SCORE, and COVERS from judge output."""
+    result: dict[str, Any] = {"raw": raw, "score": 0, "reasoning": "", "covers": False}
 
     score_idx = raw.find("SCORE:")
     if score_idx != -1:
         rest = raw[score_idx + len("SCORE:"):].strip()
         score_str = rest.split()[0] if rest else "0"
         try:
-            result["score"] = max(1, min(5, int(score_str)))
+            result["score"] = max(1, min(5, int(score_str.rstrip(",}"))))
         except ValueError:
             result["score"] = 0
+
+    covers_idx = raw.lower().find("covers_interpretations")
+    if covers_idx != -1:
+        rest = raw[covers_idx:].lower()
+        if "true" in rest[:50]:
+            result["covers"] = True
+        elif "false" in rest[:50]:
+            result["covers"] = False
 
     reasoning_idx = raw.find("REASONING:")
     if reasoning_idx != -1:

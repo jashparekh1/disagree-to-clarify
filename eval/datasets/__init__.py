@@ -14,10 +14,13 @@ def load_dataset(name: str, data_dir: str = "data") -> list[AmbiguousQuery]:
     elif name == "clariq":
         from eval.datasets.load_clariq import load_clariq
         return load_clariq(f"{data_dir}/clariq")
+    elif name == "abgcoqa":
+        from eval.datasets.load_abgcoqa import load_abgcoqa
+        return load_abgcoqa(f"{data_dir}/abgcoqa")
     else:
-        raise ValueError(f"Unknown dataset: {name}. Choose from: clamber, qulac, clariq")
+        raise ValueError(f"Unknown dataset: {name}. Choose from: clamber, qulac, clariq, abgcoqa")
 
 
 def load_all_datasets(data_dir: str = "data") -> dict[str, list[AmbiguousQuery]]:
-    """Load all three datasets. Returns dict mapping name -> list."""
-    return {name: load_dataset(name, data_dir) for name in ["clamber", "qulac", "clariq"]}
+    """Load all datasets. Returns dict mapping name -> list."""
+    return {name: load_dataset(name, data_dir) for name in ["clamber", "qulac", "clariq", "abgcoqa"]}

@@ -1,0 +1,10 @@
+PAPER-READY MASTER EVALUATION
+Generator Model: qwen2.5:1.5b | Judge Model: qwen3:4b
+========================================================================================================================
+
+
+>>> Processing CLAMBER (5 items)...
+  [1] Query: The all possible word categories are either "female pronoun"...
+    - vanilla   : Score=5, Round=0
+    - parallel  : Score=5, Round=1
+    - madisse   : Score=2, Round=3

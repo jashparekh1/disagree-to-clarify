@@ -22,6 +22,10 @@ DATASETS = {
         "url": "https://github.com/aliannejadi/ClariQ.git",
         "dir": "data/clariq",
     },
+    "abgcoqa": {
+        "url": "https://github.com/MeiqiGuo/AKBC2021-Abg-CoQA.git",
+        "dir": "data/abgcoqa",
+    },
 }
 
 

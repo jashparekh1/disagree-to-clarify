@@ -87,6 +87,7 @@ def main() -> None:
     parser.add_argument("--clariq-n", type=int, default=None)
     parser.add_argument("--qulac-n", type=int, default=None)
     parser.add_argument("--clamber-n", type=int, default=500)
+    parser.add_argument("--abgcoqa-n", type=int, default=500)
     args = parser.parse_args()
 
     print(f"Building test sets (Mixed Ambiguity) → {OUT_DIR}/ (seed={args.seed})")
@@ -95,6 +96,7 @@ def main() -> None:
         ("clariq", build_topic_grouped, args.clariq_n),
         ("qulac", build_topic_grouped, args.qulac_n),
         ("clamber", build_flat, args.clamber_n),
+        ("abgcoqa", build_flat, args.abgcoqa_n),
     ]
 
     for name, builder, n in jobs:
