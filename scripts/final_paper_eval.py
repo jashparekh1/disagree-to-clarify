@@ -21,7 +21,8 @@ from d2c.synthesizer import synthesize
 from eval.metrics import (
     semantic_similarity, 
     llm_judge_quality, 
-    clarification_need_f1
+    clarification_need_f1,
+    internal_divergence_score
 )
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ def load_full_test_set(dataset: str) -> list[dict]:
     with open(path) as f:
         return [json.loads(line) for line in f if line.strip()]
 
-def run_parallel_baseline(query: str, model: str, llm: LLMClient) -> str:
+def run_parallel_baseline_full(query: str, model: str, llm: LLMClient) -> tuple[str, list[str]]:
     """Agents generate 1 round in parallel, then synthesize (No Dialogue)."""
     roles = [AgentRole.LOCUTIONARY, AgentRole.ILLOCUTIONARY, AgentRole.PERLOCUTIONARY]
     agents = [Agent(role, llm, max_tokens=300) for role in roles]
@@ -46,7 +47,7 @@ def run_parallel_baseline(query: str, model: str, llm: LLMClient) -> str:
 
     dialogue = DialogueResult(query=query, rounds=[round_0], num_rounds=1)
     synth = synthesize(query, dialogue, llm, max_tokens=300, variant="speech_act")
-    return synth.clarifying_question
+    return synth.clarifying_question, [r.interpretation for r in round_0]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -67,7 +68,7 @@ def main():
 
     methods = ["vanilla", "parallel", "madisse", "speech_act"]
     all_results = {m: {
-        "scores": [], "sims": [], "preds": [], "golds": [], "rounds": [], "covers": []
+        "scores": [], "sims": [], "preds": [], "golds": [], "rounds": [], "covers": [], "divs": []
     } for m in methods}
     
     total_samples = 0
@@ -103,13 +104,18 @@ def main():
                         res = run_vanilla_cqg(query, llm, max_tokens=300)
                         q_text = res.clarifying_question
                         rnd = 0
+                        div_score = 0.0
                     elif name == "parallel":
-                        q_text = run_parallel_baseline(query, args.model, llm)
+                        q_text, interps = run_parallel_baseline_full(query, args.model, llm)
                         rnd = 1
+                        div_score = internal_divergence_score(interps)
                     else: # madisse or speech_act
                         res = run_d2c(query, variant=name, model=args.model, num_rounds=args.num_rounds)
                         q_text = res.synthesizer_result.clarifying_question
                         rnd = res.dialogue.rounds_completed
+                        # Pairwise distance of final round interpretations
+                        final_interps = [r.interpretation for r in res.dialogue.rounds[-1]]
+                        div_score = internal_divergence_score(final_interps)
 
                     # 2. DETECT (Detection-Aware logic)
                     pred_ambig = "CLEAR" not in q_text.upper()
@@ -124,8 +130,9 @@ def main():
                     all_results[name]["golds"].append(is_ambig)
                     all_results[name]["rounds"].append(rnd)
                     all_results[name]["covers"].append(1 if j_res.get("covers") else 0)
+                    all_results[name]["divs"].append(div_score)
                     
-                    msg = f"    - {name:<10}: Score={j_res['score']}, Round={rnd}"
+                    msg = f"    - {name:<10}: Score={j_res['score']}, Div={div_score:.2f}, Round={rnd}"
                     print(msg)
                     with open(results_file, "a") as f: f.write(msg + "\n")
                 except Exception as e:
@@ -136,7 +143,7 @@ def main():
             # --- REAL-TIME TABLE UPDATE ---
             table_lines = []
             table_lines.append(f"\n--- RUNNING RESULTS (N={total_samples}) ---")
-            header = f"{'Method':<12} | {'F1':<5} | {'Qual':<4} | {'Sim':<6} | {'Cov%':<5} | {'Rnd':<4}"
+            header = f"{'Method':<12} | {'F1':<5} | {'Qual':<4} | {'Div':<4} | {'Sim':<6} | {'Cov%':<5} | {'Rnd':<4}"
             table_lines.append(header)
             table_lines.append("-" * len(header))
             for name in methods:
@@ -146,7 +153,8 @@ def main():
                 sim_mean = statistics.mean(all_results[name]["sims"])
                 cov_pct = statistics.mean(all_results[name]["covers"]) * 100
                 rnd_avg = statistics.mean(all_results[name]["rounds"])
-                table_lines.append(f"{name:<12} | {det['f1']:>5.2f} | {q_mean:>4.1f} | {sim_mean:>6.3f} | {cov_pct:>5.1f} | {rnd_avg:>4.1f}")
+                div_avg = statistics.mean(all_results[name]["divs"])
+                table_lines.append(f"{name:<12} | {det['f1']:>5.2f} | {q_mean:>4.1f} | {div_avg:>4.2f} | {sim_mean:>6.3f} | {cov_pct:>5.1f} | {rnd_avg:>4.1f}")
             table_lines.append("-------------------------------------------\n")
             
             full_table = "\n".join(table_lines)
@@ -158,7 +166,7 @@ def main():
     final_output.append(f"\n{'='*130}")
     final_output.append(f"  FINAL MASTER RESULTS TABLE (N={total_samples})")
     final_output.append(f"{'='*130}")
-    header = f"{'Method':<12} | {'F1':<5} | {'Prec':<5} | {'Rec':<5} | {'Qual':<4} | {'Sim':<6} | {'Cov%':<5} | {'Rnd':<4}"
+    header = f"{'Method':<12} | {'F1':<5} | {'Prec':<5} | {'Rec':<5} | {'Qual':<4} | {'Div':<4} | {'Sim':<6} | {'Cov%':<5} | {'Rnd':<4}"
     final_output.append(header)
     final_output.append("-" * len(header))
     
@@ -171,8 +179,9 @@ def main():
         sim_mean = statistics.mean(all_results[name]["sims"])
         cov_pct = statistics.mean(all_results[name]["covers"]) * 100
         rnd_avg = statistics.mean(all_results[name]["rounds"])
+        div_avg = statistics.mean(all_results[name]["divs"])
         
-        final_output.append(f"{name:<12} | {det['f1']:>5.2f} | {det['precision']:>5.2f} | {det['recall']:>5.2f} | {q_mean:>4.1f} | {sim_mean:>6.3f} | {cov_pct:>5.1f} | {rnd_avg:>4.1f}")
+        final_output.append(f"{name:<12} | {det['f1']:>5.2f} | {det['precision']:>5.2f} | {det['recall']:>5.2f} | {q_mean:>4.1f} | {div_avg:>4.2f} | {sim_mean:>6.3f} | {cov_pct:>5.1f} | {rnd_avg:>4.1f}")
     final_output.append(f"{'='*130}\n")
     
     final_full = "\n".join(final_output)

@@ -119,6 +119,28 @@ def semantic_similarity_multi_ref(
     return max(semantic_similarity(generated, gold) for gold in gold_questions)
 
 
+def internal_divergence_score(interpretations: list[str]) -> float:
+    """Calculate the average pairwise semantic distance (1 - cosine similarity).
+    
+    A score of 0.0 means perfect agreement; 1.0 means total divergence.
+    """
+    if len(interpretations) < 2:
+        return 0.0
+    
+    model = _get_embed_model()
+    embeddings = model.encode(interpretations, normalize_embeddings=True)
+    
+    distances = []
+    n = len(interpretations)
+    for i in range(n):
+        for j in range(i + 1, n):
+            # Cosine similarity is dot product of normalized embeddings
+            sim = float(embeddings[i] @ embeddings[j])
+            distances.append(1.0 - max(0.0, min(1.0, sim)))
+            
+    return sum(distances) / len(distances) if distances else 0.0
+
+
 def semantic_similarity_batch(
     generated: list[str],
     references: list[list[str]],
