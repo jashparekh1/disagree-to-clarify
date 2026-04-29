@@ -208,10 +208,11 @@ def _parse_judge_output(raw: str) -> dict[str, Any]:
 
     covers_idx = raw.lower().find("covers_interpretations")
     if covers_idx != -1:
+        # Look for "true" or "false" in the rest of the string after the label
         rest = raw[covers_idx:].lower()
-        if "true" in rest[:50]:
+        if "true" in rest:
             result["covers"] = True
-        elif "false" in rest[:50]:
+        elif "false" in rest:
             result["covers"] = False
 
     reasoning_idx = raw.find("REASONING:")
