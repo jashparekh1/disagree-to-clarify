@@ -25,14 +25,21 @@ You have a distinct lens. Defend your reading. Only concede if another agent has
 # Speech Act Theory agents (default). Theory background lives in the README.
 # ---------------------------------------------------------------------------
 
-LOCUTIONARY_SYSTEM = """You are the LOCUTIONARY agent. Your job is to flag lexical or syntactic ambiguity — what the words denote and how the sentence parses. Do not reason about intent or missing context. 1-2 sentences only.
-You have a distinct lens. Defend your reading. Only concede if another agent has already captured your exact concern word-for-word — not just approximately."""
+LOCUTIONARY_SYSTEM = """You are the LOCUTIONARY agent. Focus ONLY on lexical and syntactic ambiguity. 
+- Are there words with multiple dictionary definitions (e.g., "bank")? 
+- Is the sentence structure ambiguous?
+- 95% RULE: If the query is straightforward and the words have clear primary meanings, you MUST output CONCEDE and state the query is clear.
+- 1-2 sentences only."""
 
-ILLOCUTIONARY_SYSTEM = """You are the ILLOCUTIONARY agent. Your job is to classify the speech act (directive, assertive, etc.) and flag any ambiguity in the force or intent behind the utterance. Do not reason about surface form or missing context. 1-2 sentences only.
-You have a distinct lens. Defend your reading. Only concede if another agent has already captured your exact concern — not just approximately."""
+ILLOCUTIONARY_SYSTEM = """You are the ILLOCUTIONARY agent. Focus ONLY on the intent and speech act. 
+- Is the user asking for a fact, a request, or a command? 
+- 95% RULE: If the user's intent is obvious and answerable without more detail, you MUST output CONCEDE and state the query is clear.
+- 1-2 sentences only."""
 
-PERLOCUTIONARY_SYSTEM = """You are the PERLOCUTIONARY agent. Your job is to identify the SPECIFIC aspect, subtopic, or parameter that is unspecified and would change what a useful answer looks like. Do not reason about surface form or speech act type. 1-2 sentences only.
-You have a distinct lens. Defend your reading. Only concede if another agent has already captured your exact concern — not just approximately."""
+PERLOCUTIONARY_SYSTEM = """You are the PERLOCUTIONARY agent. Focus ONLY on missing parameters.
+- Is there a missing Location, Timeframe, or Subtopic constraint?
+- 95% RULE: If the query is already specific enough to provide a high-quality answer, you MUST output CONCEDE and state the query is clear.
+- 1-2 sentences only."""
 
 # ---------------------------------------------------------------------------
 # Madisse (Forced Initial Stance) agents (2025 approach).
@@ -47,21 +54,17 @@ You must defend the position that the query is too broad. Only concede if anothe
 INTENT_FINDER_SYSTEM = """You are the INTENT-FINDER. You MUST argue that this query is missing an 'Action' intent (e.g., buying vs. learning, searching vs. creating). Identify what the missing actions are. 1-2 sentences only.
 You must defend the position that the intent is missing. Only concede if another agent captures the intent gap you identified."""
 
-MADISSE_SYNTHESIZER_SYSTEM = """You read three agents' forced arguments about a user query and output ONE clarifying question for the user.
+MADISSE_SYNTHESIZER_SYSTEM = """You read three agents' forced arguments about a user query.
 
-Roles you observed:
-1. FACT-FINDER: Argued the query is clear.
-2. FACET-FINDER: Argued missing subtopics/facets.
-3. INTENT-FINDER: Argued missing action/intent.
+Your goal is to resolve the conflict by presenting the divergent arguments as a choice to the user.
 
-Your goal:
-Decide which agent made a stronger, more realistic case.
-- If the FACT-FINDER's argument is truly convincing (the query is NOT ambiguous), you may still ask a very light question or provide the default answer.
-- If the FACET-FINDER or INTENT-FINDER raised valid gaps, your clarifying question must target those specific gaps.
+RULES:
+1. IDENTIFY THE CHOICE: Look at the arguments from the FACET-FINDER and INTENT-FINDER.
+2. FORMULATE THE QUESTION: Use a disjunctive "Are you asking about [Facet A] or [Action B]?" structure.
+3. BE CONCISE: Under 20 words. No preamble.
+4. VALIDATION: If the FACT-FINDER successfully proved the query is clear, you may output ONLY the word "CLEAR".
 
-Rules:
-- Output ONLY the clarifying question itself. No preamble, no explanation.
-- Keep it under 20 words.
+Output ONLY the question or CLEAR.\
 """
 
 # ---------------------------------------------------------------------------
@@ -133,18 +136,35 @@ Formulate a question to verify those assumptions or resolve the ambiguity. 1-2 s
 # Synthesizer.
 # ---------------------------------------------------------------------------
 
-SYNTHESIZER_SYSTEM = """You read three agents' interpretations of a user query and output ONE clarifying question for the user OR the word "CLEAR".
+GATEKEEPER_SYSTEM = """You are a strict ambiguity detector. Your job is to decide if a query needs clarification based on a dialogue between agents.
 
-The most important part of the transcript is the "FINAL-ROUND STANCES" block.
-- If ALL agents have a stance of "CONCEDE", it means they reached consensus that the query is clear and unambiguous. In this case, output ONLY the word "CLEAR".
-- If any agent is "HOLD" or "UPDATE", they have flagged a grounding gap. Your clarifying question must target that gap.
+A query is "CLEAR" if:
+1. All agents have conceded/reached consensus.
+2. The query is a straightforward factual request, common question, or simple list.
+3. The agents failed to identify any REAL, conflicting interpretations.
 
-Rules:
-- If consensus is reached (all CONCEDE), output: CLEAR
-- Otherwise, output ONLY the clarifying question itself. No preamble.
-- Ground the question in what AT LEAST ONE agent's stance_reason in the final round explicitly points to.
-- The question must be specific — never "can you clarify?".
-- Keep the question under 25 words.
+A query is "AMBIGUOUS" if:
+1. There is a persistent, meaningful disagreement about what the user wants.
+2. Answering it would require guessing between two or more valid, distinct intents.
+
+Respond ONLY with the word "CLEAR" or "AMBIGUOUS". No preamble.
+"""
+
+GATEKEEPER_USER = """Original query: {query}
+
+Dialogue transcript:
+{transcript}
+
+Does this query need clarification? Respond ONLY with CLEAR or AMBIGUOUS."""
+
+SYNTHESIZER_SYSTEM = """You are a master synthesizer. Your goal is to resolve a dialogue by formulating a disjunctive clarifying question.
+
+RULES:
+1. PRESENT THE CHOICE: Formulate a question that explicitly presents conflicting agent readings as a choice to the user.
+2. STRUCTURE: Use "Are you asking about [A], [B], or something else?"
+3. BE CONCISE: Under 25 words. No preamble or filler.
+
+Output ONLY the specific clarifying question.\
 """
 
 SYNTHESIZER_USER = """Original query: {query}
@@ -152,17 +172,21 @@ SYNTHESIZER_USER = """Original query: {query}
 Dialogue transcript:
 {transcript}
 
-Produce the clarifying question or "CLEAR".
+Produce the clarifying question.
 
-Output ONLY this JSON: {{"clarifying_question": "<your question or CLEAR>"}}"""
+Output ONLY this JSON: {{"clarifying_question": "<your question>"}}"""
 
 # ---------------------------------------------------------------------------
 # Baselines (detection-aware).
 # ---------------------------------------------------------------------------
 
-VANILLA_CQG_SYSTEM = """You are a helpful assistant. Your goal is to determine if a user query is ambiguous and requires clarification.
-If it is ambiguous, generate a single, concise clarifying question.
-If it is perfectly clear and specific, output "CLEAR"."""
+VANILLA_CQG_SYSTEM = """You are a strict ambiguity detector.
+Your goal is to output "CLEAR" for any query that is straightforward, common, or easily answerable without more information. 
+
+ONLY generate a clarifying question if the query is fundamentally impossible to answer accurately (e.g., "Who won the game?" when multiple games happened).
+
+If a standard assistant could reasonably answer the query as-is, output: CLEAR\
+"""
 
 VANILLA_CQG_USER = """Analyze the following query: "{query}"
 

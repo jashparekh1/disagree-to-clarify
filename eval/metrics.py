@@ -215,57 +215,64 @@ def ndcg_score(relevance_scores: list[float], k: int = 20) -> float:
 # Metric 2: Clarifying Question Quality (LLM-as-Judge)
 # ---------------------------------------------------------------------------
 
-def _parse_judge_output(raw: str) -> dict[str, Any]:
-    """Parse REASONING, SCORE, and COVERS from judge output."""
-    result: dict[str, Any] = {"raw": raw, "score": 0, "reasoning": "", "covers": False}
-
-    score_idx = raw.find("SCORE:")
-    if score_idx != -1:
-        rest = raw[score_idx + len("SCORE:"):].strip()
-        score_str = rest.split()[0] if rest else "0"
-        try:
-            result["score"] = max(1, min(5, int(score_str.rstrip(",}"))))
-        except ValueError:
-            result["score"] = 0
-
-    covers_idx = raw.lower().find("covers_interpretations")
-    if covers_idx != -1:
-        # Look for "true" or "false" in the rest of the string after the label
-        rest = raw[covers_idx:].lower()
-        if "true" in rest:
-            result["covers"] = True
-        elif "false" in rest:
-            result["covers"] = False
-
-    reasoning_idx = raw.find("REASONING:")
-    if reasoning_idx != -1:
-        end = score_idx if score_idx > reasoning_idx else len(raw)
-        result["reasoning"] = raw[reasoning_idx + len("REASONING:"):end].strip()
-
-    return result
-
-
 def llm_judge_quality(
     query: str,
     generated_question: str,
     gold_question: str,
     llm: LLMClient,
 ) -> dict[str, Any]:
-    """Score a generated clarifying question against a gold reference (1-5).
-
-    Returns: {"score": int, "reasoning": str, "raw": str}
+    """Score a generated clarifying question using a 2-step Reasoning->Scoring pipeline.
+    
+    Step 1: Get detailed qualitative reasoning.
+    Step 2: Get strict quantitative JSON based on that reasoning.
     """
     user_prompt = JUDGE_USER.format(
         query=query,
         gold_question=gold_question,
         candidate_question=generated_question,
     )
-    raw = llm.chat(
-        system_prompt=JUDGE_SYSTEM,
+    
+    # STEP 1: REASONING (No JSON yet, just thinking)
+    reasoning_sys = "You are a critical evaluator. Analyze the candidate question against the gold standard and the query. Identify specific strengths and weaknesses. Be thorough but concise (under 200 words)."
+    full_reasoning = llm.chat(
+        system_prompt=reasoning_sys,
         user_prompt=user_prompt,
-        temperature=0.1,
+        temperature=0.7, # Higher temp for better reasoning diversity
+        max_tokens=500,
+        strip_thinking=False,
     )
-    return _parse_judge_output(raw)
+    
+    # STEP 2: SCORING (Strict JSON based on reasoning)
+    scoring_sys = f"You are a robotic scoring script. Based on the following reasoning, output ONLY the final objective metrics in JSON format.\n\nREASONING TO USE:\n{full_reasoning}"
+    
+    judge_schema = {
+        "type": "object",
+        "properties": {
+            "score": {"type": "integer", "minimum": 1, "maximum": 5},
+            "covers_interpretations": {"type": "boolean"}
+        },
+        "required": ["score", "covers_interpretations"]
+    }
+    
+    raw_json = llm.chat(
+        system_prompt=scoring_sys,
+        user_prompt="Output the JSON metrics now.",
+        temperature=0.0,
+        max_tokens=100,
+        format_schema=judge_schema
+    )
+    
+    # Combine results
+    import json
+    result: dict[str, Any] = {"raw": f"REASONING:\n{full_reasoning}\n\nRESULT:\n{raw_json}", "score": 0, "reasoning": full_reasoning, "covers": False}
+    try:
+        data = json.loads(raw_json)
+        result["score"] = max(1, min(5, int(data.get("score", 0))))
+        result["covers"] = bool(data.get("covers_interpretations", False))
+    except (json.JSONDecodeError, ValueError):
+        pass
+        
+    return result
 
 
 def llm_judge_quality_multi_ref(

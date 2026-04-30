@@ -45,9 +45,13 @@ def run_vanilla_cqg(
     query: str,
     llm: LLMClient,
     max_tokens: int = 300,
+    context: str | None = None,
 ) -> VanillaResult:
     """One-shot vanilla clarifying-question generation."""
     user = VANILLA_CQG_USER.format(query=query)
+    if context:
+        user = f"CONTEXT:\n{context}\n\n{user}"
+        
     raw = llm.chat(
         system_prompt=VANILLA_CQG_SYSTEM,
         user_prompt=user,

@@ -31,6 +31,19 @@ def load_abgcoqa(data_dir: str = "data/abgcoqa") -> list[AmbiguousQuery]:
 
     for i, entry in enumerate(raw_data):
         story = entry.get("story", "")
+        history = entry.get("history_turns", [])
+        
+        # Format history as a string: "Q: ... A: ... \n Q: ... A: ..."
+        history_str = ""
+        for turn in history:
+            q = turn.get("question", "")
+            a = turn.get("answer", "")
+            history_str += f"Q: {q}\nA: {a}\n"
+
+        full_context = story
+        if history_str:
+            full_context = f"{story}\n\nCONVERSATION HISTORY:\n{history_str}"
+
         target_turn = entry.get("target_turn", {})
         query = target_turn.get("question", "")
         
@@ -48,7 +61,7 @@ def load_abgcoqa(data_dir: str = "data/abgcoqa") -> list[AmbiguousQuery]:
             ambiguity_type=ambiguity_label,
             dataset="abgcoqa",
             example_id=entry.get("id", f"abgcoqa_{i}"),
-            context=story,
+            context=full_context,
             raw=entry,
         ))
 

@@ -12,7 +12,14 @@ from dataclasses import dataclass
 from d2c.agents import _ROLE_DISPLAY
 from d2c.dialogue import DialogueResult
 from d2c.llm import LLMClient
-from d2c.prompts import SYNTHESIZER_SYSTEM, SYNTHESIZER_USER, MADISSE_SYNTHESIZER_SYSTEM, IR_HACK_SYNTHESIZER_SYSTEM
+from d2c.prompts import (
+    SYNTHESIZER_SYSTEM, 
+    SYNTHESIZER_USER, 
+    MADISSE_SYNTHESIZER_SYSTEM, 
+    IR_HACK_SYNTHESIZER_SYSTEM,
+    GATEKEEPER_SYSTEM,
+    GATEKEEPER_USER
+)
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +123,22 @@ def synthesize(
     variant: str = "speech_act",
 ) -> SynthesizerResult:
     transcript = _format_transcript(dialogue)
+    
+    # 1. GATEKEEPER STEP (Binary Detection)
+    # -----------------------------------------------------------------------
+    gatekeeper_prompt = GATEKEEPER_USER.format(query=query, transcript=transcript)
+    gate_raw = llm.chat(
+        system_prompt=GATEKEEPER_SYSTEM,
+        user_prompt=gatekeeper_prompt,
+        temperature=0.0, # Strict
+        max_tokens=10,   # "CLEAR" or "AMBIGUOUS"
+    ).upper()
+    
+    if "CLEAR" in gate_raw and "AMBIGUOUS" not in gate_raw:
+        return SynthesizerResult(clarifying_question="CLEAR", raw_text=gate_raw)
+
+    # 2. SYNTHESIS STEP (Question Generation)
+    # -----------------------------------------------------------------------
     user_prompt = SYNTHESIZER_USER.format(query=query, transcript=transcript)
 
     if variant == "madisse":

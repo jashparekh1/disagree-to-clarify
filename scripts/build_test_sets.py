@@ -1,4 +1,4 @@
-"""Build fixed, reproducible test sets from ClariQ / Qulac / CLAMBER.
+"""Build fixed, reproducible test sets from ClariQ / Qulac / CLAMBER / Abg-CoQA.
 
 Now includes BOTH clear and ambiguous queries for detection metrics.
 """
@@ -8,23 +8,22 @@ from __future__ import annotations
 import argparse
 import json
 import random
-from collections import defaultdict
 from pathlib import Path
+from collections import defaultdict
 
 from eval.datasets import load_dataset
-from eval.datasets.base import AmbiguousQuery
 
 OUT_DIR = Path("test_sets")
 
 
 def build_topic_grouped(dataset_name: str, n: int | None, seed: int) -> list[dict]:
-    """For datasets with topic-level queries (ClariQ, Qulac)."""
+    """For datasets where multiple entries share a topic (ClariQ, Qulac)."""
     items = load_dataset(dataset_name)
-    by_topic: dict[str, list[AmbiguousQuery]] = defaultdict(list)
-    for q in items:
-        by_topic[q.topic_id or q.query].append(q)
+    by_topic = defaultdict(list)
+    for it in items:
+        by_topic[it.topic_id].append(it)
 
-    topic_ids = list(by_topic.keys())
+    topic_ids = sorted(by_topic.keys())
     random.Random(seed).shuffle(topic_ids)
     if n is not None:
         topic_ids = topic_ids[:n]
@@ -42,6 +41,7 @@ def build_topic_grouped(dataset_name: str, n: int | None, seed: int) -> list[dic
                 "topic_id": tid,
                 "example_id": rep.example_id,
                 "query": rep.query,
+                "context": rep.context,
                 "is_ambiguous": any(e.is_ambiguous for e in entries),
                 "gold_clarifying_questions": golds,
                 "ambiguity_type": rep.ambiguity_type,
@@ -52,7 +52,7 @@ def build_topic_grouped(dataset_name: str, n: int | None, seed: int) -> list[dic
 
 
 def build_flat(dataset_name: str, n: int | None, seed: int) -> list[dict]:
-    """For datasets without topic grouping (CLAMBER)."""
+    """For datasets without topic grouping (CLAMBER, Abg-CoQA)."""
     items = load_dataset(dataset_name)
     random.Random(seed).shuffle(items)
     if n is not None:
@@ -60,17 +60,18 @@ def build_flat(dataset_name: str, n: int | None, seed: int) -> list[dict]:
     return [
         {
             "dataset": dataset_name,
-            "topic_id": q.topic_id,
-            "example_id": q.example_id,
-            "query": q.query,
-            "is_ambiguous": q.is_ambiguous,
-            "gold_clarifying_questions": [q.gold_clarifying_question]
-            if q.gold_clarifying_question
+            "topic_id": None,
+            "example_id": it.example_id,
+            "query": it.query,
+            "context": it.context,
+            "is_ambiguous": it.is_ambiguous,
+            "gold_clarifying_questions": [it.gold_clarifying_question]
+            if it.gold_clarifying_question
             else [],
-            "ambiguity_type": q.ambiguity_type,
-            "n_golds": 1 if q.gold_clarifying_question else 0,
+            "ambiguity_type": it.ambiguity_type,
+            "n_golds": 1 if it.gold_clarifying_question else 0,
         }
-        for q in items
+        for it in items
     ]
 
 

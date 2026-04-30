@@ -24,6 +24,7 @@ class DialogueResult:
     num_rounds: int  # configured round budget (not necessarily the count completed)
     converged: bool = False
     converged_at_round: int | None = None
+    context: str | None = None
 
     @property
     def rounds_completed(self) -> int:
@@ -47,6 +48,7 @@ class DialogueResult:
     def to_dict(self) -> dict:
         return {
             "query": self.query,
+            "context": self.context,
             "rounds": [[r.to_dict() for r in rnd] for rnd in self.rounds],
             "num_rounds": self.num_rounds,
             "rounds_completed": self.rounds_completed,
@@ -60,6 +62,7 @@ def run_dialogue(
     query: str,
     agents: list[Agent],
     num_rounds: int = 3,
+    context: str | None = None,
 ) -> DialogueResult:
     """Run a multi-round interpretive loop.
 
@@ -80,7 +83,7 @@ def run_dialogue(
     with ThreadPoolExecutor(max_workers=len(agents)) as executor:
         # --- Round 0 ---
         logger.info("Starting Round 0")
-        futures = [executor.submit(agent.respond_initial, query) for agent in agents]
+        futures = [executor.submit(agent.respond_initial, query, context) for agent in agents]
         round_responses = [f.result() for f in futures]
         all_rounds.append(round_responses)
 
@@ -95,11 +98,11 @@ def run_dialogue(
 
             logger.info("Starting Round %d (%d active agents)", round_num, len(active_agents))
 
-            def _get_resp(agent: Agent, prior_rounds: list, r_num: int, c_roles: set):
-                return agent.respond_dialogue(query, prior_rounds, r_num, c_roles)
+            def _get_resp(agent: Agent, prior_rounds: list, r_num: int, c_roles: set, ctx: str | None):
+                return agent.respond_dialogue(query, prior_rounds, r_num, c_roles, ctx)
 
             futures = [
-                executor.submit(_get_resp, agent, list(all_rounds), round_num, set(conceded_roles))
+                executor.submit(_get_resp, agent, list(all_rounds), round_num, set(conceded_roles), context)
                 for agent in active_agents
             ]
             round_responses = [f.result() for f in futures]

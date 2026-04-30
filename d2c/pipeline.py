@@ -51,6 +51,7 @@ def run_d2c(
     think: bool | None = None,
     base_url: str | None = None,
     backend: str = "ollama",
+    context: str | None = None,
 ) -> D2CResult:
     """Full pipeline: query -> agents -> dialogue -> synthesizer -> clarifying question."""
     llm = LLMClient(model=model, think=think, base_url=base_url, backend=backend)
@@ -69,7 +70,7 @@ def run_d2c(
         roles = [AgentRole.LITERALIST, AgentRole.INTENT_SEEKER, AgentRole.SCOPE_EXPANDER]
         
     agents = [Agent(role, llm, max_tokens=max_tokens) for role in roles]
-    dialogue = run_dialogue(query, agents, num_rounds)
+    dialogue = run_dialogue(query, agents, num_rounds, context=context)
     synth = synthesize(query, dialogue, llm, max_tokens=max_tokens, variant=variant)
     return D2CResult(
         query=query,
@@ -117,8 +118,9 @@ def run_d2c_batch(
 
         def _worker(item: dict):
             query = item["query"]
+            context = item.get("context")
             try:
-                result = run_d2c(query, model=model, num_rounds=num_rounds, max_tokens=max_tokens, variant=variant)
+                result = run_d2c(query, model=model, num_rounds=num_rounds, max_tokens=max_tokens, variant=variant, context=context)
                 record = result.to_dict()
                 for k, v in item.items():
                     if k != "query":

@@ -231,11 +231,11 @@ def _parse_agent_json(
 
 _STANCE_INSTRUCTIONS = """\
 Decide your stance using this decision tree:
-1. Can you name a specific gap or ambiguity that NO other agent has captured? → HOLD (name the gap explicitly in stance_reason)
-2. Have the others partially shifted your view but not fully? → UPDATE (state what changed)
-3. Does another agent's reading cover EXACTLY what you see, with nothing left out? → CONCEDE (name which agent and why their reading is complete)
+1. Is there a fundamental difference or a major missing interpretation in the other readings? → HOLD (name the specific gap)
+2. Have the others shifted your view, or do you want to refine your reading based on their input? → UPDATE (state the refinement)
+3. Is another agent's reading substantially the same as yours, even if phrased differently? → CONCEDE (name the agent you agree with)
 
-Default to HOLD unless you can point to a specific agent whose reading already captures your exact concern.\
+Choose CONCEDE if another agent has already captured the "spirit" of your interpretation. We want to find consensus quickly if no real disagreement exists.\
 """
 
 
@@ -275,10 +275,14 @@ class Agent:
         self.max_tokens = max_tokens
         self.messages: list[dict] = []
 
-    def respond_initial(self, query: str) -> AgentResponse:
+    def respond_initial(self, query: str, context: str | None = None) -> AgentResponse:
+        user_msg = query
+        if context:
+            user_msg = f"CONTEXT (The story/background):\n{context}\n\nUSER QUERY:\n{query}"
+        
         self.messages = [
             {"role": "system", "content": self.system_prompt},
-            {"role": "user",   "content": query + ROUND_ZERO_USER_SUFFIX},
+            {"role": "user",   "content": user_msg + ROUND_ZERO_USER_SUFFIX},
         ]
         raw = self.llm.chat_with_messages(
             messages=self.messages,
@@ -295,10 +299,16 @@ class Agent:
         all_prior_rounds: list[list[AgentResponse]],
         round_num: int,
         conceded_roles: set | None = None,
+        context: str | None = None,
     ) -> AgentResponse:
         others_text = _format_others_turn(
             all_prior_rounds[-1], self.role, conceded_roles or set()
         )
+        
+        # If it's the first time we see context in the dialogue (Round 1), inject it
+        if context and round_num == 1:
+            others_text = f"CONTEXT REFRESH:\n{context}\n\n{others_text}"
+            
         self.messages.append({"role": "user", "content": others_text + "\n\n" + ROUND_N_FORMAT})
         raw = self.llm.chat_with_messages(
             messages=self.messages,

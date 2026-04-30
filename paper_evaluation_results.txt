@@ -1,7 +1,87 @@
 PAPER-READY MASTER EVALUATION
-Generator Model: qwen2.5:1.5b | Judge Model: qwen3:4b
+Seed: 376228 | Generator Model: qwen2.5:1.5b | Judge Model: qwen3:4b
 ========================================================================================================================
 
 
->>> Processing CLAMBER (5 items)...
-  [1] Query: The all possible word categories are either "female pronoun"...
+>>> Processing ABGCOQA (5 items)...
+  [1] Query: What?...
+    - vanilla   : Score=3, Div=0.00, Round=0
+    - parallel  : Score=1, Div=0.36, Round=1
+    - madisse   : Score=1, Div=0.31, Round=2
+    - speech_act: Score=5, Div=0.40, Round=2
+
+--- RUNNING RESULTS (N=1) ---
+Method       | F1    | Qual | Div  | Sim    | Cov%  | Rnd 
+----------------------------------------------------------
+vanilla      |  1.00 |  3.0 | 0.00 |  0.064 |   0.0 |  0.0
+parallel     |  1.00 |  1.0 | 0.36 |  0.407 |   0.0 |  1.0
+madisse      |  1.00 |  1.0 | 0.31 |  0.499 |   0.0 |  2.0
+speech_act   |  1.00 |  5.0 | 0.40 |  0.142 | 100.0 |  2.0
+-------------------------------------------
+  [2] Query: how did he harm himself one time?...
+    - vanilla   : Score=N/A, Div=0.00, Round=0
+    - parallel  : Score=N/A, Div=0.51, Round=1
+    - madisse   : Score=N/A, Div=0.44, Round=3
+    - speech_act: Score=N/A, Div=0.05, Round=3
+
+--- RUNNING RESULTS (N=2) ---
+Method       | F1    | Qual | Div  | Sim    | Cov%  | Rnd 
+----------------------------------------------------------
+vanilla      |  0.67 |  3.0 | 0.00 |  0.064 |   0.0 |  0.0
+parallel     |  0.67 |  1.0 | 0.43 |  0.407 |   0.0 |  1.0
+madisse      |  0.67 |  1.0 | 0.37 |  0.499 |   0.0 |  2.5
+speech_act   |  0.67 |  5.0 | 0.23 |  0.142 | 100.0 |  2.5
+-------------------------------------------
+  [3] Query: is that his former home?...
+    - vanilla   : Score=N/A, Div=0.00, Round=0
+    - parallel  : Score=N/A, Div=0.27, Round=1
+    - madisse   : Score=N/A, Div=0.07, Round=3
+    - speech_act: Score=N/A, Div=0.29, Round=3
+
+--- RUNNING RESULTS (N=3) ---
+Method       | F1    | Qual | Div  | Sim    | Cov%  | Rnd 
+----------------------------------------------------------
+vanilla      |  0.50 |  3.0 | 0.00 |  0.064 |   0.0 |  0.0
+parallel     |  0.50 |  1.0 | 0.38 |  0.407 |   0.0 |  1.0
+madisse      |  0.67 |  1.0 | 0.27 |  0.499 |   0.0 |  2.7
+speech_act   |  0.50 |  5.0 | 0.25 |  0.142 | 100.0 |  2.7
+-------------------------------------------
+  [4] Query: What did they do there?...
+    - vanilla   : Score=N/A, Div=0.00, Round=0
+    - parallel  : Score=N/A, Div=0.23, Round=1
+    - madisse   : Score=N/A, Div=0.24, Round=3
+    - speech_act: Score=N/A, Div=0.07, Round=2
+
+--- RUNNING RESULTS (N=4) ---
+Method       | F1    | Qual | Div  | Sim    | Cov%  | Rnd 
+----------------------------------------------------------
+vanilla      |  0.40 |  3.0 | 0.00 |  0.064 |   0.0 |  0.0
+parallel     |  0.40 |  1.0 | 0.34 |  0.407 |   0.0 |  1.0
+madisse      |  0.67 |  1.0 | 0.26 |  0.499 |   0.0 |  2.8
+speech_act   |  0.40 |  5.0 | 0.20 |  0.142 | 100.0 |  2.5
+-------------------------------------------
+  [5] Query: from where?...
+    - vanilla   : Score=1, Div=0.00, Round=0
+    - parallel  : Score=1, Div=0.20, Round=1
+    - madisse   : Score=1, Div=0.36, Round=3
+    - speech_act: Score=1, Div=0.27, Round=3
+
+--- RUNNING RESULTS (N=5) ---
+Method       | F1    | Qual | Div  | Sim    | Cov%  | Rnd 
+----------------------------------------------------------
+vanilla      |  0.57 |  2.0 | 0.00 |  0.403 |   0.0 |  0.0
+parallel     |  0.57 |  1.0 | 0.31 |  0.443 |   0.0 |  1.0
+madisse      |  0.80 |  1.0 | 0.28 |  0.537 |   0.0 |  2.8
+speech_act   |  0.57 |  3.0 | 0.22 |  0.318 |  50.0 |  2.6
+-------------------------------------------
+
+==================================================================================================================================
+  FINAL MASTER RESULTS TABLE (N=5)
+==================================================================================================================================
+Method       | F1    | Prec  | Rec   | Qual | Div  | Sim    | Cov%  | Rnd 
+--------------------------------------------------------------------------
+vanilla      |  0.57 |  0.40 |  1.00 |  2.0 | 0.00 |  0.403 |   0.0 |  0.0
+parallel     |  0.57 |  0.40 |  1.00 |  1.0 | 0.31 |  0.443 |   0.0 |  1.0
+madisse      |  0.80 |  0.67 |  1.00 |  1.0 | 0.28 |  0.537 |   0.0 |  2.8
+speech_act   |  0.57 |  0.40 |  1.00 |  3.0 | 0.22 |  0.318 |  50.0 |  2.6
+==================================================================================================================================
