@@ -1,162 +1,180 @@
-"""D2C Ablation Study Script.
-
-This script runs a set of predefined ablations to evaluate the impact of:
-1. Number of rounds (1 vs 3)
-2. Role diversity (Heterogeneous vs Homogeneous)
-3. The Concede mechanism (Normal vs No-Concede)
+"""Comprehensive Ablation Study for MADISSE.
+Tests three key hypotheses:
+1. Role Necessity: Does removing a specific agent (e.g. Fact-Finder) hurt F1 or Quality?
+2. Taxonomy Value: Do specialized roles perform better than generic 'Assistant' roles?
+3. Adversarial Pressure: Does 'forcing' a stance improve coverage over 'collaborative' consensus?
 """
-
-from __future__ import annotations
 
 import argparse
 import json
 import logging
+import random
+import statistics
 from pathlib import Path
-from typing import Any
+from concurrent.futures import ThreadPoolExecutor
+from tqdm import tqdm
 
-from d2c.agents import Agent, AgentRole, AgentResponse, Stance
 from d2c.llm import LLMClient
-from d2c.pipeline import run_d2c, D2CResult
+from d2c.pipeline import run_d2c
+from d2c.agents import Agent, AgentRole
+from d2c.dialogue import DialogueResult
 from d2c.synthesizer import synthesize
-from d2c.dialogue import DialogueResult, run_dialogue
-from eval.judge import binary_judge
-from d2c.prompts import VANILLA_CQG_SYSTEM, VANILLA_CQG_USER
+from eval.metrics import clarification_need_f1, llm_judge_quality, semantic_similarity
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- Custom Dialogue Runner for No-Concede Ablation ---
+DATASETS = ["clamber", "clariq", "qulac", "abgcoqa"]
 
-def run_dialogue_no_concede(
-    query: str,
-    agents: list[Agent],
-    num_rounds: int = 3,
-) -> DialogueResult:
-    """Modified run_dialogue that ignores CONCEDE stances to force debate."""
-    from concurrent.futures import ThreadPoolExecutor
-    all_rounds: list[list[AgentResponse]] = []
-    
-    with ThreadPoolExecutor(max_workers=len(agents)) as executor:
-        # Round 0
-        logger.info("Starting Round 0 (No-Concede)")
-        futures = [executor.submit(agent.respond_initial, query) for agent in agents]
-        all_rounds.append([f.result() for f in futures])
+# --- Generic prompts for Ablation 2 ---
+GENERIC_AGENT_SYSTEM = "You are an AI assistant. Analyze the user's query and identify any potential ambiguities. If it is clear, say CLEAR. If not, explain one specific interpretation. 1-2 sentences only."
 
-        # Rounds 1+
-        for round_num in range(1, num_rounds):
-            logger.info("Starting Round %d (No-Concede, 3 active agents)", round_num)
-            def _get_resp(agent: Agent, prior_rounds: list, r_num: int):
-                # We pass an empty set for conceded_roles to force everyone to stay
-                return agent.respond_dialogue(query, prior_rounds, r_num, conceded_roles=set())
+# --- Non-forced prompts for Ablation 3 ---
+COLLAB_FACT_SYSTEM = "You are a Fact-Finder. Your goal is to see if the query is clear. If you find real ambiguity, you may admit it, but your default lens is to look for a clear reading. 1-2 sentences only."
+COLLAB_FACET_SYSTEM = "You are a Facet-Finder. Your goal is to see if subtopics are missing. If the query is already specific, you may admit it is clear. 1-2 sentences only."
+COLLAB_INTENT_SYSTEM = "You are an Intent-Finder. Your goal is to see if the action is missing. If the intent is obvious, you may admit it is clear. 1-2 sentences only."
 
-            futures = [executor.submit(_get_resp, agent, list(all_rounds), round_num) for agent in agents]
-            round_responses = [f.result() for f in futures]
-            # Override any CONCEDE to HOLD for the dialogue logic
-            for r in round_responses:
-                if r.stance == Stance.CONCEDE:
-                    r.stance = Stance.HOLD
-            all_rounds.append(round_responses)
-
-    return DialogueResult(query=query, rounds=all_rounds, num_rounds=num_rounds)
-
-# --- Ablation Runner ---
-
-def run_ablation_config(
-    query: str, 
-    llm: LLMClient, 
-    config_name: str, 
-    num_rounds: int = 3
-) -> str:
-    if config_name == "vanilla":
-        user_prompt = VANILLA_CQG_USER.format(query=query)
-        raw = llm.chat(
-            system_prompt=VANILLA_CQG_SYSTEM,
-            user_prompt=user_prompt,
-            format_schema={"type": "object", "properties": {"clarifying_question": {"type": "string"}}, "required": ["clarifying_question"]}
-        )
-        return json.loads(raw).get("clarifying_question", raw)
-
-    # Configuration mapping
-    if config_name == "standard":
-        roles = [AgentRole.LOCUTIONARY, AgentRole.ILLOCUTIONARY, AgentRole.PERLOCUTIONARY]
-        force_no_concede = False
-    elif config_name == "homogeneous":
-        # 3 agents with the same role
-        roles = [AgentRole.PERLOCUTIONARY, AgentRole.PERLOCUTIONARY, AgentRole.PERLOCUTIONARY]
-        force_no_concede = False
-    elif config_name == "no_concede":
-        roles = [AgentRole.LOCUTIONARY, AgentRole.ILLOCUTIONARY, AgentRole.PERLOCUTIONARY]
-        force_no_concede = True
-    else:
-        raise ValueError(f"Unknown config: {config_name}")
-
-    agents = [Agent(role, llm) for role in roles]
-    
-    if force_no_concede:
-        dialogue = run_dialogue_no_concede(query, agents, num_rounds)
-    else:
-        dialogue = run_dialogue(query, agents, num_rounds)
-        
-    synth = synthesize(query, dialogue, llm)
-    return synth.clarifying_question
-
-def load_test_set(dataset: str, n: int) -> list[dict]:
+def load_full_test_set(dataset: str) -> list[dict]:
     path = Path("test_sets") / f"{dataset}_test.jsonl"
-    records = []
+    if not path.exists(): return []
     with open(path) as f:
-        for line in f:
-            if line.strip(): records.append(json.loads(line))
-            if len(records) >= n: break
-    return records
+        return [json.loads(line) for line in f if line.strip()]
+
+def run_ablation_variant(query, variant_name, llm, context=None):
+    """
+    Runs a modified version of the D2C pipeline based on the ablation type.
+    """
+    # Define Agents based on ablation
+    if variant_name == "no_fact_finder":
+        roles = [AgentRole.FACET_FINDER, AgentRole.INTENT_FINDER]
+    elif variant_name == "no_facet_finder":
+        roles = [AgentRole.FACT_FINDER, AgentRole.INTENT_FINDER]
+    elif variant_name == "no_intent_finder":
+        roles = [AgentRole.FACT_FINDER, AgentRole.FACET_FINDER]
+    elif variant_name == "generic_agents":
+        # We use 3 agents but with generic prompts
+        agents = [Agent(AgentRole.FACT_FINDER, llm) for _ in range(3)]
+        for a in agents: a.system_prompt = GENERIC_AGENT_SYSTEM
+        # Manually run one round
+        with ThreadPoolExecutor(max_workers=3) as ex:
+            round_0 = [ex.submit(a.respond_initial, query, context).result() for a in agents]
+        dialogue = DialogueResult(query=query, rounds=[round_0], num_rounds=1, context=context)
+        res = synthesize(query, dialogue, llm, variant="madisse")
+        return res.clarifying_question
+    elif variant_name == "collaborative":
+        agents = [
+            Agent(AgentRole.FACT_FINDER, llm),
+            Agent(AgentRole.FACET_FINDER, llm),
+            Agent(AgentRole.INTENT_FINDER, llm)
+        ]
+        agents[0].system_prompt = COLLAB_FACT_SYSTEM
+        agents[1].system_prompt = COLLAB_FACET_SYSTEM
+        agents[2].system_prompt = COLLAB_INTENT_SYSTEM
+        # Run standard 1-round flow
+        with ThreadPoolExecutor(max_workers=3) as ex:
+            round_0 = [ex.submit(a.respond_initial, query, context).result() for a in agents]
+        dialogue = DialogueResult(query=query, rounds=[round_0], num_rounds=1, context=context)
+        res = synthesize(query, dialogue, llm, variant="madisse")
+        return res.clarifying_question
+    else:
+        # Full MADISSE (1 round for fair comparison)
+        res = run_d2c(query, variant="madisse", model=llm.model, num_rounds=1, context=context)
+        return res.synthesizer_result.clarifying_question
+
+    # Default logic for "no_X_finder"
+    agents = [Agent(r, llm) for r in roles]
+    with ThreadPoolExecutor(max_workers=len(agents)) as ex:
+        round_0 = [ex.submit(a.respond_initial, query, context).result() for a in agents]
+    dialogue = DialogueResult(query=query, rounds=[round_0], num_rounds=1, context=context)
+    res = synthesize(query, dialogue, llm, variant="madisse")
+    return res.clarifying_question
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n", type=int, default=5)
-    parser.add_argument("--dataset", default="clariq")
-    parser.add_argument("--model", default="qwen3:4b")
-    parser.add_argument("--judge-model", default="qwen2.5:7b")
-    parser.add_argument("--backend", default="ollama")
+    parser.add_argument("--n-per-dataset", type=int, default=10)
+    parser.add_argument("--model", default="qwen2.5:1.5b")
+    parser.add_argument("--judge-model", default="qwen3:4b")
+    parser.add_argument("--seed", type=int, default=None)
     args = parser.parse_args()
 
-    llm = LLMClient(model=args.model, backend=args.backend)
-    judge_llm = LLMClient(model=args.judge_model, backend=args.backend, think=False)
+    if args.seed is None:
+        args.seed = random.randint(0, 1000000)
+    random.seed(args.seed)
 
-    configs = [
-        ("Vanilla", "vanilla", 0),
-        ("D2C (Standard, 3 rounds)", "standard", 3),
-        ("D2C (Standard, 1 round)", "standard", 1),
-        ("D2C (Homogeneous, 3 rounds)", "homogeneous", 3),
-        ("D2C (No-Concede, 3 rounds)", "no_concede", 3),
+    llm = LLMClient(model=args.model, think=False)
+    judge_llm = LLMClient(model=args.judge_model, think=False)
+
+    sample = []
+    for dataset in DATASETS:
+        all_items = load_full_test_set(dataset)
+        if not all_items: continue
+        random.shuffle(all_items)
+        sample.extend(all_items[:args.n_per_dataset])
+
+    results_file = Path("ablation_results.txt")
+    inspection_file = Path("ablation_inspections.txt")
+    
+    with open(results_file, "w") as f:
+        f.write(f"MADISSE ABLATION STUDY\nSeed: {args.seed}\n" + "="*80 + "\n")
+    with open(inspection_file, "w") as f:
+        f.write(f"ABLATION INSPECTION LOG\nSeed: {args.seed}\n" + "="*80 + "\n")
+
+    variants = [
+        "full_madisse",
+        "no_fact_finder", 
+        "no_facet_finder", 
+        "no_intent_finder",
+        "generic_agents",
+        "collaborative"
     ]
 
-    items = load_test_set(args.dataset, args.n)
-    results_table = []
+    results = {v: {"preds": [], "golds": [], "scores": [], "sims": []} for v in variants}
 
-    print(f"\nRunning Ablations on {args.dataset.upper()} (n={args.n})...\n")
+    print(f"Starting Ablation Study on {len(sample)} items (Seed: {args.seed})...")
 
-    for label, config_id, rounds in configs:
-        matches = 0
-        print(f"Testing Config: {label}...")
-        for item in items:
-            query = item["query"]
-            golds = item.get("gold_clarifying_questions", [])
-            
+    for item in tqdm(sample):
+        query = item["query"]
+        is_ambig = item["is_ambiguous"]
+        gold_qs = item.get("gold_clarifying_questions", [])
+        gold_q = gold_qs[0] if gold_qs else "N/A"
+
+        with open(inspection_file, "a") as f_insp:
+            f_insp.write(f"\nQuery: {query}\n")
+
+        for v in variants:
             try:
-                q = run_ablation_config(query, llm, config_id, num_rounds=rounds)
-                judgment = binary_judge(query, q, golds, judge_llm)
-                matches += judgment.match
+                q_text = run_ablation_variant(query, v, llm, item.get("context"))
+                pred_ambig = "CLEAR" not in q_text.upper()
+                
+                results[v]["preds"].append(pred_ambig)
+                results[v]["golds"].append(is_ambig)
+                
+                if is_ambig:
+                    j_res = llm_judge_quality(query, q_text, gold_q, judge_llm)
+                    sim_score = semantic_similarity(q_text, gold_q)
+                    results[v]["scores"].append(j_res["score"])
+                    results[v]["sims"].append(sim_score)
+                
+                with open(inspection_file, "a") as f_insp:
+                    f_insp.write(f"  [{v:<18}] -> {q_text[:100]}\n")
             except Exception as e:
-                logger.error(f"Error in {config_id}: {e}")
-        
-        score = (matches / args.n) * 100
-        results_table.append({"Configuration": label, "Match@1 (%)": score})
+                print(f"Error in variant {v}: {e}")
 
-    print("\n" + "="*50)
-    print(f"ABLATION RESULTS - {args.dataset.upper()}")
-    print("="*50)
-    import pandas as pd
-    print(pd.DataFrame(results_table).to_string(index=False))
-    print("="*50)
+    # Final Summary Table
+    print("\n" + "="*80)
+    print(f"{'Variant':<20} | {'F1':<5} | {'Prec':<5} | {'Rec':<5} | {'Qual':<5} | {'Sim'}")
+    print("-" * 80)
+    
+    with open(results_file, "a") as f:
+        f.write(f"{'Variant':<20} | {'F1':<5} | {'Prec':<5} | {'Rec':<5} | {'Qual':<5} | {'Sim'}\n")
+        f.write("-" * 80 + "\n")
+
+    for v in variants:
+        f1_m = clarification_need_f1(results[v]["preds"], results[v]["golds"])
+        avg_qual = statistics.mean(results[v]["scores"]) if results[v]["scores"] else 0.0
+        avg_sim = statistics.mean(results[v]["sims"]) if results[v]["sims"] else 0.0
+        row = f"{v:<20} | {f1_m['f1']:>5.2f} | {f1_m['precision']:>5.2f} | {f1_m['recall']:>5.2f} | {avg_qual:>5.2f} | {avg_sim:>5.3f}"
+        print(row)
+        with open(results_file, "a") as f: f.write(row + "\n")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,330 @@
+ABLATION INSPECTION LOG
+Seed: 640338
+================================================================================
+
+Query: Who plays simon's dad in the inbetweeners?
+  [full_madisse      ] -> Are you asking about the TV show 'The In-Betweeners' or its characters?
+  [no_fact_finder    ] -> Are you asking about the actor playing Simon's dad in 'In Betweeners' or learning more about the sho
+  [no_facet_finder   ] -> Are you asking about the character of Simon's father in 'In Betweeners'?
+  [no_intent_finder  ] -> Are you asking about who plays Simon's dad in The InBetweeners?
+  [generic_agents    ] -> Are you asking about who plays Simon's dad in The In-Betweeners?
+  [collaborative     ] -> Are you asking about Anthony Head or Jason Clarke?
+
+Query: Who revived the ganesh chaturthi festival in maharashtra?
+  [full_madisse      ] -> Are you asking about Vinoba Bhave's involvement in reviving the Ganesh Chaturthi festival or someone
+  [no_fact_finder    ] -> Are you asking about the person who revived the Ganesh Chaturthi festival in Maharashtra or the even
+  [no_facet_finder   ] -> Are you asking about who revived the Ganesh Chaturthi festival in Maharashtra?
+  [no_intent_finder  ] -> Are you asking about who revived the Ganesh Chaturthi festival in Maharashtra?
+  [generic_agents    ] -> Are you asking about who revived Ganesh Chaturthi in Maharashtra or its historical origins?
+  [collaborative     ] -> Are you asking about who revived the Ganesh Chaturthi festival in Maharashtra?
+
+Query: Tell me whether these are cars or planes: Camaro, Piper Cub, Volvo S60, Shelby GT500, Boeing 737, Cessna, B707, Porsche, Beechcraft
+  [full_madisse      ] -> Are you asking about cars or planes?
+  [no_fact_finder    ] -> Are you asking about the classification of these vehicles as cars or planes?
+  [no_facet_finder   ] -> Are you asking about cars or planes?
+  [no_intent_finder  ] -> Are you asking about determining if these vehicles are cars or planes?
+  [generic_agents    ] -> Are you asking about the vehicles' classification as cars or planes?
+  [collaborative     ] -> Are you asking about cars or planes?
+
+Query: What is the setting of the play macbeth?
+  [full_madisse      ] -> Are you asking about the setting of Shakespeare's play Macbeth or its historical context?
+  [no_fact_finder    ] -> Are you asking about the setting in 'Macbeth' or its plot?
+  [no_facet_finder   ] -> Are you asking about the setting of 'Macbeth' or its historical context?
+  [no_intent_finder  ] -> Are you asking about the setting of 'Macbeth' or its plot details?
+  [generic_agents    ] -> Are you asking about the setting of Macbeth or its characters?
+  [collaborative     ] -> Are you asking about the setting of 'Macbeth' or its themes?
+
+Query: Who performed the song "LOVE"?
+  [full_madisse      ] -> Are you asking about The Beatles' version of 'LOVE' or another interpretation?
+  [no_fact_finder    ] -> Are you asking for a specific artist's performance of 'Love' or any rendition by The Beatles?
+  [no_facet_finder   ] -> Are you asking about The Beatles performing the song 'LOVE'?
+  [no_intent_finder  ] -> Are you asking about The Beatles' version of 'LOVE' or another interpretation?
+  [generic_agents    ] -> Are you asking about Ed Sheeran, Lady Gaga featuring Taylor Swift, or Mariah Carey performing 'LOVE'
+  [collaborative     ] -> Are you asking about The Beatles or a different artist performing 'Love'?
+
+Query: What's the body mass of Macapcebus?
+  [full_madisse      ] -> Are you asking about the body mass of Macapcebus beringi or another species?
+  [no_fact_finder    ] -> Are you asking about the average weight or specific information on the body mass of Macapcebus?
+  [no_facet_finder   ] -> Are you asking about the body mass of Macapcebus as a lemur or monkey?
+  [no_intent_finder  ] -> Are you asking for the body mass of a general Macapcebus or a specific species?
+  [generic_agents    ] -> Are you asking about Macapcebus or its related species?
+  [collaborative     ] -> Are you asking about the body mass of a macaque or a macaques?
+
+Query: Who is the father of emma on friends?
+  [full_madisse      ] -> Are you asking about Emma's biological father on 'Friends' or her real-life parent?
+  [no_fact_finder    ] -> Are you asking about the father of Emma on Friends or a specific episode/season?
+  [no_facet_finder   ] -> Are you asking about Emma on Friends or the user agent?
+  [no_intent_finder  ] -> Are you asking about Emma Green on Friends or her father?
+  [generic_agents    ] -> Are you asking about Emma Benson or Emma Stone?
+  [collaborative     ] -> Are you asking about the actor who played Peter or the character's biological father?
+
+Query: Please output "X" if the given sentence contains a word of "religious leader". Please output "Y" if the given sentence does not contain any word of "religious leader".
+
+Examples: 
+She is in the film studio with the ambassador.(Output: Y)
+He is in the grocery store with the pastor.(Output: X)
+
+The Given Sentence: 
+He is in the theatre with the colonel.
+  [full_madisse      ] -> Are you asking about the presence of religious leaders in the sentence?
+  [no_fact_finder    ] -> Are you asking about [Facet A] or [Action B]?
+  [no_facet_finder   ] -> Are you asking about the presence of a religious leader in the sentence?
+  [no_intent_finder  ] -> Are you asking about the presence of 'religious leader' in the sentence?
+  [generic_agents    ] -> Are you asking about the presence or absence of words related to religious leaders?
+  [collaborative     ] -> Are you asking about religious leader or action?
+
+Query: Can you provide a list of actors who acted in the movie Ajooba?
+  [full_madisse      ] -> Are you asking about actors who acted in 'Ajooba' or do you need specific details such as nationalit
+  [no_fact_finder    ] -> Are you asking for a list of actors who acted in the specific movie 'Ajooba', or do you need informa
+  [no_facet_finder   ] -> Are you asking for a list of actors who acted in 'Ajooba' from a specific database or website?
+  [no_intent_finder  ] -> Are you asking about actors who acted in 'Ajooba' or do you need more specific information?
+  [generic_agents    ] -> CLEAR
+  [collaborative     ] -> Are you asking about the actors who acted in Ajooba or the list of their films?
+
+Query: Describe what your ideal pet cat would look like, and what you would name it.
+  [full_madisse      ] -> Are you asking for a detailed description of an ideal pet cat and its name?
+  [no_fact_finder    ] -> Are you asking about describing an ideal pet cat or naming it?
+  [no_facet_finder   ] -> Are you asking about what your ideal pet cat would look like, or are you looking for a name suggesti
+  [no_intent_finder  ] -> Are you asking about my ideal pet cat's physical traits or its name?
+  [generic_agents    ] -> Are you asking about the description of an ideal pet cat or its preferred name?
+  [collaborative     ] -> Are you asking about my ideal pet cat's appearance or its name?
+
+Query: What are treatments for carotid cavernous fistula?
+  [full_madisse      ] -> Are you asking about medical management options, surgical intervention, or both for a carotid cavern
+  [no_fact_finder    ] -> Are you asking about treatments for carotid cavernous fistula, or do you need information related to
+  [no_facet_finder   ] -> Are you asking about treatments for carotid cavernous fistula or management options?
+  [no_intent_finder  ] -> Are you asking about the condition of carotid cavernous fistula or the treatment options for it?
+  [generic_agents    ] -> Are you asking about medical management, interventional radiology procedures, surgical options, or e
+  [collaborative     ] -> Are you asking about treatments for a carotid cavernous fistula or its symptoms?
+
+Query: I’m looking for the music man.
+  [full_madisse      ] -> Are you asking about the music man as a professional entertainer or an actual male musician?
+  [no_fact_finder    ] -> Are you asking about finding a musician who plays specific instruments, someone involved in the musi
+  [no_facet_finder   ] -> Are you asking about finding a music man or looking for information related to them?
+  [no_intent_finder  ] -> Are you asking about finding a music man for classical music or any other genre?
+  [generic_agents    ] -> Are you looking for a professional musician, someone skilled in playing musical instruments, or an i
+  [collaborative     ] -> Are you asking about a music performer who can play an instrument or someone skilled in singing and 
+
+Query: Information about bobcat
+  [full_madisse      ] -> Are you asking for information about Bobcats' physical characteristics, behavior, habitat, or conser
+  [no_fact_finder    ] -> Are you asking for information on the habitat, behavior, conservation status, geographic distributio
+  [no_facet_finder   ] -> Are you asking about Bobcats in general or specific information?
+  [no_intent_finder  ] -> Are you asking for information about bobcats' physical characteristics, behavior, habitats, distribu
+  [generic_agents    ] -> Are you asking about Bobcats' information specifically?
+  [collaborative     ] -> CLEAR
+
+Query: How to write a thank you letter after an interview?
+  [full_madisse      ] -> Are you asking about writing a thank you letter after an interview or understanding what should be i
+  [no_fact_finder    ] -> Are you looking for general tips or specific steps on writing a thank-you letter after an interview?
+  [no_facet_finder   ] -> Are you asking about writing a thank you letter or requesting what the missing action should be?
+  [no_intent_finder  ] -> Are you asking about how to write a thank you letter in general, or do you have a specific context f
+  [generic_agents    ] -> Are you asking about writing a thank-you letter for an interview or how to write one?
+  [collaborative     ] -> Are you asking about how to write a thank you letter after an interview or what steps should be foll
+
+Query: Give me information about Disneyland hotel.
+  [full_madisse      ] -> Are you asking about the type of hotel or location within Disneyland Park?
+  [no_fact_finder    ] -> CLEAR
+  [no_facet_finder   ] -> Are you asking about the hotel in Disneyland Paris, California, or a specific theme park hotel?
+  [no_intent_finder  ] -> Are you asking for general information about Disneyland hotels or specific details like accommodatio
+  [generic_agents    ] -> Are you asking about the information related to Disneyland's hotel accommodations or its attractions
+  [collaborative     ] -> Are you asking for information about the Disneyland hotel or its location within Disneyland?
+
+Query: Tell me more about Rocky Mountain News
+  [full_madisse      ] -> Are you asking about the newspaper or its history?
+  [no_fact_finder    ] -> Are you asking about the historical context of the Rocky Mountain News or the specific content it co
+  [no_facet_finder   ] -> Are you asking about the newspaper's historical background, specific articles, or current coverage?
+  [no_intent_finder  ] -> Are you asking for information on the Rocky Mountain News or do you want details related to its publ
+  [generic_agents    ] -> Are you asking about the history or content of the Rocky Mountain News?
+  [collaborative     ] -> Are you asking about the content of the Rocky Mountain News or its location and region coverage?
+
+Query: I'm looking for information on the beatles rock band
+  [full_madisse      ] -> Are you asking for information about The Beatles' music style or era?
+  [no_fact_finder    ] -> Are you asking about The Beatles as a rock band or something else?
+  [no_facet_finder   ] -> Are you asking about the music genre of the Beatles or their rock band status?
+  [no_intent_finder  ] -> Are you asking about the Beatles' music or their history?
+  [generic_agents    ] -> Are you asking about the Beatles as a rock band or their musical style?
+  [collaborative     ] -> Are you asking about the musical genre of The Beatles or their activities as a band?
+
+Query: What was the name of Elvis Presley's home?
+  [full_madisse      ] -> Are you asking about the name of Elvis Presley's residence, also known as Graceland?
+  [no_fact_finder    ] -> Are you asking about Elvis Presley's home or his country?
+  [no_facet_finder   ] -> Are you asking about Elvis Presley's home or his music career?
+  [no_intent_finder  ] -> CLEAR
+  [generic_agents    ] -> CLEAR
+  [collaborative     ] -> CLEAR
+
+Query: Take me to the current.
+  [full_madisse      ] -> Are you asking about taking me to the current time or performing an action related to it?
+  [no_fact_finder    ] -> Are you asking about looking at the present moment (Facet Finder) or moving someone/ones to a specif
+  [no_facet_finder   ] -> Are you asking about taking me to my current location or performing an action related to the present
+  [no_intent_finder  ] -> Are you asking about location or action?
+  [generic_agents    ] -> Are you asking about finding the current location or taking me to the present moment?
+  [collaborative     ] -> Are you asking about the current location, time, or something else?
+
+Query: Tell me more about dnr
+  [full_madisse      ] -> Are you asking about the medical directive 'Do Not Resuscitate' (DNR) or its specific application?
+  [no_fact_finder    ] -> Are you asking about the Department of Natural Resources (DNR) or something else related to 'dnr'?
+  [no_facet_finder   ] -> Are you asking about the definition of Direct Notice of Receipt (DNR) or its application in a specif
+  [no_intent_finder  ] -> Are you asking about DNR or a specific medical directive related to resuscitation?
+  [generic_agents    ] -> Are you asking about DNR (Do Not Resuscitate) or its related actions?
+  [collaborative     ] -> Are you asking about Decision Not Required (DNR) or Do Not Resuscitate (DNR)?
+
+Query: best long term care insurance
+  [full_madisse      ] -> Are you asking about choosing between different types of long-term care insurance policies?
+  [no_fact_finder    ] -> Are you asking for information on choosing a long-term care insurance policy or looking to buy one?
+  [no_facet_finder   ] -> Are you asking about [Action B] or [Facet A]?
+  [no_intent_finder  ] -> Are you asking about the type of long-term care insurance or its best options?
+  [generic_agents    ] -> Are you asking about [long term care insurance] or [comprehensive financial protection against futur
+  [collaborative     ] -> Are you asking about the type of long-term care insurance or its specific options?
+
+Query: kcs
+  [full_madisse      ] -> Are you asking about the concept of 'kcs' in business management practices, information technology s
+  [no_fact_finder    ] -> Are you asking about KCS as in Korean Central State University or are you referring to a different t
+  [no_facet_finder   ] -> Are you asking about the user's location, kcs?
+  [no_intent_finder  ] -> Are you asking about the phrase 'keep calm and carry on' or its related context?
+  [generic_agents    ] -> Are you asking about Kansas City, Missouri, or something else?
+  [collaborative     ] -> Are you asking about the Knowledge Collaboration System (KCS) software tool or its related actions?
+
+Query: gmat prep classes
+  [full_madisse      ] -> Are you asking about finding GMAT prep classes or purchasing resources?
+  [no_fact_finder    ] -> Are you asking about [Facet A] (educational offerings) or [Action B] (taking, enrolling in, attendin
+  [no_facet_finder   ] -> Are you asking about GMAT prep classes as educational courses or materials?
+  [no_intent_finder  ] -> Are you asking about the class format, instructor qualifications, or course duration of Gmat Prep cl
+  [generic_agents    ] -> Are you asking about Gmat Prep classes or their availability?
+  [collaborative     ] -> Are you asking about Gmat prep classes or their intended use?
+
+Query: appraisals
+  [full_madisse      ] -> Are you asking about appraisals in real estate, financial context, or quality assessment?
+  [no_fact_finder    ] -> Are you asking about appraisals of property, art, or objects?
+  [no_facet_finder   ] -> Are you asking about appraisals as evaluations or assessments?
+  [no_intent_finder  ] -> Are you asking about appraisals for a specific type of item or service?
+  [generic_agents    ] -> Are you asking about appraisals as a legal process or for evaluating something's value?
+  [collaborative     ] -> Are you asking about appraisals as evaluations or assessments?
+
+Query: horse hooves
+  [full_madisse      ] -> Are you asking about the physical structure of a horse's foot (hoof) or its anatomical details?
+  [no_fact_finder    ] -> Are you asking about the anatomical part of a horse's foot (anatomy) or using it metaphorically?
+  [no_facet_finder   ] -> Are you asking about the anatomy of horse hooves or their tracks?
+  [no_intent_finder  ] -> Are you asking about horse hooves as a whole or specifically about their structure?
+  [generic_agents    ] -> Are you asking about the physical structure of horses' feet or their movement-related functions?
+  [collaborative     ] -> Are you asking about the anatomy of horses or their hoof parts?
+
+Query: cheap internet
+  [full_madisse      ] -> Are you asking about finding providers offering affordable broadband services or determining how to 
+  [no_fact_finder    ] -> Are you asking about finding a specific provider offering cheap internet, comparing different provid
+  [no_facet_finder   ] -> Are you asking about finding cheap internet options or researching affordable broadband services?
+  [no_intent_finder  ] -> Are you asking about cheap internet for a specific service or location?
+  [generic_agents    ] -> Are you asking about a specific type of cheap internet service, like a plan or connection, or do you
+  [collaborative     ] -> Are you asking about cheap internet service providers, speed options, or both?
+
+Query: the music man
+  [full_madisse      ] -> Are you asking about the musical 'The Music Man' or a specific action related to it?
+  [no_fact_finder    ] -> Are you asking about the type of musical entertainer called a 'music man' or their specific actions?
+  [no_facet_finder   ] -> Are you asking about the music man as a character type or related to playing the banjo?
+  [no_intent_finder  ] -> Are you asking about [the 'Music Man' as a musical play] or [the character Scrooge Marley]?
+  [generic_agents    ] -> Are you asking about the original 'Music Man' play by Meredith Willson or the musical adaptation by 
+  [collaborative     ] -> Are you asking about the music in 'The Music Man' or its theatrical adaptation?
+
+Query: martha stewart and imclone
+  [full_madisse      ] -> Are you asking about Martha Stewart and her media franchise 'I'm A Celebrity... Get Me Out Of Here!'
+  [no_fact_finder    ] -> Are you asking about Martha Stewart's products or services, or ImClone's company and its associated 
+  [no_facet_finder   ] -> Are you asking about Martha Stewart's interior design work or 'Star Trek'? Or are you looking for in
+  [no_intent_finder  ] -> Are you asking about Martha Stewart or iMacClone?
+  [generic_agents    ] -> Are you asking about Martha Stewart or ImClone?
+  [collaborative     ] -> Are you asking about Martha Stewart or ImClone?
+
+Query: quit smoking
+  [full_madisse      ] -> Are you asking about quitting smoking through physical methods like medication or therapy, psycholog
+  [no_fact_finder    ] -> Are you asking about how to quit smoking or seeking advice on cessation?
+  [no_facet_finder   ] -> Are you asking about quitting smoking or stopping tobacco use?
+  [no_intent_finder  ] -> Are you asking about physical cessation methods or psychological strategies for quitting smoking?
+  [generic_agents    ] -> CLEAR
+  [collaborative     ] -> CLEAR
+
+Query: the beatles rock band
+  [full_madisse      ] -> CLEAR
+  [no_fact_finder    ] -> Are you asking about [the Beatles as a band] or [their music style]?
+  [no_facet_finder   ] -> Are you asking about the music genre of The Beatles or their historical background?
+  [no_intent_finder  ] -> CLEAR
+  [generic_agents    ] -> Are you asking about the Beatles' musical style or their origin?
+  [collaborative     ] -> Are you asking about the musical genre or the history of the Beatle band?
+
+Query: How do they feel?
+  [full_madisse      ] -> Are you asking about Tammy and Mary's feelings or activities?
+  [no_fact_finder    ] -> Are you asking about Tammy and Mary's feelings on a sunny day or during rainy days?
+  [no_facet_finder   ] -> Are you asking about their feelings or how they feel?
+  [no_intent_finder  ] -> Are you asking about their feelings on sunny days or rainy days?
+  [generic_agents    ] -> Are you asking about their feelings or actions?
+  [collaborative     ] -> Are you asking about Tammy and Mary's feelings or their actions?
+
+Query: Who is backing this project?
+  [full_madisse      ] -> Are you asking about who is backing the project or which person founded it?
+  [no_fact_finder    ] -> Are you asking about individuals backing seasteading or specifically Peter Thiel?
+  [no_facet_finder   ] -> Are you asking about Peter Thiel or his backing of the project?
+  [no_intent_finder  ] -> Are you asking about who is backing Patri Friedman's seastead project or Peter Thiel?
+  [generic_agents    ] -> Are you asking about the Poseidon Award or the Seasteading project?
+  [collaborative     ] -> Are you asking about who is backing the seasteading project or its related projects?
+
+Query: What did Tim think?
+  [full_madisse      ] -> Are you asking about Tim's thoughts on participating in the race or his reasons for signing up?
+  [no_fact_finder    ] -> Are you asking about Tim's thoughts on signing up for the race or his reaction to the race itself?
+  [no_facet_finder   ] -> Are you asking about Tim's thoughts or Angela's speed?
+  [no_intent_finder  ] -> Are you asking about Tim's thoughts on running or his motivations for signing up for the race?
+  [generic_agents    ] -> Are you asking about Tim's thoughts on finishing or focusing on winning?
+  [collaborative     ] -> Are you asking about Tim's thoughts on Angela or his actions?
+
+Query: Were they friends?
+  [full_madisse      ] -> Are you asking about their relationship status?
+  [no_fact_finder    ] -> Are you asking about Emile Hirsch and Daniele Bernfeld being friends based on their altercation at t
+  [no_facet_finder   ] -> Are you asking about their friendship status before the altercation at the Sundance Film Festival?
+  [no_intent_finder  ] -> Are you asking about Emile Hirsch's alleged altercation with Daniele Bernfeld?
+  [generic_agents    ] -> Are you asking if Emile Hirsch and Daniele Bernfeld were friends or acquaintances based on the conte
+  [collaborative     ] -> Are you asking about their friendship status before the altercation?
+
+Query: during which period, it was the capital of China?
+  [full_madisse      ] -> Are you asking about when Nanjing served as China's capital?
+  [no_fact_finder    ] -> Are you asking about which specific period or dynasty?
+  [no_facet_finder   ] -> Are you asking about when Nanjing served as a capital or what period it was during?
+  [no_intent_finder  ] -> Are you asking about Nanjing or a specific historical period?
+  [generic_agents    ] -> Are you asking about the period when Nanjing was the capital of China?
+  [collaborative     ] -> Are you asking about the period when Nanjing was the capital of China or its role as a capital durin
+
+Query: What is her name?
+  [full_madisse      ] -> CLEAR
+  [no_fact_finder    ] -> CLEAR
+  [no_facet_finder   ] -> CLEAR
+  [no_intent_finder  ] -> Are you asking about her name or something else?
+  [generic_agents    ] -> Are you asking about her name or something else?
+  [collaborative     ] -> Are you asking about her name or something else?
+
+Query: What was another one?
+  [full_madisse      ] -> Are you asking about Roger Goodell's controversial cases or another specific instance?
+  [no_fact_finder    ] -> Are you asking about controversies involving former NFL commissioner Roger Goodell or Michael Vick's
+  [no_facet_finder   ] -> Are you asking about controversies under Roger Goodell's tenure in the NFL or another example of con
+  [no_intent_finder  ] -> Are you asking about a specific controversy or another one?
+  [generic_agents    ] -> Are you asking about Roger Goodell or another incident?
+  [collaborative     ] -> Are you asking about Plaxico Buress' nightclub incident or Michael Vick's dog fighting arrest?
+
+Query: what is the name of her dog?
+  [full_madisse      ] -> Are you asking about the name of Jennifer Merritt's dog or her specific pet?
+  [no_fact_finder    ] -> Are you asking about Jennifer Merritt's dog or her name?
+  [no_facet_finder   ] -> Are you asking about Jennifer Merritt's dog or her name?
+  [no_intent_finder  ] -> Are you asking about the name of Jennifer Merritt's dog or the name of Arielle?
+  [generic_agents    ] -> Are you asking about the name of Jennifer Merritt's dog or something else?
+  [collaborative     ] -> Are you asking about her dogs or their names?
+
+Query: What?
+  [full_madisse      ] -> Are you asking about what classes Michael Bair teaches or how his students are working on a story ab
+  [no_fact_finder    ] -> Are you asking about the students' engagement with literature related to male characters in a math c
+  [no_facet_finder   ] -> Are you asking about Michael Bair's classes or his teaching methods?
+  [no_intent_finder  ] -> Are you asking about Michael Bair's teaching methods or his role as a director?
+  [generic_agents    ] -> Are you asking about Michael Bair's teaching at Boonsboro High School or his specific classes?
+  [collaborative     ] -> Are you asking about Michael Bair's teaching at Boonsboro High School or his specific course on manl
+
+Query: Who had it?
+  [full_madisse      ] -> Are you asking about who saw the puppy or what happened to it?
+  [no_fact_finder    ] -> Are you asking about James' interaction with the puppy or its name?
+  [no_facet_finder   ] -> Are you asking about who had it or what happened?
+  [no_intent_finder  ] -> Are you asking about the person who found and adopted the puppy, or are you looking for information 
+  [generic_agents    ] -> Are you asking about the puppy James saw or its subsequent appearance?
+  [collaborative     ] -> Are you asking about who had the puppy or what happened to it?
