@@ -34,9 +34,16 @@ def generate_gold_question(item):
                 if "question" in qa:
                     interpretations.append(qa["question"])
     
+    # CASE 1: UNAMBIGUOUS QUERY (Negative Sample)
     if len(interpretations) < 2:
-        return None
+        return {
+            "messages": [
+                {"role": "user", "content": query},
+                {"role": "assistant", "content": "CLEAR"}
+            ]
+        }
     
+    # CASE 2: AMBIGUOUS QUERY (Positive Sample)
     # Format the interpretations for the Teacher prompt
     formatted_ints = "\n".join(f"- {i}" for i in interpretations[:5])
     prompt = PROMPT_TEMPLATE.format(query=query, interpretations=formatted_ints)
@@ -56,11 +63,12 @@ def generate_gold_question(item):
                 {"role": "assistant", "content": gold_q}
             ]
         }
-    except Exception:
+    except Exception as e:
+        print(f"Error generating gold question: {e}")
         return None
 
 def main():
-    print("Starting Distillation Process...")
+    print("Starting Distillation Process (Balanced SFT)...")
     input_path = 'data/train_light.json'
     if not os.path.exists(input_path):
         print(f"Error: {input_path} not found. Please ensure AmbigQA train data is present.")
@@ -69,19 +77,26 @@ def main():
     with open(input_path) as f:
         data = json.load(f)
     
-    # Filter for truly ambiguous items
+    # Split items into Ambiguous and Clear
     ambiguous = []
+    clear = []
     for item in data:
+        is_ambig = False
         for ann in item.get("annotations", []):
             if ann.get("type") == "multipleQAs" and len(ann.get("qaPairs", [])) >= 2:
-                ambiguous.append(item)
+                is_ambig = True
                 break
+        if is_ambig:
+            ambiguous.append(item)
+        else:
+            clear.append(item)
     
-    target_count = 1000
-    print(f"Found {len(ambiguous)} ambiguous queries. Distilling top {target_count} items...")
+    # We want a balanced sample (e.g., 800 ambiguous, 200 clear)
+    target_ambig = min(800, len(ambiguous))
+    target_clear = min(200, len(clear))
     
-    # Take a buffer for failures
-    sample = ambiguous[:int(target_count * 1.5)]
+    sample = ambiguous[:target_ambig] + clear[:target_clear]
+    random.shuffle(sample)
     
     os.makedirs('data/sft', exist_ok=True)
     train_path = 'data/sft/train.jsonl'
@@ -89,11 +104,12 @@ def main():
     
     train_count = 0
     valid_count = 0
-    
+    target_count = target_ambig + target_clear
+
     # Open files for incremental writing
     with open(train_path, 'w') as f_train, open(valid_path, 'w') as f_valid:
         # Parallel generation for speed
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             futures = [executor.submit(generate_gold_question, item) for item in sample]
             for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="Distilling Gold Qs"):
                 res = future.result()
@@ -115,7 +131,6 @@ def main():
     
     print(f"\nDistillation Complete!")
     print(f"Saved {train_count} train and {valid_count} validation items to data/sft/")
-    print("\nNext step: Run the MLX fine-tuning command provided in the plan.")
 
 if __name__ == "__main__":
     main()

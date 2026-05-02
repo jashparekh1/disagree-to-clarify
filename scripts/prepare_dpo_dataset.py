@@ -10,8 +10,8 @@ from d2c.prompts import (
     RESOLUTION_JUDGE_SYSTEM, RESOLUTION_JUDGE_USER
 )
 
-# Use a high-quality model for simulation and judging (Teacher)
-TEACHER_MODEL = "qwen2.5:7b" 
+# Use a 4B model for simulation and judging (Balanced speed/quality)
+TEACHER_MODEL = "qwen3:4b" 
 llm_teacher = LLMClient(model=TEACHER_MODEL)
 
 def extract_json(text):
@@ -91,9 +91,18 @@ def process_item_dpo(item):
                 if "question" in qa:
                     interpretations.append(qa["question"])
     
+    # CASE 1: UNAMBIGUOUS QUERY (Preference for staying quiet)
     if len(interpretations) < 2:
-        return None
+        # Generate a "bad" question to reject
+        rejected = generate_candidate(query, 0.8)
+        if not rejected: return None
+        return {
+            "prompt": query,
+            "chosen": "CLEAR",
+            "rejected": rejected
+        }
 
+    # CASE 2: AMBIGUOUS QUERY (Preference for better resolution)
     # 1. Generate two candidates
     q1 = generate_candidate(query, 0.7)
     q2 = generate_candidate(query, 0.9)
@@ -119,7 +128,7 @@ def process_item_dpo(item):
     }
 
 def main():
-    print("Starting DPO Dataset Preparation (Modeling Future Turns)...")
+    print("Starting DPO Dataset Preparation (Balanced DPO)...")
     input_path = 'data/train_light.json'
     if not os.path.exists(input_path):
         print(f"Error: {input_path} not found.")
@@ -128,18 +137,28 @@ def main():
     with open(input_path) as f:
         data = json.load(f)
     
-    # Filter for truly ambiguous items
+    # Split items
     ambiguous = []
+    clear = []
     for item in data:
+        is_ambig = False
         for ann in item.get("annotations", []):
             if ann.get("type") == "multipleQAs" and len(ann.get("qaPairs", [])) >= 2:
-                ambiguous.append(item)
+                is_ambig = True
                 break
+        if is_ambig:
+            ambiguous.append(item)
+        else:
+            clear.append(item)
     
-    target_count = 500 # DPO often needs fewer, higher quality items
-    print(f"Found {len(ambiguous)} ambiguous queries. Targeting {target_count} preference pairs...")
+    # Targeted mix for DPO
+    target_ambig = 400
+    target_clear = 100
     
-    sample = ambiguous[:int(target_count * 5)] # Higher buffer due to filtering
+    sample = ambiguous[:target_ambig] + clear[:target_clear]
+    random.shuffle(sample)
+    
+    print(f"Sampling {len(sample)} items ({target_ambig} ambig, {target_clear} clear)...")
     
     os.makedirs('data/dpo', exist_ok=True)
     train_path = 'data/dpo/train.jsonl'

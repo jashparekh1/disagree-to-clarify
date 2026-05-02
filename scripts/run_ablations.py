@@ -135,8 +135,7 @@ def main():
         query = item["query"]
         is_ambig = item["is_ambiguous"]
         gold_qs = item.get("gold_clarifying_questions", [])
-        gold_q = gold_qs[0] if gold_qs else "N/A"
-
+        
         with open(inspection_file, "a") as f_insp:
             f_insp.write(f"\nQuery: {query}\n")
 
@@ -149,8 +148,8 @@ def main():
                 results[v]["golds"].append(is_ambig)
                 
                 if is_ambig:
-                    j_res = llm_judge_quality(query, q_text, gold_q, judge_llm)
-                    sim_score = semantic_similarity(q_text, gold_q)
+                    j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm)
+                    sim_score = semantic_similarity_multi_ref(q_text, gold_qs)
                     results[v]["scores"].append(j_res["score"])
                     results[v]["sims"].append(sim_score)
                 
@@ -175,6 +174,10 @@ def main():
         row = f"{v:<20} | {f1_m['f1']:>5.2f} | {f1_m['precision']:>5.2f} | {f1_m['recall']:>5.2f} | {avg_qual:>5.2f} | {avg_sim:>5.3f}"
         print(row)
         with open(results_file, "a") as f: f.write(row + "\n")
+
+if __name__ == "__main__":
+    main()
+
 
 if __name__ == "__main__":
     main()
