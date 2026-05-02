@@ -1,5 +1,5 @@
 """
-Visualizes Disagreement Dynamics for the MADISSE Variant.
+Visualizes Disagreement Dynamics for the D2C Variant.
 Runs 4 samples per dataset (16 total) and generates:
 1. Stance Persistence (Bar chart)
 2. State Heatmap (Agent x Round)
@@ -67,7 +67,7 @@ Output ONLY the category name."""
 
 def main():
     samples = load_samples()
-    print(f"Loaded {len(samples)} samples. Starting MADISSE runs...")
+    print(f"Loaded {len(samples)} samples. Starting D2C runs...")
     
     llm = LLMClient(model=MODEL)
     
@@ -79,7 +79,7 @@ def main():
         ds = item["dataset_name"]
         
         try:
-            res = run_d2c(query, variant="madisse", model=MODEL, num_rounds=NUM_ROUNDS, context=item.get("context"))
+            res = run_d2c(query, variant="d2c", model=MODEL, num_rounds=NUM_ROUNDS, context=item.get("context"))
             q_text = res.synthesizer_result.clarifying_question
             q_type = classify_question_type(query, q_text, llm)
             

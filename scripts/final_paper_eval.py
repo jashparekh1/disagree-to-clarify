@@ -73,8 +73,10 @@ def run_mlx_model(query: str, adapter_path: str, model_type: str = "sft") -> str
     return output.split("<|im_end|>")[0].strip()
 
 def run_parallel_baseline_full(query: str, model: str, llm: LLMClient, context: str | None = None) -> tuple[str, list[str]]:
-    """Agents generate 1 round in parallel, then synthesize (No Dialogue)."""
-    roles = [AgentRole.LOCUTIONARY, AgentRole.ILLOCUTIONARY, AgentRole.PERLOCUTIONARY]
+    """Agents generate 1 round in parallel, then synthesize (No Dialogue).
+    Uses the same agents as D2C for a fair comparison.
+    """
+    roles = [AgentRole.FACT_FINDER, AgentRole.FACET_FINDER, AgentRole.INTENT_FINDER]
     agents = [Agent(role, llm, max_tokens=300) for role in roles]
     
     with ThreadPoolExecutor(max_workers=3) as executor:
@@ -82,7 +84,7 @@ def run_parallel_baseline_full(query: str, model: str, llm: LLMClient, context: 
         round_0 = [f.result() for f in futures]
 
     dialogue = DialogueResult(query=query, rounds=[round_0], num_rounds=1, context=context)
-    synth = synthesize(query, dialogue, llm, max_tokens=300, variant="speech_act")
+    synth = synthesize(query, dialogue, llm, max_tokens=300, variant="d2c")
     return synth.clarifying_question, [r.interpretation for r in round_0]
 
 from d2c.prompts import (
@@ -191,7 +193,7 @@ def main():
         f.write(f"Seed: {args.seed} | Generator: {args.model} | Judge: {args.judge_model}\n")
         f.write("="*120 + "\n\n")
 
-    available_methods = ["vanilla", "sft", "rl", "parallel", "madisse", "speech_act"]
+    available_methods = ["vanilla", "sft", "rl", "parallel", "d2c"]
     methods = args.methods if args.methods else available_methods
     all_results = {m: {
         "scores": [], "sims": [], "preds": [], "golds": [], "rounds": [], "covers": [], "divs": []
@@ -217,7 +219,7 @@ def main():
             context = item.get("context")
             gold_qs = item.get("gold_clarifying_questions", [])
             gold_q = gold_qs[0] if gold_qs else "N/A"
-            # Extract interpretations for RL search
+            # Extract interpretations for RL (DPO format often needs them)
             interpretations = item.get("interpretations", [])
             if not interpretations and "annotations" in item:
                 # AmbigQA style
@@ -247,12 +249,14 @@ def main():
                     elif name == "parallel":
                         q_text, interps = run_parallel_baseline_full(query, args.model, llm, context=context)
                         rnd, div_score = 1, internal_divergence_score(interps)
-                    else: # madisse or speech_act
-                        res = run_d2c(query, variant=name, model=args.model, num_rounds=args.num_rounds, context=context)
+                    elif name == "d2c":
+                        res = run_d2c(query, variant="d2c", model=args.model, num_rounds=args.num_rounds, context=context)
                         q_text = res.synthesizer_result.clarifying_question
                         rnd = res.dialogue.rounds_completed
                         final_interps = [r.interpretation for r in res.dialogue.rounds[-1]]
                         div_score = internal_divergence_score(final_interps)
+                    else:
+                        continue # Should not happen with current list
 
                     pred_ambig = "CLEAR" not in q_text.upper()
                     j_res = llm_judge_quality(query, q_text, gold_q, judge_llm)

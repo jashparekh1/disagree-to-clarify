@@ -1,4 +1,4 @@
-"""Comprehensive Ablation Study for MADISSE.
+"""Comprehensive Ablation Study for D2C.
 Tests three key hypotheses:
 1. Role Necessity: Does removing a specific agent (e.g. Fact-Finder) hurt F1 or Quality?
 2. Taxonomy Value: Do specialized roles perform better than generic 'Assistant' roles?
@@ -58,7 +58,7 @@ def run_ablation_variant(query, variant_name, llm, context=None):
         with ThreadPoolExecutor(max_workers=3) as ex:
             round_0 = [ex.submit(a.respond_initial, query, context).result() for a in agents]
         dialogue = DialogueResult(query=query, rounds=[round_0], num_rounds=1, context=context)
-        res = synthesize(query, dialogue, llm, variant="madisse")
+        res = synthesize(query, dialogue, llm, variant="d2c")
         return res.clarifying_question
     elif variant_name == "collaborative":
         agents = [
@@ -73,11 +73,11 @@ def run_ablation_variant(query, variant_name, llm, context=None):
         with ThreadPoolExecutor(max_workers=3) as ex:
             round_0 = [ex.submit(a.respond_initial, query, context).result() for a in agents]
         dialogue = DialogueResult(query=query, rounds=[round_0], num_rounds=1, context=context)
-        res = synthesize(query, dialogue, llm, variant="madisse")
+        res = synthesize(query, dialogue, llm, variant="d2c")
         return res.clarifying_question
     else:
-        # Full MADISSE (1 round for fair comparison)
-        res = run_d2c(query, variant="madisse", model=llm.model, num_rounds=1, context=context)
+        # Full D2C (1 round for fair comparison)
+        res = run_d2c(query, variant="d2c", model=llm.model, num_rounds=1, context=context)
         return res.synthesizer_result.clarifying_question
 
     # Default logic for "no_X_finder"
@@ -85,7 +85,7 @@ def run_ablation_variant(query, variant_name, llm, context=None):
     with ThreadPoolExecutor(max_workers=len(agents)) as ex:
         round_0 = [ex.submit(a.respond_initial, query, context).result() for a in agents]
     dialogue = DialogueResult(query=query, rounds=[round_0], num_rounds=1, context=context)
-    res = synthesize(query, dialogue, llm, variant="madisse")
+    res = synthesize(query, dialogue, llm, variant="d2c")
     return res.clarifying_question
 
 def main():
@@ -114,12 +114,12 @@ def main():
     inspection_file = Path("ablation_inspections.txt")
     
     with open(results_file, "w") as f:
-        f.write(f"MADISSE ABLATION STUDY\nSeed: {args.seed}\n" + "="*80 + "\n")
+        f.write(f"D2C ABLATION STUDY\nSeed: {args.seed}\n" + "="*80 + "\n")
     with open(inspection_file, "w") as f:
         f.write(f"ABLATION INSPECTION LOG\nSeed: {args.seed}\n" + "="*80 + "\n")
 
     variants = [
-        "full_madisse",
+        "full_d2c",
         "no_fact_finder", 
         "no_facet_finder", 
         "no_intent_finder",

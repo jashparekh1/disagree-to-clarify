@@ -26,7 +26,7 @@ def main():
         "jax chemical company": "Are you looking for the product catalog or the safety data sheets for JAX Chemical Company?"
     }
     
-    variants = ["speech_act", "madisse", "taxonomy"]
+    variants = ["speech_act", "d2c", "taxonomy"]
     model = "qwen2.5:1.5b"
     judge_model = "qwen2.5:7b" # Larger judge as requested
     

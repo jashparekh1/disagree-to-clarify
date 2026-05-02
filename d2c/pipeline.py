@@ -58,7 +58,7 @@ def run_d2c(
     
     if variant == "speech_act":
         roles = [AgentRole.LOCUTIONARY, AgentRole.ILLOCUTIONARY, AgentRole.PERLOCUTIONARY]
-    elif variant == "madisse":
+    elif variant == "d2c":
         roles = [AgentRole.FACT_FINDER, AgentRole.FACET_FINDER, AgentRole.INTENT_FINDER]
     elif variant == "taxonomy":
         roles = [AgentRole.LEXICAL, AgentRole.ALEATORIC, AgentRole.EPISTEMIC]

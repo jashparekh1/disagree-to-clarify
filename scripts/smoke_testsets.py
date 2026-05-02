@@ -58,7 +58,7 @@ def main():
             
         print(f"\n>>> Searching {dataset.upper()} for informative examples...")
         
-        methods = ["vanilla", "speech_act", "madisse", "taxonomy"]
+        methods = ["vanilla", "speech_act", "d2c", "taxonomy"]
         results = {m: {
             "qs": [], "matches": [], "scores": [], "sim_lists": [], 
             "preds_ambig": [], "gold_ambig": [], "rounds": []

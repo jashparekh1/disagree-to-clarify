@@ -15,7 +15,7 @@ from d2c.llm import LLMClient
 from d2c.prompts import (
     SYNTHESIZER_SYSTEM, 
     SYNTHESIZER_USER, 
-    MADISSE_SYNTHESIZER_SYSTEM, 
+    D2C_SYNTHESIZER_SYSTEM, 
     IR_HACK_SYNTHESIZER_SYSTEM,
     GATEKEEPER_SYSTEM,
     GATEKEEPER_USER
@@ -141,8 +141,8 @@ def synthesize(
     # -----------------------------------------------------------------------
     user_prompt = SYNTHESIZER_USER.format(query=query, transcript=transcript)
 
-    if variant == "madisse":
-        system_prompt = MADISSE_SYNTHESIZER_SYSTEM
+    if variant == "d2c":
+        system_prompt = D2C_SYNTHESIZER_SYSTEM
     elif variant == "taxonomy":
         system_prompt = IR_HACK_SYNTHESIZER_SYSTEM
     else:

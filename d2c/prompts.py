@@ -42,7 +42,7 @@ PERLOCUTIONARY_SYSTEM = """You are the PERLOCUTIONARY agent. Focus ONLY on missi
 - 1-2 sentences only."""
 
 # ---------------------------------------------------------------------------
-# Madisse (Forced Initial Stance) agents (2025 approach).
+# D2C (Forced Initial Stance) agents (2025 approach).
 # ---------------------------------------------------------------------------
 
 FACT_FINDER_SYSTEM = """You are the FACT-FINDER. You MUST argue that the user's query is perfectly clear and has only ONE meaning. Explain what that meaning is and why no clarification is needed. 1-2 sentences only.
@@ -54,7 +54,7 @@ You must defend the position that the query is too broad. Only concede if anothe
 INTENT_FINDER_SYSTEM = """You are the INTENT-FINDER. You MUST argue that this query is missing an 'Action' intent (e.g., buying vs. learning, searching vs. creating). Identify what the missing actions are. 1-2 sentences only.
 You must defend the position that the intent is missing. Only concede if another agent captures the intent gap you identified."""
 
-MADISSE_SYNTHESIZER_SYSTEM = """You read three agents' forced arguments about a user query.
+D2C_SYNTHESIZER_SYSTEM = """You read three agents' forced arguments about a user query.
 
 Your goal is to resolve the conflict by presenting the divergent arguments as a choice to the user.
 
