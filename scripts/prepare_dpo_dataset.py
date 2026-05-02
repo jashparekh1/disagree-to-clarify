@@ -11,8 +11,21 @@ from d2c.prompts import (
 )
 
 # Use a high-quality model for simulation and judging (Teacher)
-TEACHER_MODEL = "qwen3:4b" 
+TEACHER_MODEL = "qwen2.5:7b" 
 llm_teacher = LLMClient(model=TEACHER_MODEL)
+
+def extract_json(text):
+    """Robust JSON extraction from a string."""
+    try:
+        # Try finding the first { and last }
+        start = text.find('{')
+        end = text.rfind('}')
+        if start != -1 and end != -1:
+            json_str = text[start:end+1]
+            return json.loads(json_str)
+        return json.loads(text)
+    except:
+        return None
 
 def generate_candidate(query, temp):
     """Generate a single candidate clarifying question."""
@@ -23,13 +36,14 @@ def generate_candidate(query, temp):
             temperature=temp,
             max_tokens=100
         )
-        # Parse JSON
-        if "```json" in raw:
-            raw = raw.split("```json")[1].split("```")[0].strip()
-        data = json.loads(raw)
+        data = extract_json(raw)
+        if not data:
+             print(f"Failed to parse JSON from candidate: {raw[:100]}")
+             return None
         q = data.get("clarifying_question", "CLEAR")
         return q if q != "CLEAR" else None
-    except:
+    except Exception as e:
+        print(f"Error generating candidate: {e}")
         return None
 
 def score_trajectory(query, question, intent, all_intents):
@@ -59,11 +73,13 @@ def score_trajectory(query, question, intent, all_intents):
             temperature=0.0
         )
 
-        if "```json" in raw_eval:
-            raw_eval = raw_eval.split("```json")[1].split("```")[0].strip()
-        eval_data = json.loads(raw_eval)
+        eval_data = extract_json(raw_eval)
+        if not eval_data:
+            print(f"Failed to parse JSON from score: {raw_eval[:100]}")
+            return 1.0
         return float(eval_data.get("resolution_score", 1.0))
-    except:
+    except Exception as e:
+        print(f"Error scoring: {e}")
         return 1.0
 
 def process_item_dpo(item):
@@ -123,7 +139,7 @@ def main():
     target_count = 500 # DPO often needs fewer, higher quality items
     print(f"Found {len(ambiguous)} ambiguous queries. Targeting {target_count} preference pairs...")
     
-    sample = ambiguous[:int(target_count * 2.5)] # Higher buffer due to filtering
+    sample = ambiguous[:int(target_count * 5)] # Higher buffer due to filtering
     
     os.makedirs('data/dpo', exist_ok=True)
     train_path = 'data/dpo/train.jsonl'
@@ -133,7 +149,7 @@ def main():
     valid_count = 0
     
     with open(train_path, 'w') as f_train, open(valid_path, 'w') as f_valid:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             futures = [executor.submit(process_item_dpo, item) for item in sample]
             for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="Generating DPO Pairs"):
                 res = future.result()
@@ -148,8 +164,11 @@ def main():
                         valid_count += 1
                         
                     if (train_count + valid_count) >= target_count:
+                        # Cancel remaining
                         for f in futures: f.cancel()
                         break
+    
+    print(f"\nDPO Dataset Complete! Saved {train_count} train and {valid_count} validation pairs.")
     
     print(f"\nDPO Dataset Complete! Saved {train_count} train and {valid_count} validation pairs.")
 

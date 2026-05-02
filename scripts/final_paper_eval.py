@@ -85,6 +85,76 @@ def run_parallel_baseline_full(query: str, model: str, llm: LLMClient, context: 
     synth = synthesize(query, dialogue, llm, max_tokens=300, variant="speech_act")
     return synth.clarifying_question, [r.interpretation for r in round_0]
 
+from d2c.prompts import (
+    VANILLA_CQG_SYSTEM, VANILLA_CQG_USER,
+    SIMULATED_USER_SYSTEM, SIMULATED_USER_USER,
+    RESOLUTION_JUDGE_SYSTEM, RESOLUTION_JUDGE_USER
+)
+
+def run_rl_inference(query: str, interpretations: list[str], llm: LLMClient, sim_llm: LLMClient, n_candidates: int = 3) -> str:
+    """RL-Inspired 'Search at Inference' Baseline."""
+    if not interpretations:
+        return llm.chat(VANILLA_CQG_SYSTEM, VANILLA_CQG_USER.format(query=query))
+
+    # 1. Generate N candidates
+    candidates = []
+    for i in range(n_candidates):
+        raw = llm.chat(
+            system_prompt=VANILLA_CQG_SYSTEM,
+            user_prompt=VANILLA_CQG_USER.format(query=query),
+            temperature=0.7 + (i * 0.1),
+            max_tokens=150
+        )
+        # Parse JSON if needed
+        if "{" in raw and "}" in raw:
+            try:
+                import json
+                start, end = raw.find("{"), raw.rfind("}")
+                data = json.loads(raw[start:end+1])
+                q = data.get("clarifying_question", "CLEAR")
+                if q != "CLEAR": candidates.append(q)
+            except: pass
+        elif "CLEAR" not in raw.upper():
+            candidates.append(raw.strip())
+    
+    if not candidates: return "CLEAR"
+    candidates = list(set(candidates))
+
+    # 2. Simulate and Score
+    target_intent = interpretations[0]
+    best_q = candidates[0]
+    best_score = -1.0
+
+    for q in candidates:
+        # Simulate Answer
+        answer = sim_llm.chat(
+            system_prompt=SIMULATED_USER_SYSTEM,
+            user_prompt=SIMULATED_USER_USER.format(
+                query=query, interpretation=target_intent, clarifying_question=q
+            ),
+            temperature=0.1
+        )
+        # Judge Resolution
+        formatted_intents = "\n".join(f"- {i}" for i in interpretations)
+        raw_eval = sim_llm.chat(
+            system_prompt=RESOLUTION_JUDGE_SYSTEM,
+            user_prompt=RESOLUTION_JUDGE_USER.format(
+                query=query, clarifying_question=q, user_answer=answer, all_interpretations=formatted_intents
+            ),
+            temperature=0.0
+        )
+        try:
+            import json
+            start, end = raw_eval.find("{"), raw_eval.rfind("}")
+            eval_data = json.loads(raw_eval[start:end+1])
+            score = float(eval_data.get("resolution_score", 1.0))
+            if score > best_score:
+                best_score = score
+                best_q = q
+        except: continue
+        
+    return best_q
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--n-per-dataset", type=int, default=1)
@@ -92,10 +162,11 @@ def main():
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--dataset", default=None, help="Specific dataset to run (clamber, clariq, qulac, abgcoqa)")
     parser.add_argument("--model", default="qwen2.5:1.5b")
+    parser.add_argument("--sim-model", default="qwen3:4b")
     parser.add_argument("--judge-model", default="qwen3:4b")
     parser.add_argument("--adapter-path", default="adapters", help="Path to MLX SFT adapters")
     parser.add_argument("--rl-adapter-path", default="adapters_rl", help="Path to MLX RL/DPO adapters")
-    parser.add_argument("--methods", nargs="+", help="Specific methods to run (vanilla, sft, rl, etc.)")
+    parser.add_argument("--methods", nargs="+", help="Specific methods to run (vanilla, sft, rl, rl_search, etc.)")
     args = parser.parse_args()
 
     import random
@@ -104,6 +175,7 @@ def main():
     random.seed(args.seed)
 
     llm = LLMClient(model=args.model, think=False)
+    sim_llm = LLMClient(model=args.sim_model, think=False)
     judge_llm = LLMClient(model=args.judge_model, think=False)
 
     results_file = Path("paper_evaluation_results.txt")
@@ -145,6 +217,14 @@ def main():
             context = item.get("context")
             gold_qs = item.get("gold_clarifying_questions", [])
             gold_q = gold_qs[0] if gold_qs else "N/A"
+            # Extract interpretations for RL search
+            interpretations = item.get("interpretations", [])
+            if not interpretations and "annotations" in item:
+                # AmbigQA style
+                for ann in item.get("annotations", []):
+                    if ann.get("type") == "multipleQAs":
+                        for qa in ann.get("qaPairs", []):
+                            if "question" in qa: interpretations.append(qa["question"])
             
             msg = f"  [{total_samples}] Query: {query[:60]}..."
             print(msg)
@@ -161,6 +241,7 @@ def main():
                         q_text = run_mlx_model(query, adapter_path=args.adapter_path, model_type="sft")
                         rnd, div_score = 0, 0.0
                     elif name == "rl":
+                        # This is the DPO-tuned model
                         q_text = run_mlx_model(query, adapter_path=args.rl_adapter_path, model_type="rl")
                         rnd, div_score = 0, 0.0
                     elif name == "parallel":
@@ -221,13 +302,23 @@ def main():
                 print("\n".join(table_lines))
 
     # Final Master Table
-    print(f"\n{'='*130}\n  FINAL MASTER EVALUATION RESULTS (N={total_samples})\n{'='*130}")
-    header = f"{'Method':<12} | {'F1':<5} | {'Qual':<4} | {'Div':<4} | {'Sim':<6} | {'Cov%':<5} | {'Rnd':<4}"
-    print(header)
+    master_header = f"\n{'='*130}\n  FINAL MASTER EVALUATION RESULTS (N={total_samples})\n{'='*130}"
+    header_row = f"{'Method':<12} | {'F1':<5} | {'Qual':<4} | {'Div':<4} | {'Sim':<6} | {'Cov%':<5} | {'Rnd':<4}"
+    
+    print(master_header)
+    print(header_row)
     print("-" * 130)
+    
+    with open(results_file, "a") as f:
+        f.write(master_header + "\n")
+        f.write(header_row + "\n")
+        f.write("-" * 130 + "\n")
+
     for name in methods:
         if not all_results[name]["preds"]:
-            print(f"{name:<12} | No data")
+            msg = f"{name:<12} | No data"
+            print(msg)
+            with open(results_file, "a") as f: f.write(msg + "\n")
             continue
             
         det = clarification_need_f1(all_results[name]["preds"], all_results[name]["golds"])
@@ -237,8 +328,12 @@ def main():
         div_avg = statistics.mean(all_results[name]["divs"])
         rnd_avg = statistics.mean(all_results[name]["rounds"])
         
-        print(f"{name:<12} | {det['f1']:>5.2f} | {q_mean:>4.1f} | {div_avg:>4.2f} | {sim_mean:>6.3f} | {cov_mean:>5.1f} | {rnd_avg:>4.1f}")
+        row = f"{name:<12} | {det['f1']:>5.2f} | {q_mean:>4.1f} | {div_avg:>4.2f} | {sim_mean:>6.3f} | {cov_mean:>5.1f} | {rnd_avg:>4.1f}"
+        print(row)
+        with open(results_file, "a") as f: f.write(row + "\n")
+        
     print("="*130)
+    with open(results_file, "a") as f: f.write("="*130 + "\n")
 
 if __name__ == "__main__":
     main()

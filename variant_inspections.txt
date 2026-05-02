@@ -1,244 +1,814 @@
 DETAILED VARIANT INSPECTION LOG
-Seed: 358799 | Generator: qwen2.5:1.5b | Judge: qwen3:4b
+Seed: 340478 | Generator: qwen2.5:1.5b | Judge: qwen3:4b
 ========================================================================================================================
 
-Query: What are the grounds for your belief?
+Query: Give me a one line summary of the story below: 
+
+A long long time ago the Queen of Odisha heard that there was a master stone sculptor who made such stunning statues of the gods that people would weep from happiness at the beauty of the statues if they saw them. One summer day, while resting indolently with the King in the main hall of the royal palace, the Queen suddenly had a thought. "How nice it would be, King, if we could build some beautiful statutes of Lord Jagannath so that the people can come worship Jagannath, Balabhadra, and Subadhra. What do you think?" 
+
+The King thought for a few minutes, and then nodded in agreement. "What do you have in mind, my Queen?" And so, soon the stone sculptor was summoned to appear before the Court for an appointment to build in his way the statutes of the gods. Soon the monsoon season started and the sculptor appeared in front of the court, awaiting his appointment. He was a humble man from the mountainous regions of Odisha. Even at his best-dressed, one couldn't help but notice his rough hands, and the small sprinkling of dust that seemed ever present in his hair. 
+
+The King and Queen graciously waited as the sculptor bowed and then asked "Your majesties, what can I do for you?" The Queen leaned forward in her throne and her voice rang out in the court "We have heard, o Master Sculptor, of your skills from people far and wide across the Kingdom. We dream of having you put your skills to use to build beautiful statues that will represent Lord Jagannath, Subhadra, and Balabhadra for our people to worship."
+
+The sculptor was silent. As his silence extended, ministers of the court began to feel restless. "Speak up! How can you be silent when the Queen graces you so!" But still, the sculptor was silent. 
+
+The King and Queen sat patiently in their thrones as they waited for the sculptor to respond. Perhaps the enormity of the task was too much. Perhaps, the sculptor was thinking of what he should ask for in return. Or even more, perhaps, the sculptor was awed and honored by the request. 
+
+At last, as the shadows from the late afternoon sun began to stretch across the floors of the hall, the sculptor shifted his weight, and opened his mouth to speak. "Your majesties, you grace me with such a request, I cannot help but oblige. It is an honor." At this, the Queen sat as straight as a rod, listening for the words that would come next. "But, I can do this on one condition only. I will work in a closed hall, where none may enter - regardless of whether they can hear me working or otherwise. None may enter until I open the doors from within and proclaim to all that the statues are completed."
+
+The ministers gasped - what a strange request from this man. Was he a fool? What if he just slept and ate and didn't do any work? How could the King and Queen trust that he would do the work he was promising to do? The Queen looked on thoughtfully. She glanced at the King, and it seemed to her that he agreed on this condition without reservation. She looked at the sculptor and then nodded her assent. "We decree that you shall build these statues in a hall set aside, into which no one shall enter until your work is complete and you proclaim that to us after opening the doors of the hall from within."
 Method: vanilla
-Output: What specific grounds are you referring to for your belief?
-Gold:   Are you asking about the physical residue or the basis for belief?
-Judge Score: 2
+Output: What specific details about the story are unclear?
+Gold:   N/A
+Judge Score: 1
 ----------------------------------------
-Query: What are the grounds for your belief?
-Method: sft
-Output: Are you asking about the general grounds for belief or specific grounds for belief in God?
-Gold:   Are you asking about the physical residue or the basis for belief?
+Query: Give me a one line summary of the story below: 
+
+A long long time ago the Queen of Odisha heard that there was a master stone sculptor who made such stunning statues of the gods that people would weep from happiness at the beauty of the statues if they saw them. One summer day, while resting indolently with the King in the main hall of the royal palace, the Queen suddenly had a thought. "How nice it would be, King, if we could build some beautiful statutes of Lord Jagannath so that the people can come worship Jagannath, Balabhadra, and Subadhra. What do you think?" 
+
+The King thought for a few minutes, and then nodded in agreement. "What do you have in mind, my Queen?" And so, soon the stone sculptor was summoned to appear before the Court for an appointment to build in his way the statutes of the gods. Soon the monsoon season started and the sculptor appeared in front of the court, awaiting his appointment. He was a humble man from the mountainous regions of Odisha. Even at his best-dressed, one couldn't help but notice his rough hands, and the small sprinkling of dust that seemed ever present in his hair. 
+
+The King and Queen graciously waited as the sculptor bowed and then asked "Your majesties, what can I do for you?" The Queen leaned forward in her throne and her voice rang out in the court "We have heard, o Master Sculptor, of your skills from people far and wide across the Kingdom. We dream of having you put your skills to use to build beautiful statues that will represent Lord Jagannath, Subhadra, and Balabhadra for our people to worship."
+
+The sculptor was silent. As his silence extended, ministers of the court began to feel restless. "Speak up! How can you be silent when the Queen graces you so!" But still, the sculptor was silent. 
+
+The King and Queen sat patiently in their thrones as they waited for the sculptor to respond. Perhaps the enormity of the task was too much. Perhaps, the sculptor was thinking of what he should ask for in return. Or even more, perhaps, the sculptor was awed and honored by the request. 
+
+At last, as the shadows from the late afternoon sun began to stretch across the floors of the hall, the sculptor shifted his weight, and opened his mouth to speak. "Your majesties, you grace me with such a request, I cannot help but oblige. It is an honor." At this, the Queen sat as straight as a rod, listening for the words that would come next. "But, I can do this on one condition only. I will work in a closed hall, where none may enter - regardless of whether they can hear me working or otherwise. None may enter until I open the doors from within and proclaim to all that the statues are completed."
+
+The ministers gasped - what a strange request from this man. Was he a fool? What if he just slept and ate and didn't do any work? How could the King and Queen trust that he would do the work he was promising to do? The Queen looked on thoughtfully. She glanced at the King, and it seemed to her that he agreed on this condition without reservation. She looked at the sculptor and then nodded her assent. "We decree that you shall build these statues in a hall set aside, into which no one shall enter until your work is complete and you proclaim that to us after opening the doors of the hall from within."
+Method: parallel
+Output: Are you asking about a vision of beautiful statues or a request for a closed hall?
+Gold:   N/A
 Judge Score: 5
 ----------------------------------------
-Query: What are the grounds for your belief?
+Query: Give me a one line summary of the story below: 
+
+A long long time ago the Queen of Odisha heard that there was a master stone sculptor who made such stunning statues of the gods that people would weep from happiness at the beauty of the statues if they saw them. One summer day, while resting indolently with the King in the main hall of the royal palace, the Queen suddenly had a thought. "How nice it would be, King, if we could build some beautiful statutes of Lord Jagannath so that the people can come worship Jagannath, Balabhadra, and Subadhra. What do you think?" 
+
+The King thought for a few minutes, and then nodded in agreement. "What do you have in mind, my Queen?" And so, soon the stone sculptor was summoned to appear before the Court for an appointment to build in his way the statutes of the gods. Soon the monsoon season started and the sculptor appeared in front of the court, awaiting his appointment. He was a humble man from the mountainous regions of Odisha. Even at his best-dressed, one couldn't help but notice his rough hands, and the small sprinkling of dust that seemed ever present in his hair. 
+
+The King and Queen graciously waited as the sculptor bowed and then asked "Your majesties, what can I do for you?" The Queen leaned forward in her throne and her voice rang out in the court "We have heard, o Master Sculptor, of your skills from people far and wide across the Kingdom. We dream of having you put your skills to use to build beautiful statues that will represent Lord Jagannath, Subhadra, and Balabhadra for our people to worship."
+
+The sculptor was silent. As his silence extended, ministers of the court began to feel restless. "Speak up! How can you be silent when the Queen graces you so!" But still, the sculptor was silent. 
+
+The King and Queen sat patiently in their thrones as they waited for the sculptor to respond. Perhaps the enormity of the task was too much. Perhaps, the sculptor was thinking of what he should ask for in return. Or even more, perhaps, the sculptor was awed and honored by the request. 
+
+At last, as the shadows from the late afternoon sun began to stretch across the floors of the hall, the sculptor shifted his weight, and opened his mouth to speak. "Your majesties, you grace me with such a request, I cannot help but oblige. It is an honor." At this, the Queen sat as straight as a rod, listening for the words that would come next. "But, I can do this on one condition only. I will work in a closed hall, where none may enter - regardless of whether they can hear me working or otherwise. None may enter until I open the doors from within and proclaim to all that the statues are completed."
+
+The ministers gasped - what a strange request from this man. Was he a fool? What if he just slept and ate and didn't do any work? How could the King and Queen trust that he would do the work he was promising to do? The Queen looked on thoughtfully. She glanced at the King, and it seemed to her that he agreed on this condition without reservation. She looked at the sculptor and then nodded her assent. "We decree that you shall build these statues in a hall set aside, into which no one shall enter until your work is complete and you proclaim that to us after opening the doors of the hall from within."
+Method: sft
+Output: Are you asking about the statue's size or the sculptor's age?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Give me a one line summary of the story below: 
+
+A long long time ago the Queen of Odisha heard that there was a master stone sculptor who made such stunning statues of the gods that people would weep from happiness at the beauty of the statues if they saw them. One summer day, while resting indolently with the King in the main hall of the royal palace, the Queen suddenly had a thought. "How nice it would be, King, if we could build some beautiful statutes of Lord Jagannath so that the people can come worship Jagannath, Balabhadra, and Subadhra. What do you think?" 
+
+The King thought for a few minutes, and then nodded in agreement. "What do you have in mind, my Queen?" And so, soon the stone sculptor was summoned to appear before the Court for an appointment to build in his way the statutes of the gods. Soon the monsoon season started and the sculptor appeared in front of the court, awaiting his appointment. He was a humble man from the mountainous regions of Odisha. Even at his best-dressed, one couldn't help but notice his rough hands, and the small sprinkling of dust that seemed ever present in his hair. 
+
+The King and Queen graciously waited as the sculptor bowed and then asked "Your majesties, what can I do for you?" The Queen leaned forward in her throne and her voice rang out in the court "We have heard, o Master Sculptor, of your skills from people far and wide across the Kingdom. We dream of having you put your skills to use to build beautiful statues that will represent Lord Jagannath, Subhadra, and Balabhadra for our people to worship."
+
+The sculptor was silent. As his silence extended, ministers of the court began to feel restless. "Speak up! How can you be silent when the Queen graces you so!" But still, the sculptor was silent. 
+
+The King and Queen sat patiently in their thrones as they waited for the sculptor to respond. Perhaps the enormity of the task was too much. Perhaps, the sculptor was thinking of what he should ask for in return. Or even more, perhaps, the sculptor was awed and honored by the request. 
+
+At last, as the shadows from the late afternoon sun began to stretch across the floors of the hall, the sculptor shifted his weight, and opened his mouth to speak. "Your majesties, you grace me with such a request, I cannot help but oblige. It is an honor." At this, the Queen sat as straight as a rod, listening for the words that would come next. "But, I can do this on one condition only. I will work in a closed hall, where none may enter - regardless of whether they can hear me working or otherwise. None may enter until I open the doors from within and proclaim to all that the statues are completed."
+
+The ministers gasped - what a strange request from this man. Was he a fool? What if he just slept and ate and didn't do any work? How could the King and Queen trust that he would do the work he was promising to do? The Queen looked on thoughtfully. She glanced at the King, and it seemed to her that he agreed on this condition without reservation. She looked at the sculptor and then nodded her assent. "We decree that you shall build these statues in a hall set aside, into which no one shall enter until your work is complete and you proclaim that to us after opening the doors of the hall from within."
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Give me a one line summary of the story below: 
+
+A long long time ago the Queen of Odisha heard that there was a master stone sculptor who made such stunning statues of the gods that people would weep from happiness at the beauty of the statues if they saw them. One summer day, while resting indolently with the King in the main hall of the royal palace, the Queen suddenly had a thought. "How nice it would be, King, if we could build some beautiful statutes of Lord Jagannath so that the people can come worship Jagannath, Balabhadra, and Subadhra. What do you think?" 
+
+The King thought for a few minutes, and then nodded in agreement. "What do you have in mind, my Queen?" And so, soon the stone sculptor was summoned to appear before the Court for an appointment to build in his way the statutes of the gods. Soon the monsoon season started and the sculptor appeared in front of the court, awaiting his appointment. He was a humble man from the mountainous regions of Odisha. Even at his best-dressed, one couldn't help but notice his rough hands, and the small sprinkling of dust that seemed ever present in his hair. 
+
+The King and Queen graciously waited as the sculptor bowed and then asked "Your majesties, what can I do for you?" The Queen leaned forward in her throne and her voice rang out in the court "We have heard, o Master Sculptor, of your skills from people far and wide across the Kingdom. We dream of having you put your skills to use to build beautiful statues that will represent Lord Jagannath, Subhadra, and Balabhadra for our people to worship."
+
+The sculptor was silent. As his silence extended, ministers of the court began to feel restless. "Speak up! How can you be silent when the Queen graces you so!" But still, the sculptor was silent. 
+
+The King and Queen sat patiently in their thrones as they waited for the sculptor to respond. Perhaps the enormity of the task was too much. Perhaps, the sculptor was thinking of what he should ask for in return. Or even more, perhaps, the sculptor was awed and honored by the request. 
+
+At last, as the shadows from the late afternoon sun began to stretch across the floors of the hall, the sculptor shifted his weight, and opened his mouth to speak. "Your majesties, you grace me with such a request, I cannot help but oblige. It is an honor." At this, the Queen sat as straight as a rod, listening for the words that would come next. "But, I can do this on one condition only. I will work in a closed hall, where none may enter - regardless of whether they can hear me working or otherwise. None may enter until I open the doors from within and proclaim to all that the statues are completed."
+
+The ministers gasped - what a strange request from this man. Was he a fool? What if he just slept and ate and didn't do any work? How could the King and Queen trust that he would do the work he was promising to do? The Queen looked on thoughtfully. She glanced at the King, and it seemed to her that he agreed on this condition without reservation. She looked at the sculptor and then nodded her assent. "We decree that you shall build these statues in a hall set aside, into which no one shall enter until your work is complete and you proclaim that to us after opening the doors of the hall from within."
 Method: madisse
-Output: What specific context or facet of 'grounds' are you referring to?
-Gold:   Are you asking about the physical residue or the basis for belief?
+Output: Are you asking about the Queen’s request or the sculptor’s condition?
+Gold:   N/A
 Judge Score: 1
 ----------------------------------------
-Query: What are the grounds for your belief?
-Method: speech_act
-Output: CLEAR
-Gold:   Are you asking about the physical residue or the basis for belief?
+Query: Who is a current main cast member on the movie Ammonite?
+Method: vanilla
+Output: Who specifically are you referring to when asking about the current main cast members on 'Ammonite'? The movie 'Ammonite' is not a well-known film, so it might be unclear which specific movie or show.
+Gold:   N/A
 Judge Score: 1
 ----------------------------------------
-Query: What are the grounds for your belief?
+Query: Who is a current main cast member on the movie Ammonite?
 Method: parallel
-Output: Are you asking about the basis or justification of my belief?
-Gold:   Are you asking about the physical residue or the basis for belief?
+Output: CLEAR
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who is a current main cast member on the movie Ammonite?
+Method: sft
+Output: Are you asking about the 2016, 2017, or 2018 main cast member on *Amphitheatrum Benin*?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who is a current main cast member on the movie Ammonite?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who is a current main cast member on the movie Ammonite?
+Method: madisse
+Output: Are you asking about the actress playing Ammonite in the movie 'Ammonite' or the director, actor, or any character involved?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who won season 1 of zumbos just desserts?
+Method: vanilla
+Output: Which Zumbos Just Desserts episode are you referring to?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who won season 1 of zumbos just desserts?
+Method: parallel
+Output: Are you asking about the first season, or are you looking for information on another competition?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who won season 1 of zumbos just desserts?
+Method: sft
+Output: Are you asking about the winner of season 1 of Zumba In The Jester's Den, or the winner of season 10?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who won season 1 of zumbos just desserts?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who won season 1 of zumbos just desserts?
+Method: madisse
+Output: CLEAR
+Gold:   N/A
+Judge Score: 3
+----------------------------------------
+Query: What is the origin of the name rhoda?
+Method: vanilla
+Output: What specific type of name are we referring to? Is it a place name, family name, or something else?
+Gold:    Which type of origin: ethnic, time frame, or book?
+Judge Score: 1
+----------------------------------------
+Query: What is the origin of the name rhoda?
+Method: parallel
+Output: Are you asking about the origin of the surname Rhoda, its meaning in Old English, or something else?
+Gold:    Which type of origin: ethnic, time frame, or book?
+Judge Score: 3
+----------------------------------------
+Query: What is the origin of the name rhoda?
+Method: sft
+Output: Are you asking about the character Rhoda or the actress who played Rhoda?
+Gold:    Which type of origin: ethnic, time frame, or book?
+Judge Score: 1
+----------------------------------------
+Query: What is the origin of the name rhoda?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:    Which type of origin: ethnic, time frame, or book?
+Judge Score: 1
+----------------------------------------
+Query: What is the origin of the name rhoda?
+Method: madisse
+Output: What is the primary focus of your query regarding the origin of the name 'Rhoda'? Are you looking for a specific historical or cultural explanation, or do you need multiple perspectives on its origins
+Gold:    Which type of origin: ethnic, time frame, or book?
+Judge Score: 1
+----------------------------------------
+Query: Who performs the song "Textures"?
+Method: vanilla
+Output: Who performs the song 'Textures'?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who performs the song "Textures"?
+Method: parallel
+Output: Are you asking about who performs the song 'Textures'?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who performs the song "Textures"?
+Method: sft
+Output: Are you asking about the 1971, 1972, or 1973 performance of "Textures"?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who performs the song "Textures"?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who performs the song "Textures"?
+Method: madisse
+Output: Who performed the song 'Textures'?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: What's the longitude of the location where Coolstreopsis is commonly found?
+Method: vanilla
+Output: What specific location are you referring to when mentioning 'Coolstreopsis'? Does it need to be a particular city, country, or another geographical area?
+Gold:   Can you provide more information about Coolstreopsis? Is it a specific place, a species, or something else?
 Judge Score: 2
 ----------------------------------------
-Query: Who is the father of gabby's baby on days of our lives?
-Method: vanilla
-Output: Who is Gabby in the context of Days of Our Lives?
-Gold:    Which one: a character, or an actor?
-Judge Score: 1
-----------------------------------------
-Query: Who is the father of gabby's baby on days of our lives?
-Method: sft
-Output: Are you asking about the father from 1982, 1999, or 2017?
-Gold:    Which one: a character, or an actor?
-Judge Score: 1
-----------------------------------------
-Query: Who is the father of gabby's baby on days of our lives?
-Method: madisse
-Output: Who is the biological father of Gabby's baby on Days of Our Lives?
-Gold:    Which one: a character, or an actor?
-Judge Score: 1
-----------------------------------------
-Query: Who is the father of gabby's baby on days of our lives?
-Method: speech_act
-Output: Are you asking about Gabi's baby character in 'Days of Our Lives' or the TV show itself?
-Gold:    Which one: a character, or an actor?
-Judge Score: 1
-----------------------------------------
-Query: Who is the father of gabby's baby on days of our lives?
+Query: What's the longitude of the location where Coolstreopsis is commonly found?
 Method: parallel
-Output: Are you asking about the biological father or the one responsible for the baby's birth?
-Gold:    Which one: a character, or an actor?
+Output: Are you asking about the longitude of a specific geographical place where 'Coolstreopsis' is commonly found?
+Gold:   Can you provide more information about Coolstreopsis? Is it a specific place, a species, or something else?
+Judge Score: 3
+----------------------------------------
+Query: What's the longitude of the location where Coolstreopsis is commonly found?
+Method: sft
+Output: Are you asking about the location in the Pacific Ocean or in Brazil where Coolstreopsis is commonly found?
+Gold:   Can you provide more information about Coolstreopsis? Is it a specific place, a species, or something else?
 Judge Score: 1
 ----------------------------------------
-Query: How should I use the septic system design
+Query: What's the longitude of the location where Coolstreopsis is commonly found?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   Can you provide more information about Coolstreopsis? Is it a specific place, a species, or something else?
+Judge Score: 1
+----------------------------------------
+Query: What's the longitude of the location where Coolstreopsis is commonly found?
+Method: madisse
+Output: Are you asking for the longitude of locations where Coolstreopsis is commonly found in freshwater or saltwater environments?
+Gold:   Can you provide more information about Coolstreopsis? Is it a specific place, a species, or something else?
+Judge Score: 1
+----------------------------------------
+Query: List three US states whose name begins with C. Then tell me the capital of the first one.
 Method: vanilla
-Output: What specific aspect of the septic system design are you looking to understand?
-Gold:   ae you looking for examples of septic system design
+Output: What US states' names begin with 'C'?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: List three US states whose name begins with C. Then tell me the capital of the first one.
+Method: parallel
+Output: Are you asking for a list of three U.S. states that start with 'C', or do you need the capital city of one of those states?
+Gold:   N/A
 Judge Score: 4
 ----------------------------------------
-Query: How should I use the septic system design
+Query: List three US states whose name begins with C. Then tell me the capital of the first one.
 Method: sft
-Output: Are you asking about basic septic system design principles or troubleshooting common issues?
-Gold:   ae you looking for examples of septic system design
+Output: Are you asking about the first US state that begins with C, or the capital of the first?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: List three US states whose name begins with C. Then tell me the capital of the first one.
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: List three US states whose name begins with C. Then tell me the capital of the first one.
+Method: madisse
+Output: Are you asking for a list of US states that start with 'C' and their capitals, or do you need to find the capital specifically?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: When was harry potter and the sorcerers stone book released?
+Method: vanilla
+Output: Which Harry Potter book are you referring to?
+Gold:   In which country: the UK, or the US?
+Judge Score: 1
+----------------------------------------
+Query: When was harry potter and the sorcerers stone book released?
+Method: parallel
+Output: Are you asking about the original 1997 edition or the later 2000 release?
+Gold:   In which country: the UK, or the US?
+Judge Score: 1
+----------------------------------------
+Query: When was harry potter and the sorcerers stone book released?
+Method: sft
+Output: Are you asking about the UK or US release of *Harry Potter and the Sorcerers Stone*?
+Gold:   In which country: the UK, or the US?
+Judge Score: 1
+----------------------------------------
+Query: When was harry potter and the sorcerers stone book released?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   In which country: the UK, or the US?
+Judge Score: 1
+----------------------------------------
+Query: When was harry potter and the sorcerers stone book released?
+Method: madisse
+Output: Are you asking about the release date of the book or the movie adaptation?
+Gold:   In which country: the UK, or the US?
+Judge Score: 1
+----------------------------------------
+Query: Identify which car manufacturer is British or American: Land Rover, Jeep
+Method: vanilla
+Output: Which car manufacturer are you referring to?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Identify which car manufacturer is British or American: Land Rover, Jeep
+Method: parallel
+Output: Are you asking about Land Rover, which is British, or Jeep, which is American?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Identify which car manufacturer is British or American: Land Rover, Jeep
+Method: sft
+Output: Are you asking about the British manufacturer or the American manufacturer?
+Gold:   N/A
+Judge Score: 4
+----------------------------------------
+Query: Identify which car manufacturer is British or American: Land Rover, Jeep
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Identify which car manufacturer is British or American: Land Rover, Jeep
+Method: madisse
+Output: Are you asking for the origin of Land Rover or Jeep, or do you need to identify which car manufacturer is British and American?
+Gold:   N/A
+Judge Score: 4
+----------------------------------------
+Query: When was the last time cowboys went to the superbowl?
+Method: vanilla
+Output: When did the last Cowboys team participate in a Super Bowl?
+Gold:   Which time: 8th, 7th, or 6th?
 Judge Score: 5
 ----------------------------------------
-Query: How should I use the septic system design
-Method: madisse
-Output: Are you asking about understanding local regulations and guidelines for a traditional septic system or an alternative system, based on specific installation requirements and intended purpose?
-Gold:   ae you looking for examples of septic system design
-Judge Score: 2
-----------------------------------------
-Query: How should I use the septic system design
-Method: speech_act
-Output: Are you asking about how to properly design and utilize a septic system, including correct installation and maintenance?
-Gold:   ae you looking for examples of septic system design
+Query: When was the last time cowboys went to the superbowl?
+Method: parallel
+Output: Are you asking about when cowboys played in the Super Bowl or something else?
+Gold:   Which time: 8th, 7th, or 6th?
 Judge Score: 1
 ----------------------------------------
-Query: How should I use the septic system design
+Query: When was the last time cowboys went to the superbowl?
+Method: sft
+Output: Are you asking about the last year Cowboys went to the Super Bowl or the last date they appeared?
+Gold:   Which time: 8th, 7th, or 6th?
+Judge Score: 1
+----------------------------------------
+Query: When was the last time cowboys went to the superbowl?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   Which time: 8th, 7th, or 6th?
+Judge Score: 1
+----------------------------------------
+Query: When was the last time cowboys went to the superbowl?
+Method: madisse
+Output: Are you asking about when cowboys participated in an NFL game that included a Super Bowl, or are you looking for specific details about attendance or teams involved?
+Gold:   Which time: 8th, 7th, or 6th?
+Judge Score: 3
+----------------------------------------
+Query: Is there any record of GBaffidae in GBIF, no?
+Method: vanilla
+Output: GBaffidae refers to a specific group of animals. Do you mean GB-affidae (with the hyphen)? Or is it GBAFFIDA (without the hyphen)?
+Gold:   Can you please provide more information about "GBaffidae"?
+Judge Score: 1
+----------------------------------------
+Query: Is there any record of GBaffidae in GBIF, no?
 Method: parallel
-Output: Are you asking about instructions on using a septic system or about how to design one?
-Gold:   ae you looking for examples of septic system design
+Output: Are you asking about GBaffidae species in GBIF data?
+Gold:   Can you please provide more information about "GBaffidae"?
+Judge Score: 3
+----------------------------------------
+Query: Is there any record of GBaffidae in GBIF, no?
+Method: sft
+Output: Are you asking about GBIF's GB-affiidae or GB-affiidae?
+Gold:   Can you please provide more information about "GBaffidae"?
+Judge Score: 2
+----------------------------------------
+Query: Is there any record of GBaffidae in GBIF, no?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   Can you please provide more information about "GBaffidae"?
+Judge Score: 1
+----------------------------------------
+Query: Is there any record of GBaffidae in GBIF, no?
+Method: madisse
+Output: Are you asking about GBaffidae or just FFaDIDAe?
+Gold:   Can you please provide more information about "GBaffidae"?
 Judge Score: 4
 ----------------------------------------
-Query: Find information on Hoboken
+Query: What is the geographic distribution of Muscari latifiacum?
 Method: vanilla
-Output: What specific type of information are you looking for regarding Hoboken?
-Gold:   are interested in the nightlife here
+Output: What are you specifically asking about regarding the geographic distribution of Muscari latifiacum?
+Gold:   Can you please provide more information about Muscari latifiacum? Is it a plant, animal, or something else?
+Judge Score: 5
+----------------------------------------
+Query: What is the geographic distribution of Muscari latifiacum?
+Method: parallel
+Output: Are you asking about its geographical distribution or something else?
+Gold:   Can you please provide more information about Muscari latifiacum? Is it a plant, animal, or something else?
 Judge Score: 1
 ----------------------------------------
-Query: Find information on Hoboken
+Query: What is the geographic distribution of Muscari latifiacum?
 Method: sft
-Output: Are you asking about Hoboken's population size, when it was first settled, its nickname, or which states it borders?
-Gold:   are interested in the nightlife here
+Output: Are you asking about the country where Muscari latifiacum originates, or its geographic distribution in the wild or cultivation?
+Gold:   Can you please provide more information about Muscari latifiacum? Is it a plant, animal, or something else?
 Judge Score: 1
 ----------------------------------------
-Query: Find information on Hoboken
+Query: What is the geographic distribution of Muscari latifiacum?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   Can you please provide more information about Muscari latifiacum? Is it a plant, animal, or something else?
+Judge Score: 1
+----------------------------------------
+Query: What is the geographic distribution of Muscari latifiacum?
 Method: madisse
-Output: Are you asking for information on a specific aspect of Hoboken such as demographics, historical events, landmarks, businesses, or culture?
-Gold:   are interested in the nightlife here
+Output: Are you asking for the geographic distribution of Muscari latifiacum in specific countries or regions?
+Gold:   Can you please provide more information about Muscari latifiacum? Is it a plant, animal, or something else?
 Judge Score: 1
 ----------------------------------------
-Query: Find information on Hoboken
-Method: speech_act
-Output: Are you asking for information about Hoboken’s current population or its incorporation date?
-Gold:   are interested in the nightlife here
-Judge Score: 1
+Query: Who is the author of the book "Wintersmith"?
+Method: vanilla
+Output: Who specifically are you looking for the author of 'Wintersmith'? Are you asking about a particular edition, translation, or version?
+Gold:   N/A
+Judge Score: 3
 ----------------------------------------
-Query: Find information on Hoboken
+Query: Who is the author of the book "Wintersmith"?
 Method: parallel
 Output: CLEAR
-Gold:   are interested in the nightlife here
+Gold:   N/A
 Judge Score: 1
 ----------------------------------------
-Query: ralph owen brewster
-Method: vanilla
-Output: Who are Ralph Owen Brewster?
-Gold:   are you interested in learning more about ralph owen brewseter
-Judge Score: 1
-----------------------------------------
-Query: ralph owen brewster
+Query: Who is the author of the book "Wintersmith"?
 Method: sft
-Output: Are you asking about Ralph Owen Brewster's birth date or death date?
-Gold:   are you interested in learning more about ralph owen brewseter
-Judge Score: 2
-----------------------------------------
-Query: ralph owen brewster
-Method: madisse
-Output: Are you asking about Ralph Owen Brewster's profession, nationality, historical period, or any specific action associated with him?
-Gold:   are you interested in learning more about ralph owen brewseter
-Judge Score: 3
-----------------------------------------
-Query: ralph owen brewster
-Method: speech_act
-Output: Are you asking about Ralph Owen Brewster as a name or an individual associated with specific career roles in public health and emergency medicine?
-Gold:   are you interested in learning more about ralph owen brewseter
-Judge Score: 1
-----------------------------------------
-Query: ralph owen brewster
-Method: parallel
-Output: Are you asking about Ralph Owen Brewster's identity, profession, or something else?
-Gold:   are you interested in learning more about ralph owen brewseter
-Judge Score: 4
-----------------------------------------
-Query: ritz carlton lake las vegas
-Method: vanilla
-Output: What specifically do you want to know about 'ritz carlton lake las vegas'? Is it a hotel name, location, amenities, or something else?
-Gold:   are you looking for a specific web site
-Judge Score: 3
-----------------------------------------
-Query: ritz carlton lake las vegas
-Method: sft
-Output: Are you asking about the ritz Carlton Lake Las Vegas' swimming pool, outdoor pool, or hot tub?
-Gold:   are you looking for a specific web site
-Judge Score: 1
-----------------------------------------
-Query: ritz carlton lake las vegas
-Method: madisse
-Output: Are you asking for information about Ritz Carlton Las Vegas or booking a room at it?
-Gold:   are you looking for a specific web site
-Judge Score: 1
-----------------------------------------
-Query: ritz carlton lake las vegas
-Method: speech_act
-Output: Are you asking for information about a hotel located near the lake in Las Vegas, Nevada?
-Gold:   are you looking for a specific web site
-Judge Score: 3
-----------------------------------------
-Query: ritz carlton lake las vegas
-Method: parallel
-Output: CLEAR
-Gold:   are you looking for a specific web site
-Judge Score: 1
-----------------------------------------
-Query: What kind of bird?
-Method: vanilla
-Output: Is the blue bird mentioned in the story a specific type of bird?
-Gold:   N/A
-Judge Score: 2
-----------------------------------------
-Query: What kind of bird?
-Method: sft
-Output: Are you asking about the bird's size or what it's used for?
+Output: Are you asking about the 1986 *Wintersmith* or the 1997 *Wintersmith: The Secret of the Old Man*?
 Gold:   N/A
 Judge Score: 1
 ----------------------------------------
-Query: What kind of bird?
-Method: madisse
-Output: Are you asking about the species or the type of bird?
+Query: Who is the author of the book "Wintersmith"?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Gold:   N/A
 Judge Score: 1
 ----------------------------------------
-Query: What kind of bird?
-Method: speech_act
-Output: Are you asking about a specific species of blue bird that was watching the cat?
-Gold:   N/A
-Judge Score: 1
-----------------------------------------
-Query: What kind of bird?
-Method: parallel
-Output: Are you asking about a specific type of blue bird, or is it just any blue bird?
-Gold:   N/A
-Judge Score: 2
-----------------------------------------
-Query: Was there a very young participant?
-Method: vanilla
-Output: How old was the participant?
-Gold:   N/A
-Judge Score: 1
-----------------------------------------
-Query: Was there a very young participant?
-Method: sft
-Output: Are you asking about the youngest or oldest young participant in the study?
-Gold:   N/A
-Judge Score: 1
-----------------------------------------
-Query: Was there a very young participant?
+Query: Who is the author of the book "Wintersmith"?
 Method: madisse
 Output: CLEAR
 Gold:   N/A
 Judge Score: 1
 ----------------------------------------
-Query: Was there a very young participant?
-Method: speech_act
-Output: Are you asking about Michelle Obama's speech encouraging students to study abroad, particularly in China?
+Query: Is Caesalpinia intermedia a photoautotroph trophic guild?
+Method: vanilla
+Output: What specific aspect of Caesalpinia intermedia are you interested in analyzing?
 Gold:   N/A
 Judge Score: 1
 ----------------------------------------
-Query: Was there a very young participant?
+Query: Is Caesalpinia intermedia a photoautotroph trophic guild?
 Method: parallel
-Output: Are you asking about a young participant, Sarah Davis, or something else?
+Output: Are you asking if Caesalpinia intermedia belongs to the photoautotrophic trophic guild?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Is Caesalpinia intermedia a photoautotroph trophic guild?
+Method: sft
+Output: Are you asking about whether Caesalpinia intermedia is a primary producer, secondary producer, or a predator in its trophic guild?
+Gold:   N/A
+Judge Score: 3
+----------------------------------------
+Query: Is Caesalpinia intermedia a photoautotroph trophic guild?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Is Caesalpinia intermedia a photoautotroph trophic guild?
+Method: madisse
+Output: Are you asking about the trophic guild classification of Caesalpinia intermedia, focusing on its ability to produce food through photosynthesis?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: The all possible word categories are either "secular leader" or "female pronoun".
+The following two examples share a specific word category. You need to first infer the specific word category from the examples.
+Please output "X" if the given sentence mentions the specific word category. Please output "Y" if the given sentence does not mention the word category.
+
+Examples: 
+He is in the laboratory with the imam.
+She is in the hotel lobby with the principal.
+
+The Given Sentence: 
+He is in the laboratory with the president.
+Method: vanilla
+Output: What specific word category does the given sentence share with the examples?
+Gold:   Is the category either secular leader or female pronoun?
+Judge Score: 1
+----------------------------------------
+Query: The all possible word categories are either "secular leader" or "female pronoun".
+The following two examples share a specific word category. You need to first infer the specific word category from the examples.
+Please output "X" if the given sentence mentions the specific word category. Please output "Y" if the given sentence does not mention the word category.
+
+Examples: 
+He is in the laboratory with the imam.
+She is in the hotel lobby with the principal.
+
+The Given Sentence: 
+He is in the laboratory with the president.
+Method: parallel
+Output: Are you asking about 'secular leader'? Or is it related to a female pronoun?
+Gold:   Is the category either secular leader or female pronoun?
+Judge Score: 1
+----------------------------------------
+Query: The all possible word categories are either "secular leader" or "female pronoun".
+The following two examples share a specific word category. You need to first infer the specific word category from the examples.
+Please output "X" if the given sentence mentions the specific word category. Please output "Y" if the given sentence does not mention the word category.
+
+Examples: 
+He is in the laboratory with the imam.
+She is in the hotel lobby with the principal.
+
+The Given Sentence: 
+He is in the laboratory with the president.
+Method: sft
+Output: Y
+Gold:   Is the category either secular leader or female pronoun?
+Judge Score: 1
+----------------------------------------
+Query: The all possible word categories are either "secular leader" or "female pronoun".
+The following two examples share a specific word category. You need to first infer the specific word category from the examples.
+Please output "X" if the given sentence mentions the specific word category. Please output "Y" if the given sentence does not mention the word category.
+
+Examples: 
+He is in the laboratory with the imam.
+She is in the hotel lobby with the principal.
+
+The Given Sentence: 
+He is in the laboratory with the president.
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   Is the category either secular leader or female pronoun?
+Judge Score: 1
+----------------------------------------
+Query: The all possible word categories are either "secular leader" or "female pronoun".
+The following two examples share a specific word category. You need to first infer the specific word category from the examples.
+Please output "X" if the given sentence mentions the specific word category. Please output "Y" if the given sentence does not mention the word category.
+
+Examples: 
+He is in the laboratory with the imam.
+She is in the hotel lobby with the principal.
+
+The Given Sentence: 
+He is in the laboratory with the president.
+Method: madisse
+Output: Are you asking about the all possible word categories or the specific word category 'secular leader'?
+Gold:   Is the category either secular leader or female pronoun?
+Judge Score: 1
+----------------------------------------
+Query: What new political party was created as a result of the kansas-nebraska act?
+Method: vanilla
+Output: What specific political party was created as a result of the Kansas-Nebraska Act?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: What new political party was created as a result of the kansas-nebraska act?
+Method: parallel
+Output: Are you asking about the 'Know Nothing' party or the Republican Party?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: What new political party was created as a result of the kansas-nebraska act?
+Method: sft
+Output: Are you asking about the original party created by the Kansas-Nebraska Act or a successor party?
 Gold:   N/A
 Judge Score: 2
+----------------------------------------
+Query: What new political party was created as a result of the kansas-nebraska act?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: What new political party was created as a result of the kansas-nebraska act?
+Method: madisse
+Output: Are you asking about the specific party created or the general impact of the Kansas-Nebraska Act on political parties?
+Gold:   N/A
+Judge Score: 3
+----------------------------------------
+Query: What is the significance of Brick?
+Method: vanilla
+Output: What specific aspect of 'Brick' are you referring to?
+Gold:   Are you referring to the significance of a brick in construction or in a metaphorical sense?
+Judge Score: 5
+----------------------------------------
+Query: What is the significance of Brick?
+Method: parallel
+Output: Are you asking about a building material or an internet slang term for a group?
+Gold:   Are you referring to the significance of a brick in construction or in a metaphorical sense?
+Judge Score: 5
+----------------------------------------
+Query: What is the significance of Brick?
+Method: sft
+Output: Are you asking about Brick's role in the Bible or in Jewish tradition?
+Gold:   Are you referring to the significance of a brick in construction or in a metaphorical sense?
+Judge Score: 1
+----------------------------------------
+Query: What is the significance of Brick?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   Are you referring to the significance of a brick in construction or in a metaphorical sense?
+Judge Score: 1
+----------------------------------------
+Query: What is the significance of Brick?
+Method: madisse
+Output: Are you asking about the building material or a slang term for money and illicit activities?
+Gold:   Are you referring to the significance of a brick in construction or in a metaphorical sense?
+Judge Score: 5
+----------------------------------------
+Query: Please output "X" if the given sentence contains a word of "contains a negation". Please output "Y" if the given sentence does not contain any word of "contains a negation".
+
+Examples: 
+The photographer was not in the apartment building.(Output: X)
+Bernie Sanders could be in the courtroom.(Output: Y)
+
+The Given Sentence: 
+The surveyor has been in the laboratory.
+Method: vanilla
+Output: Please provide a sentence with a word that contains 'contains a negation'.
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Please output "X" if the given sentence contains a word of "contains a negation". Please output "Y" if the given sentence does not contain any word of "contains a negation".
+
+Examples: 
+The photographer was not in the apartment building.(Output: X)
+Bernie Sanders could be in the courtroom.(Output: Y)
+
+The Given Sentence: 
+The surveyor has been in the laboratory.
+Method: parallel
+Output: Are you asking about whether the sentence contains a word with a negation?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Please output "X" if the given sentence contains a word of "contains a negation". Please output "Y" if the given sentence does not contain any word of "contains a negation".
+
+Examples: 
+The photographer was not in the apartment building.(Output: X)
+Bernie Sanders could be in the courtroom.(Output: Y)
+
+The Given Sentence: 
+The surveyor has been in the laboratory.
+Method: sft
+Output: Output: Y
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Please output "X" if the given sentence contains a word of "contains a negation". Please output "Y" if the given sentence does not contain any word of "contains a negation".
+
+Examples: 
+The photographer was not in the apartment building.(Output: X)
+Bernie Sanders could be in the courtroom.(Output: Y)
+
+The Given Sentence: 
+The surveyor has been in the laboratory.
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Please output "X" if the given sentence contains a word of "contains a negation". Please output "Y" if the given sentence does not contain any word of "contains a negation".
+
+Examples: 
+The photographer was not in the apartment building.(Output: X)
+Bernie Sanders could be in the courtroom.(Output: Y)
+
+The Given Sentence: 
+The surveyor has been in the laboratory.
+Method: madisse
+Output: Are you asking about the presence of a negation in the sentence?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who sings come on baby let the good times roll?
+Method: vanilla
+Output: Who are you looking for when the song 'Come On Baby Let's Roll' by The Beatles?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who sings come on baby let the good times roll?
+Method: parallel
+Output: Are you asking about The Beach Boys or The Bee Gees?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who sings come on baby let the good times roll?
+Method: sft
+Output: Are you asking about the 1982 original, the 1984 version, or the 1999 version of "Come On Baby Let the Good Times Roll"?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who sings come on baby let the good times roll?
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Who sings come on baby let the good times roll?
+Method: madisse
+Output: Are you asking about Kenny Rogers performing 'Come On Baby Let the Good Times Roll' or the song itself?
+Gold:   N/A
+Judge Score: 1
+----------------------------------------
+Query: Give me a list of things I can do with a bunch of extra money.
+Method: vanilla
+Output: What kind of extra money are you referring to?
+Gold:   Could you provide information on your interests, financial goals, or the amount of money you're referring to?
+Judge Score: 2
+----------------------------------------
+Query: Give me a list of things I can do with a bunch of extra money.
+Method: parallel
+Output: Are you asking about saving, investing, paying off debts, or funding personal aspirations?
+Gold:   Could you provide information on your interests, financial goals, or the amount of money you're referring to?
+Judge Score: 1
+----------------------------------------
+Query: Give me a list of things I can do with a bunch of extra money.
+Method: sft
+Output: Are you asking about things you can do with *extra small amounts* of extra money, or things you can do with *large amounts* of extra money?
+Gold:   Could you provide information on your interests, financial goals, or the amount of money you're referring to?
+Judge Score: 2
+----------------------------------------
+Query: Give me a list of things I can do with a bunch of extra money.
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   Could you provide information on your interests, financial goals, or the amount of money you're referring to?
+Judge Score: 1
+----------------------------------------
+Query: Give me a list of things I can do with a bunch of extra money.
+Method: madisse
+Output: Are you asking about saving and investing, buying luxury items, donating to charity, paying off debts, traveling, or something else?
+Gold:   Could you provide information on your interests, financial goals, or the amount of money you're referring to?
+Judge Score: 2
+----------------------------------------
+Query: Tell me about scooters.
+Method: vanilla
+Output: What type of scooters are you interested in? Electric scooters, motorcycle scooters, or something else?
+Gold:   are you interested in scooter laws
+Judge Score: 2
+----------------------------------------
+Query: Tell me about scooters.
+Method: parallel
+Output: CLEAR
+Gold:   are you interested in scooter laws
+Judge Score: 1
+----------------------------------------
+Query: Tell me about scooters.
+Method: sft
+Output: Are you asking about the history of scooters, how many wheels they have, or why they're popular?
+Gold:   are you interested in scooter laws
+Judge Score: 1
+----------------------------------------
+Query: Tell me about scooters.
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   are you interested in scooter laws
+Judge Score: 1
+----------------------------------------
+Query: Tell me about scooters.
+Method: madisse
+Output: Are you asking about electric scooters or conventional motorcycles?
+Gold:   are you interested in scooter laws
+Judge Score: 5
+----------------------------------------
+Query: Information about east ridge high school.
+Method: vanilla
+Output: What specific information are you looking for about East Ridge High School?
+Gold:   are you interested in east ridge high school latest news
+Judge Score: 5
+----------------------------------------
+Query: Information about east ridge high school.
+Method: parallel
+Output: CLEAR
+Gold:   are you interested in east ridge high school latest news
+Judge Score: 1
+----------------------------------------
+Query: Information about east ridge high school.
+Method: sft
+Output: Are you asking about East Ridge High School's location, size, or sports teams?
+Gold:   are you interested in east ridge high school latest news
+Judge Score: 2
+----------------------------------------
+Query: Information about east ridge high school.
+Method: rl
+Output: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Gold:   are you interested in east ridge high school latest news
+Judge Score: 1
+----------------------------------------
+Query: Information about east ridge high school.
+Method: madisse
+Output: Are you asking about East Ridge High School's current events or student body specifically?
+Gold:   are you interested in east ridge high school latest news
+Judge Score: 1
 ----------------------------------------
