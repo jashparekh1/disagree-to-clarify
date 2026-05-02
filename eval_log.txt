@@ -1,0 +1,137 @@
+nohup: ignoring input
+
+>>> Processing CLAMBER (150 items)...
+  [1] Query: Identify which car manufacturer is British or American: Land...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+Loading SentenceTransformer (one-time cost)...
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights:  38%|███▊      | 39/103 [00:00<00:00, 372.19it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 624.21it/s]
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:02<12:57,  2.31s/it]Loading weights:   1%|          | 3/338 [00:02<03:57,  1.41it/s]Loading weights:   1%|▏         | 5/338 [00:02<02:05,  2.65it/s]Loading weights:   4%|▍         | 14/338 [00:02<00:33,  9.57it/s]Loading weights:   5%|▌         | 17/338 [00:03<00:31, 10.28it/s]Loading weights:   8%|▊         | 26/338 [00:03<00:17, 18.18it/s]Loading weights:  10%|█         | 35/338 [00:03<00:11, 27.25it/s]Loading weights:  12%|█▏        | 40/338 [00:03<00:10, 28.37it/s]Loading weights:  14%|█▍        | 47/338 [00:03<00:08, 35.42it/s]Loading weights:  16%|█▌        | 53/338 [00:03<00:08, 32.64it/s]Loading weights:  19%|█▊        | 63/338 [00:04<00:06, 39.76it/s]Loading weights:  20%|██        | 69/338 [00:04<00:06, 42.85it/s]Loading weights:  22%|██▏       | 76/338 [00:04<00:06, 43.55it/s]Loading weights:  25%|██▍       | 83/338 [00:04<00:05, 48.24it/s]Loading weights:  26%|██▋       | 89/338 [00:04<00:05, 43.44it/s]Loading weights:  29%|██▉       | 99/338 [00:04<00:05, 43.08it/s]Loading weights:  33%|███▎      | 111/338 [00:05<00:04, 50.79it/s]Loading weights:  35%|███▌      | 119/338 [00:05<00:03, 55.62it/s]Loading weights:  37%|███▋      | 125/338 [00:05<00:04, 42.93it/s]Loading weights:  40%|███▉      | 135/338 [00:05<00:05, 39.59it/s]Loading weights:  43%|████▎     | 147/338 [00:06<00:05, 34.08it/s]Loading weights:  45%|████▍     | 151/338 [00:06<00:05, 32.50it/s]Loading weights:  47%|████▋     | 159/338 [00:06<00:05, 34.90it/s]Loading weights:  48%|████▊     | 163/338 [00:06<00:06, 27.33it/s]Loading weights:  51%|█████     | 171/338 [00:06<00:05, 31.37it/s]Loading weights:  52%|█████▏    | 175/338 [00:07<00:07, 22.49it/s]Loading weights:  54%|█████▍    | 183/338 [00:07<00:06, 22.93it/s]Loading weights:  55%|█████▌    | 186/338 [00:07<00:06, 22.89it/s]Loading weights:  58%|█████▊    | 195/338 [00:07<00:04, 28.88it/s]Loading weights:  59%|█████▉    | 199/338 [00:08<00:05, 24.21it/s]Loading weights:  61%|██████    | 207/338 [00:08<00:04, 28.91it/s]Loading weights:  62%|██████▏   | 211/338 [00:08<00:05, 24.02it/s]Loading weights:  65%|██████▍   | 219/338 [00:09<00:04, 23.97it/s]Loading weights:  66%|██████▌   | 222/338 [00:09<00:05, 23.15it/s]Loading weights:  68%|██████▊   | 230/338 [00:09<00:04, 23.88it/s]Loading weights:  69%|██████▉   | 233/338 [00:09<00:04, 23.48it/s]Loading weights:  72%|███████▏  | 243/338 [00:09<00:03, 30.82it/s]Loading weights:  73%|███████▎  | 247/338 [00:10<00:03, 24.75it/s]Loading weights:  75%|███████▌  | 255/338 [00:10<00:02, 29.32it/s]Loading weights:  77%|███████▋  | 259/338 [00:10<00:03, 23.89it/s]Loading weights:  79%|███████▉  | 267/338 [00:10<00:02, 27.87it/s]Loading weights:  80%|███████▉  | 270/338 [00:11<00:03, 21.80it/s]Loading weights:  82%|████████▏ | 277/338 [00:11<00:02, 25.29it/s]Loading weights:  83%|████████▎ | 280/338 [00:11<00:02, 24.65it/s]Loading weights:  84%|████████▎ | 283/338 [00:11<00:02, 23.94it/s]Loading weights:  86%|████████▌ | 291/338 [00:11<00:01, 29.82it/s]Loading weights:  87%|████████▋ | 295/338 [00:12<00:01, 24.40it/s]Loading weights:  89%|████████▉ | 302/338 [00:12<00:01, 28.02it/s]Loading weights:  90%|█████████ | 305/338 [00:12<00:01, 21.38it/s]Loading weights:  93%|█████████▎| 315/338 [00:12<00:00, 28.81it/s]Loading weights:  94%|█████████▍| 319/338 [00:13<00:00, 23.30it/s]Loading weights:  97%|█████████▋| 327/338 [00:13<00:00, 28.12it/s]Loading weights:  98%|█████████▊| 331/338 [00:13<00:00, 23.16it/s]Loading weights: 100%|██████████| 338/338 [00:13<00:00, 24.97it/s]
+[transformers] The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+    - sft       : Score=N/A, Sim=0.000, Round=0
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:02<11:35,  2.06s/it]Loading weights:   1%|          | 3/338 [00:02<03:14,  1.72it/s]Loading weights:   1%|          | 4/338 [00:02<02:21,  2.36it/s]Loading weights:   1%|▏         | 5/338 [00:02<01:49,  3.03it/s]Loading weights:   4%|▍         | 14/338 [00:02<00:25, 12.53it/s]Loading weights:   5%|▌         | 17/338 [00:02<00:24, 12.98it/s]Loading weights:   8%|▊         | 28/338 [00:03<00:12, 24.80it/s]Loading weights:  11%|█         | 37/338 [00:03<00:08, 34.90it/s]Loading weights:  13%|█▎        | 43/338 [00:03<00:09, 31.39it/s]Loading weights:  15%|█▍        | 50/338 [00:03<00:07, 37.51it/s]Loading weights:  16%|█▋        | 55/338 [00:03<00:07, 36.40it/s]Loading weights:  19%|█▊        | 63/338 [00:03<00:07, 37.00it/s]Loading weights:  20%|██        | 69/338 [00:03<00:06, 40.93it/s]Loading weights:  22%|██▏       | 76/338 [00:04<00:06, 40.34it/s]Loading weights:  24%|██▍       | 81/338 [00:04<00:06, 38.97it/s]Loading weights:  26%|██▌       | 87/338 [00:04<00:09, 27.69it/s]Loading weights:  27%|██▋       | 91/338 [00:04<00:08, 27.49it/s]Loading weights:  29%|██▉       | 99/338 [00:04<00:07, 31.12it/s]Loading weights:  30%|███       | 103/338 [00:05<00:09, 25.14it/s]Loading weights:  33%|███▎      | 111/338 [00:05<00:07, 30.20it/s]Loading weights:  34%|███▍      | 115/338 [00:05<00:09, 24.71it/s]Loading weights:  36%|███▋      | 123/338 [00:05<00:07, 28.98it/s]Loading weights:  38%|███▊      | 127/338 [00:06<00:08, 24.41it/s]Loading weights:  40%|███▉      | 135/338 [00:06<00:06, 29.47it/s]Loading weights:  41%|████      | 139/338 [00:06<00:08, 24.22it/s]Loading weights:  43%|████▎     | 147/338 [00:06<00:06, 29.11it/s]Loading weights:  45%|████▍     | 151/338 [00:07<00:08, 23.30it/s]Loading weights:  47%|████▋     | 159/338 [00:07<00:06, 28.16it/s]Loading weights:  48%|████▊     | 163/338 [00:07<00:07, 23.61it/s]Loading weights:  51%|█████     | 171/338 [00:07<00:06, 24.32it/s]Loading weights:  51%|█████▏    | 174/338 [00:07<00:06, 23.99it/s]Loading weights:  54%|█████▍    | 183/338 [00:08<00:05, 30.86it/s]Loading weights:  55%|█████▌    | 187/338 [00:08<00:05, 25.33it/s]Loading weights:  58%|█████▊    | 195/338 [00:08<00:05, 24.70it/s]Loading weights:  59%|█████▊    | 198/338 [00:08<00:05, 24.40it/s]Loading weights:  61%|██████    | 207/338 [00:09<00:04, 30.75it/s]Loading weights:  62%|██████▏   | 211/338 [00:09<00:05, 24.86it/s]Loading weights:  65%|██████▍   | 219/338 [00:09<00:03, 30.16it/s]Loading weights:  66%|██████▌   | 223/338 [00:09<00:04, 25.42it/s]Loading weights:  68%|██████▊   | 229/338 [00:09<00:03, 27.29it/s]Loading weights:  69%|██████▊   | 232/338 [00:10<00:04, 26.07it/s]Loading weights:  70%|██████▉   | 235/338 [00:10<00:04, 25.00it/s]Loading weights:  70%|███████   | 238/338 [00:10<00:05, 19.99it/s]Loading weights:  72%|███████▏  | 243/338 [00:10<00:04, 22.38it/s]Loading weights:  73%|███████▎  | 246/338 [00:11<00:05, 16.04it/s]Loading weights:  75%|███████▌  | 255/338 [00:11<00:03, 22.91it/s]Loading weights:  76%|███████▋  | 258/338 [00:11<00:04, 18.47it/s]Loading weights:  77%|███████▋  | 261/338 [00:11<00:04, 18.27it/s]Loading weights:  79%|███████▉  | 267/338 [00:11<00:03, 22.57it/s]Loading weights:  80%|███████▉  | 270/338 [00:12<00:03, 17.98it/s]Loading weights:  83%|████████▎ | 279/338 [00:12<00:02, 26.00it/s]Loading weights:  83%|████████▎ | 282/338 [00:12<00:02, 22.82it/s]Loading weights:  86%|████████▌ | 291/338 [00:12<00:01, 26.41it/s]Loading weights:  87%|████████▋ | 294/338 [00:13<00:02, 20.78it/s]Loading weights:  90%|████████▉ | 303/338 [00:13<00:01, 22.70it/s]Loading weights:  91%|█████████ | 306/338 [00:13<00:01, 22.57it/s]Loading weights:  93%|█████████▎| 314/338 [00:14<00:01, 19.59it/s]Loading weights:  96%|█████████▋| 326/338 [00:14<00:00, 24.81it/s]Loading weights:  97%|█████████▋| 329/338 [00:14<00:00, 24.27it/s]Loading weights: 100%|██████████| 338/338 [00:14<00:00, 23.10it/s]
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [2] Query: What can be used as proof of identity?...
+    - vanilla   : Score=3, Sim=0.072, Round=0
+    - self_consistency: Score=1, Sim=0.103, Round=0
+    - sft       : Score=3, Sim=0.002, Round=0
+    - rl        : Score=4, Sim=0.000, Round=0
+    - parallel  : Score=3, Sim=0.069, Round=1
+    - madisse   : Score=3, Sim=0.060, Round=2
+    - speech_act: Score=3, Sim=0.241, Round=2
+  [3] Query: How can hedges be used to minimize loss or risk?...
+    - vanilla   : Score=1, Sim=0.041, Round=0
+    - self_consistency: Score=1, Sim=0.041, Round=0
+    - sft       : Score=3, Sim=0.798, Round=0
+    - rl        : Score=3, Sim=0.813, Round=0
+    - parallel  : Score=1, Sim=0.041, Round=1
+    - madisse   : Score=4, Sim=0.747, Round=2
+    - speech_act: Score=3, Sim=0.787, Round=2
+  [4] Query: What is the most watched video on youtube of all time?...
+    - vanilla   : Score=1, Sim=0.066, Round=0
+    - self_consistency: Score=1, Sim=0.066, Round=0
+    - sft       : Score=3, Sim=0.168, Round=0
+    - rl        : Score=3, Sim=0.168, Round=0
+    - parallel  : Score=1, Sim=0.066, Round=1
+    - madisse   : Score=2, Sim=0.028, Round=2
+    - speech_act: Score=3, Sim=0.036, Round=2
+  [5] Query: Provide a list of body parts that are only three letters lon...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [6] Query: Who plays the seer in charmed season 7?...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [7] Query: Name a famous American author who wrote stories about the Am...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [8] Query: How does GIS help in the real estate investment industry?...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [9] Query: What's the geographic range of Marmota monax?...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [10] Query: What's the longitude of the location where Johnstonia duplic...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+
+--- RUNNING RESULTS (N=10) ---
+Method       | F1    | Qual | Div  | Sim    | Cov%  | Rnd 
+----------------------------------------------------------
+vanilla      |  0.40 |  1.7 | 0.00 |  0.060 |  33.3 |  0.0
+self_consistency |  0.00 |  1.0 | 0.00 |  0.070 |   0.0 |  0.0
+sft          |  0.46 |  3.0 | 0.00 |  0.322 |  66.7 |  0.0
+rl           |  0.46 |  3.3 | 0.00 |  0.327 | 100.0 |  0.0
+parallel     |  0.50 |  1.7 | 0.28 |  0.059 |  33.3 |  1.0
+madisse      |  0.46 |  3.0 | 0.26 |  0.278 |  66.7 |  2.0
+speech_act   |  0.46 |  3.0 | 0.14 |  0.355 |  66.7 |  2.0
+----------------------------------------------------------
+  [11] Query: Is Botswana a geographic distribution of Locris atra?...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [12] Query: The all possible word categories are either "female pronoun"...
+    - vanilla   : Score=3, Sim=0.104, Round=0
+    - self_consistency: Score=3, Sim=0.104, Round=0
+    - sft       : Score=5, Sim=0.043, Round=0
+    - rl        : Score=5, Sim=0.043, Round=0
+    - parallel  : Score=5, Sim=0.892, Round=1
+    - madisse   : Score=5, Sim=0.896, Round=2
+    - speech_act: Score=4, Sim=0.882, Round=2
+  [13] Query: The all possible word categories are either "religious leade...
+    - vanilla   : Score=3, Sim=0.332, Round=0
+    - self_consistency: Score=3, Sim=0.332, Round=0
+    - sft       : Score=5, Sim=0.050, Round=0
+    - rl        : Score=5, Sim=0.050, Round=0
+    - parallel  : Score=4, Sim=0.846, Round=1
+    - madisse   : Score=5, Sim=0.857, Round=2
+    - speech_act: Score=4, Sim=0.846, Round=2
+  [14] Query: The all possible word categories are either "contains a nega...
+    - vanilla   : Score=1, Sim=0.064, Round=0
+    - self_consistency: Score=1, Sim=0.064, Round=0
+    - sft       : Score=1, Sim=0.064, Round=0
+    - rl        : Score=5, Sim=0.043, Round=0
+    - parallel  : Score=1, Sim=0.064, Round=1
+    - madisse   : Score=5, Sim=0.775, Round=2
+    - speech_act: Score=4, Sim=0.768, Round=2
+  [15] Query: Divide these books into Science Fiction, Fantasy or neither....
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0

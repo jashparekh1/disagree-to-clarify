@@ -1,143 +1,119 @@
 PAPER-READY MASTER EVALUATION
-Seed: 340478 | Generator Model: qwen2.5:1.5b | Judge Model: qwen3:4b
+Seed: 216625 | Generator Model: Qwen/Qwen3-4B | Judge Model: Qwen/Qwen3-4B
 ========================================================================================================================
 
 
->>> Processing CLAMBER (20 items)...
-  [1] Query: Give me a one line summary of the story below: 
-
-A long long...
+>>> Processing CLAMBER (150 items)...
+  [1] Query: Identify which car manufacturer is British or American: Land...
     - vanilla   : Score=N/A, Sim=0.000, Round=0
-    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
     - sft       : Score=N/A, Sim=0.000, Round=0
     - rl        : Score=N/A, Sim=0.000, Round=0
-    - madisse   : Score=N/A, Sim=0.000, Round=3
-  [2] Query: Who is a current main cast member on the movie Ammonite?...
-    - vanilla   : Score=N/A, Sim=0.000, Round=0
     - parallel  : Score=N/A, Sim=0.000, Round=1
-    - sft       : Score=N/A, Sim=0.000, Round=0
-    - rl        : Score=N/A, Sim=0.000, Round=0
-    - madisse   : Score=N/A, Sim=0.000, Round=3
-  [3] Query: Who won season 1 of zumbos just desserts?...
-    - vanilla   : Score=N/A, Sim=0.000, Round=0
-    - parallel  : Score=N/A, Sim=0.000, Round=1
-    - sft       : Score=N/A, Sim=0.000, Round=0
-    - rl        : Score=N/A, Sim=0.000, Round=0
-    - madisse   : Score=N/A, Sim=0.000, Round=3
-  [4] Query: What is the origin of the name rhoda?...
-    - vanilla   : Score=1, Sim=0.267, Round=0
-    - parallel  : Score=3, Sim=0.202, Round=1
-    - sft       : Score=1, Sim=0.085, Round=0
-    - rl        : Score=1, Sim=0.024, Round=0
-    - madisse   : Score=1, Sim=0.237, Round=3
-  [5] Query: Who performs the song "Textures"?...
-    - vanilla   : Score=N/A, Sim=0.000, Round=0
-    - parallel  : Score=N/A, Sim=0.000, Round=1
-    - sft       : Score=N/A, Sim=0.000, Round=0
-    - rl        : Score=N/A, Sim=0.000, Round=0
-    - madisse   : Score=N/A, Sim=0.000, Round=3
-  [6] Query: What's the longitude of the location where Coolstreopsis is ...
-    - vanilla   : Score=2, Sim=0.835, Round=0
-    - parallel  : Score=3, Sim=0.683, Round=1
-    - sft       : Score=1, Sim=0.753, Round=0
-    - rl        : Score=1, Sim=0.076, Round=0
-    - madisse   : Score=1, Sim=0.660, Round=3
-  [7] Query: List three US states whose name begins with C. Then tell me ...
-    - vanilla   : Score=N/A, Sim=0.000, Round=0
-    - parallel  : Score=N/A, Sim=0.000, Round=1
-    - sft       : Score=N/A, Sim=0.000, Round=0
-    - rl        : Score=N/A, Sim=0.000, Round=0
-    - madisse   : Score=N/A, Sim=0.000, Round=3
-  [8] Query: When was harry potter and the sorcerers stone book released?...
-    - vanilla   : Score=1, Sim=0.075, Round=0
-    - parallel  : Score=1, Sim=0.097, Round=1
-    - sft       : Score=1, Sim=0.393, Round=0
-    - rl        : Score=1, Sim=0.000, Round=0
-    - madisse   : Score=1, Sim=0.135, Round=2
-  [9] Query: Identify which car manufacturer is British or American: Land...
-    - vanilla   : Score=N/A, Sim=0.000, Round=0
-    - parallel  : Score=N/A, Sim=0.000, Round=1
-    - sft       : Score=N/A, Sim=0.000, Round=0
-    - rl        : Score=N/A, Sim=0.000, Round=0
-    - madisse   : Score=N/A, Sim=0.000, Round=3
-  [10] Query: When was the last time cowboys went to the superbowl?...
-    - vanilla   : Score=5, Sim=0.213, Round=0
-    - parallel  : Score=1, Sim=0.177, Round=1
-    - sft       : Score=1, Sim=0.268, Round=0
-    - rl        : Score=1, Sim=0.132, Round=0
-    - madisse   : Score=3, Sim=0.151, Round=3
-  [11] Query: Is there any record of GBaffidae in GBIF, no?...
-    - vanilla   : Score=1, Sim=0.759, Round=0
-    - parallel  : Score=3, Sim=0.789, Round=1
-    - sft       : Score=2, Sim=0.808, Round=0
-    - rl        : Score=1, Sim=0.037, Round=0
-    - madisse   : Score=4, Sim=0.812, Round=2
-  [12] Query: What is the geographic distribution of Muscari latifiacum?...
-    - vanilla   : Score=5, Sim=0.680, Round=0
-    - parallel  : Score=1, Sim=0.242, Round=1
-    - sft       : Score=1, Sim=0.798, Round=0
-    - rl        : Score=1, Sim=0.012, Round=0
-    - madisse   : Score=1, Sim=0.628, Round=2
-  [13] Query: Who is the author of the book "Wintersmith"?...
-    - vanilla   : Score=N/A, Sim=0.000, Round=0
-    - parallel  : Score=N/A, Sim=0.000, Round=1
-    - sft       : Score=N/A, Sim=0.000, Round=0
-    - rl        : Score=N/A, Sim=0.000, Round=0
-    - madisse   : Score=N/A, Sim=0.000, Round=3
-  [14] Query: Is Caesalpinia intermedia a photoautotroph trophic guild?...
-    - vanilla   : Score=N/A, Sim=0.000, Round=0
-    - parallel  : Score=N/A, Sim=0.000, Round=1
-    - sft       : Score=N/A, Sim=0.000, Round=0
-    - rl        : Score=N/A, Sim=0.000, Round=0
-    - madisse   : Score=N/A, Sim=0.000, Round=3
-  [15] Query: The all possible word categories are either "secular leader"...
-    - vanilla   : Score=1, Sim=0.296, Round=0
-    - parallel  : Score=1, Sim=0.804, Round=1
-    - sft       : Score=1, Sim=0.129, Round=0
-    - rl        : Score=1, Sim=0.000, Round=0
-    - madisse   : Score=1, Sim=0.695, Round=3
-  [16] Query: What new political party was created as a result of the kans...
-    - vanilla   : Score=N/A, Sim=0.000, Round=0
-    - parallel  : Score=N/A, Sim=0.000, Round=1
-    - sft       : Score=N/A, Sim=0.000, Round=0
-    - rl        : Score=N/A, Sim=0.000, Round=0
-    - madisse   : Score=N/A, Sim=0.000, Round=3
-  [17] Query: What is the significance of Brick?...
-    - vanilla   : Score=5, Sim=0.774, Round=0
-    - parallel  : Score=5, Sim=0.372, Round=1
-    - sft       : Score=1, Sim=0.643, Round=0
-    - rl        : Score=1, Sim=0.114, Round=0
-    - madisse   : Score=5, Sim=0.395, Round=3
-  [18] Query: Please output "X" if the given sentence contains a word of "...
-    - vanilla   : Score=N/A, Sim=0.000, Round=0
-    - parallel  : Score=N/A, Sim=0.000, Round=1
-    - sft       : Score=N/A, Sim=0.000, Round=0
-    - rl        : Score=N/A, Sim=0.000, Round=0
     - madisse   : Score=N/A, Sim=0.000, Round=2
-  [19] Query: Who sings come on baby let the good times roll?...
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [2] Query: What can be used as proof of identity?...
+    - vanilla   : Score=3, Sim=0.072, Round=0
+    - self_consistency: Score=1, Sim=0.103, Round=0
+    - sft       : Score=3, Sim=0.002, Round=0
+    - rl        : Score=4, Sim=0.000, Round=0
+    - parallel  : Score=3, Sim=0.069, Round=1
+    - madisse   : Score=3, Sim=0.060, Round=2
+    - speech_act: Score=3, Sim=0.241, Round=2
+  [3] Query: How can hedges be used to minimize loss or risk?...
+    - vanilla   : Score=1, Sim=0.041, Round=0
+    - self_consistency: Score=1, Sim=0.041, Round=0
+    - sft       : Score=3, Sim=0.798, Round=0
+    - rl        : Score=3, Sim=0.813, Round=0
+    - parallel  : Score=1, Sim=0.041, Round=1
+    - madisse   : Score=4, Sim=0.747, Round=2
+    - speech_act: Score=3, Sim=0.787, Round=2
+  [4] Query: What is the most watched video on youtube of all time?...
+    - vanilla   : Score=1, Sim=0.066, Round=0
+    - self_consistency: Score=1, Sim=0.066, Round=0
+    - sft       : Score=3, Sim=0.168, Round=0
+    - rl        : Score=3, Sim=0.168, Round=0
+    - parallel  : Score=1, Sim=0.066, Round=1
+    - madisse   : Score=2, Sim=0.028, Round=2
+    - speech_act: Score=3, Sim=0.036, Round=2
+  [5] Query: Provide a list of body parts that are only three letters lon...
     - vanilla   : Score=N/A, Sim=0.000, Round=0
-    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
     - sft       : Score=N/A, Sim=0.000, Round=0
     - rl        : Score=N/A, Sim=0.000, Round=0
-    - madisse   : Score=N/A, Sim=0.000, Round=3
-  [20] Query: Give me a list of things I can do with a bunch of extra mone...
-    - vanilla   : Score=2, Sim=0.378, Round=0
-    - parallel  : Score=1, Sim=0.743, Round=1
-    - sft       : Score=2, Sim=0.530, Round=0
-    - rl        : Score=1, Sim=0.017, Round=0
-    - madisse   : Score=2, Sim=0.625, Round=3
-
->>> Processing CLARIQ (20 items)...
-  [21] Query: Tell me about scooters....
-    - vanilla   : Score=2, Sim=0.668, Round=0
-    - parallel  : Score=1, Sim=0.045, Round=1
-    - sft       : Score=1, Sim=0.567, Round=0
-    - rl        : Score=1, Sim=0.116, Round=0
-    - madisse   : Score=5, Sim=0.597, Round=3
-  [22] Query: Information about east ridge high school....
-    - vanilla   : Score=5, Sim=0.797, Round=0
-    - parallel  : Score=1, Sim=0.006, Round=1
-    - sft       : Score=2, Sim=0.692, Round=0
-    - rl        : Score=1, Sim=0.172, Round=0
-    - madisse   : Score=1, Sim=0.800, Round=3
-  [23] Query: Tell me about texas border patrol....
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [6] Query: Who plays the seer in charmed season 7?...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [7] Query: Name a famous American author who wrote stories about the Am...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [8] Query: How does GIS help in the real estate investment industry?...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [9] Query: What's the geographic range of Marmota monax?...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [10] Query: What's the longitude of the location where Johnstonia duplic...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [11] Query: Is Botswana a geographic distribution of Locris atra?...
+    - vanilla   : Score=N/A, Sim=0.000, Round=0
+    - self_consistency: Score=N/A, Sim=0.000, Round=0
+    - sft       : Score=N/A, Sim=0.000, Round=0
+    - rl        : Score=N/A, Sim=0.000, Round=0
+    - parallel  : Score=N/A, Sim=0.000, Round=1
+    - madisse   : Score=N/A, Sim=0.000, Round=2
+    - speech_act: Score=N/A, Sim=0.000, Round=2
+  [12] Query: The all possible word categories are either "female pronoun"...
+    - vanilla   : Score=3, Sim=0.104, Round=0
+    - self_consistency: Score=3, Sim=0.104, Round=0
+    - sft       : Score=5, Sim=0.043, Round=0
+    - rl        : Score=5, Sim=0.043, Round=0
+    - parallel  : Score=5, Sim=0.892, Round=1
+    - madisse   : Score=5, Sim=0.896, Round=2
+    - speech_act: Score=4, Sim=0.882, Round=2
+  [13] Query: The all possible word categories are either "religious leade...
+    - vanilla   : Score=3, Sim=0.332, Round=0
+    - self_consistency: Score=3, Sim=0.332, Round=0
+    - sft       : Score=5, Sim=0.050, Round=0
+    - rl        : Score=5, Sim=0.050, Round=0
+    - parallel  : Score=4, Sim=0.846, Round=1
+    - madisse   : Score=5, Sim=0.857, Round=2
+    - speech_act: Score=4, Sim=0.846, Round=2
+  [14] Query: The all possible word categories are either "contains a nega...
+    - vanilla   : Score=1, Sim=0.064, Round=0
+    - self_consistency: Score=1, Sim=0.064, Round=0
+    - sft       : Score=1, Sim=0.064, Round=0
+    - rl        : Score=5, Sim=0.043, Round=0
+    - parallel  : Score=1, Sim=0.064, Round=1
+    - madisse   : Score=5, Sim=0.775, Round=2
+    - speech_act: Score=4, Sim=0.768, Round=2
+  [15] Query: Divide these books into Science Fiction, Fantasy or neither....

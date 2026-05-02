@@ -19,8 +19,10 @@ from d2c.agents import Agent, AgentRole
 from d2c.dialogue import DialogueResult
 from d2c.synthesizer import synthesize
 from eval.metrics import (
-    semantic_similarity, 
-    llm_judge_quality, 
+    semantic_similarity,
+    semantic_similarity_multi_ref,
+    llm_judge_quality,
+    llm_judge_quality_multi_ref,
     clarification_need_f1,
     internal_divergence_score
 )
@@ -29,11 +31,11 @@ logger = logging.getLogger(__name__)
 
 DATASETS = ["clamber", "clariq", "qulac", "abgcoqa"]
 
-# Cache for models to avoid reloading every sample
-_MLX_SFT_MODEL = None
-_MLX_SFT_TOKENIZER = None
-_MLX_RL_MODEL = None
-_MLX_RL_TOKENIZER = None
+# Cache for PEFT models to avoid reloading every sample
+_PEFT_SFT_MODEL = None
+_PEFT_SFT_TOKENIZER = None
+_PEFT_RL_MODEL = None
+_PEFT_RL_TOKENIZER = None
 
 def load_full_test_set(dataset: str) -> list[dict]:
     path = Path("test_sets") / f"{dataset}_test.jsonl"
@@ -41,36 +43,50 @@ def load_full_test_set(dataset: str) -> list[dict]:
     with open(path) as f:
         return [json.loads(line) for line in f if line.strip()]
 
-def run_mlx_model(query: str, adapter_path: str, model_type: str = "sft") -> str:
-    """Runs a fine-tuned model using MLX (SFT or RL/DPO)."""
-    global _MLX_SFT_MODEL, _MLX_SFT_TOKENIZER, _MLX_RL_MODEL, _MLX_RL_TOKENIZER
-    
-    try:
-        from mlx_lm import load, generate
-    except ImportError:
-        return "ERROR: mlx-lm not installed"
+_PEFT_SYSTEM = (
+    "Given a query, ask a single clarifying question if the intent is ambiguous. "
+    "If the query is clear and needs no clarification, reply with exactly: CLEAR"
+)
 
-    # Select the right cache slots
-    if model_type == "rl":
-        model_ref, tokenizer_ref = _MLX_RL_MODEL, _MLX_RL_TOKENIZER
-    else:
-        model_ref, tokenizer_ref = _MLX_SFT_MODEL, _MLX_SFT_TOKENIZER
+def run_peft_model(query: str, adapter_path: str, model_type: str = "rl", context: str | None = None) -> str:
+    """Runs a PEFT fine-tuned model (SFT or DPO/RL) for inference."""
+    global _PEFT_SFT_MODEL, _PEFT_SFT_TOKENIZER, _PEFT_RL_MODEL, _PEFT_RL_TOKENIZER
+
+    if not Path(adapter_path).exists():
+        return f"ERROR: Adapter path {adapter_path} not found"
+
+    model_ref = _PEFT_SFT_MODEL if model_type == "sft" else _PEFT_RL_MODEL
+    tok_ref = _PEFT_SFT_TOKENIZER if model_type == "sft" else _PEFT_RL_TOKENIZER
 
     if model_ref is None:
-        base_model = "mlx-community/Qwen2.5-1.5B-Instruct-4bit"
-        if not Path(adapter_path).exists():
-            return f"ERROR: Adapter path {adapter_path} not found"
-        model_ref, tokenizer_ref = load(base_model, adapter_path=adapter_path)
-        
-        # Update globals
-        if model_type == "rl":
-            _MLX_RL_MODEL, _MLX_RL_TOKENIZER = model_ref, tokenizer_ref
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from peft import PeftModel
+        try:
+            base_model = "Qwen/Qwen2.5-1.5B-Instruct"
+            tok_ref = AutoTokenizer.from_pretrained(adapter_path)
+            base = AutoModelForCausalLM.from_pretrained(base_model, torch_dtype=torch.bfloat16, device_map="auto")
+            model_ref = PeftModel.from_pretrained(base, adapter_path)
+            model_ref.eval()
+        except Exception as e:
+            return f"ERROR loading PEFT model: {e}"
+        if model_type == "sft":
+            _PEFT_SFT_MODEL, _PEFT_SFT_TOKENIZER = model_ref, tok_ref
         else:
-            _MLX_SFT_MODEL, _MLX_SFT_TOKENIZER = model_ref, tokenizer_ref
+            _PEFT_RL_MODEL, _PEFT_RL_TOKENIZER = model_ref, tok_ref
 
-    prompt = f"<|im_start|>user\n{query}<|im_end|>\n<|im_start|>assistant\n"
-    output = generate(model_ref, tokenizer_ref, prompt=prompt, max_tokens=150, verbose=False)
-    return output.split("<|im_end|>")[0].strip()
+    import torch
+    user_content = f"CONTEXT:\n{context}\n\nQuery: {query}" if context else query
+    messages = [
+        {"role": "system", "content": _PEFT_SYSTEM},
+        {"role": "user", "content": user_content},
+    ]
+    prompt = tok_ref.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    inputs = tok_ref(prompt, return_tensors="pt").to(model_ref.device)
+    with torch.no_grad():
+        out = model_ref.generate(**inputs, max_new_tokens=150, do_sample=False)
+    decoded = tok_ref.decode(out[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True)
+    return decoded.strip()
 
 def run_parallel_baseline_full(query: str, model: str, llm: LLMClient, context: str | None = None) -> tuple[str, list[str]]:
     """Agents generate 1 round in parallel, then synthesize (No Dialogue)."""
@@ -155,6 +171,38 @@ def run_rl_inference(query: str, interpretations: list[str], llm: LLMClient, sim
         
     return best_q
 
+VANILLA_SCHEMA = {
+    "type": "object",
+    "properties": {"clarifying_question": {"type": "string", "maxLength": 200}},
+    "required": ["clarifying_question"],
+}
+
+def run_self_consistency(query: str, llm: LLMClient, n: int = 3, context: str | None = None) -> str:
+    user = VANILLA_CQG_USER.format(query=query)
+    if context:
+        user = f"CONTEXT:\n{context}\n\n{user}"
+    candidates = [
+        llm.chat(system_prompt=VANILLA_CQG_SYSTEM, user_prompt=user, temperature=0.7, max_tokens=300, format_schema=VANILLA_SCHEMA)
+        for _ in range(n)
+    ]
+    parsed = []
+    for raw in candidates:
+        try:
+            import json as _json
+            parsed.append(_json.loads(raw).get("clarifying_question", raw).strip())
+        except Exception:
+            parsed.append(raw.strip())
+    if len(parsed) == 1:
+        return parsed[0]
+    # Centroid selection: pick the candidate most similar to all others
+    best, best_score = parsed[0], -1.0
+    for i, q in enumerate(parsed):
+        avg_sim = sum(semantic_similarity(q, other) for j, other in enumerate(parsed) if j != i) / (len(parsed) - 1)
+        if avg_sim > best_score:
+            best, best_score = q, avg_sim
+    return best
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--n-per-dataset", type=int, default=1)
@@ -167,6 +215,9 @@ def main():
     parser.add_argument("--adapter-path", default="adapters", help="Path to MLX SFT adapters")
     parser.add_argument("--rl-adapter-path", default="adapters_rl", help="Path to MLX RL/DPO adapters")
     parser.add_argument("--methods", nargs="+", help="Specific methods to run (vanilla, sft, rl, rl_search, etc.)")
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"])
+    parser.add_argument("--base-url", default=None)
+    parser.add_argument("--no-think", action="store_true")
     args = parser.parse_args()
 
     import random
@@ -174,9 +225,10 @@ def main():
         args.seed = random.randint(0, 1000000)
     random.seed(args.seed)
 
-    llm = LLMClient(model=args.model, think=False)
-    sim_llm = LLMClient(model=args.sim_model, think=False)
-    judge_llm = LLMClient(model=args.judge_model, think=False)
+    think = False if args.no_think else None
+    llm = LLMClient(model=args.model, backend=args.backend, base_url=args.base_url, think=think)
+    sim_llm = LLMClient(model=args.sim_model, backend=args.backend, base_url=args.base_url, think=think)
+    judge_llm = LLMClient(model=args.judge_model, backend=args.backend, base_url=args.base_url, think=think)
 
     results_file = Path("paper_evaluation_results.txt")
     inspection_file = Path("variant_inspections.txt")
@@ -191,7 +243,7 @@ def main():
         f.write(f"Seed: {args.seed} | Generator: {args.model} | Judge: {args.judge_model}\n")
         f.write("="*120 + "\n\n")
 
-    available_methods = ["vanilla", "sft", "rl", "parallel", "madisse", "speech_act"]
+    available_methods = ["vanilla", "self_consistency", "sft", "rl", "parallel", "madisse", "speech_act"]
     methods = args.methods if args.methods else available_methods
     all_results = {m: {
         "scores": [], "sims": [], "preds": [], "golds": [], "rounds": [], "covers": [], "divs": []
@@ -203,8 +255,16 @@ def main():
     for dataset in datasets_to_run:
         all_items = load_full_test_set(dataset)
         if not all_items: continue
-        random.shuffle(all_items)
-        items = all_items[:args.n_per_dataset]
+        ambig = [x for x in all_items if x["is_ambiguous"]]
+        non_ambig = [x for x in all_items if not x["is_ambiguous"]]
+        random.shuffle(ambig)
+        random.shuffle(non_ambig)
+        n = args.n_per_dataset
+        n_non = min(len(non_ambig), n // 2)
+        n_amb = min(len(ambig), n - n_non)
+        n_non = min(len(non_ambig), n - n_amb)
+        items = ambig[:n_amb] + non_ambig[:n_non]
+        random.shuffle(items)
         
         msg = f"\n>>> Processing {dataset.upper()} ({len(items)} items)..."
         print(msg)
@@ -232,31 +292,32 @@ def main():
             
             for name in methods:
                 try:
-                    full_dialogue_log = ""
                     if name == "vanilla":
                         res = run_vanilla_cqg(query, llm, max_tokens=300, context=context)
                         q_text = res.clarifying_question
                         rnd, div_score = 0, 0.0
+                    elif name == "self_consistency":
+                        q_text = run_self_consistency(query, llm, context=context)
+                        rnd, div_score = 0, 0.0
                     elif name == "sft":
-                        q_text = run_mlx_model(query, adapter_path=args.adapter_path, model_type="sft")
+                        q_text = run_peft_model(query, adapter_path=args.adapter_path, model_type="sft", context=context)
                         rnd, div_score = 0, 0.0
                     elif name == "rl":
-                        # This is the DPO-tuned model
-                        q_text = run_mlx_model(query, adapter_path=args.rl_adapter_path, model_type="rl")
+                        q_text = run_peft_model(query, adapter_path=args.rl_adapter_path, model_type="rl", context=context)
                         rnd, div_score = 0, 0.0
                     elif name == "parallel":
                         q_text, interps = run_parallel_baseline_full(query, args.model, llm, context=context)
                         rnd, div_score = 1, internal_divergence_score(interps)
                     else: # madisse or speech_act
-                        res = run_d2c(query, variant=name, model=args.model, num_rounds=args.num_rounds, context=context)
+                        res = run_d2c(query, variant=name, model=args.model, num_rounds=args.num_rounds, context=context, backend=args.backend, base_url=args.base_url)
                         q_text = res.synthesizer_result.clarifying_question
                         rnd = res.dialogue.rounds_completed
                         final_interps = [r.interpretation for r in res.dialogue.rounds[-1]]
                         div_score = internal_divergence_score(final_interps)
 
                     pred_ambig = "CLEAR" not in q_text.upper()
-                    j_res = llm_judge_quality(query, q_text, gold_q, judge_llm)
-                    sim_score = semantic_similarity(q_text, gold_q) if is_ambig else 0.0
+                    j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm) if gold_qs else llm_judge_quality(query, q_text, "N/A", judge_llm)
+                    sim_score = semantic_similarity_multi_ref(q_text, gold_qs) if (is_ambig and gold_qs) else 0.0
                     
                     all_results[name]["preds"].append(pred_ambig)
                     all_results[name]["golds"].append(is_ambig)
@@ -285,7 +346,7 @@ def main():
                     print(f"    - {name:<10}: ERROR {str(e)}")
 
             # Real-time Table
-            if total_samples % 1 == 0:
+            if total_samples % 10 == 0:
                 table_lines = [f"\n--- RUNNING RESULTS (N={total_samples}) ---"]
                 header = f"{'Method':<12} | {'F1':<5} | {'Qual':<4} | {'Div':<4} | {'Sim':<6} | {'Cov%':<5} | {'Rnd':<4}"
                 table_lines.append(header)

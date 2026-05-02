@@ -221,57 +221,42 @@ def llm_judge_quality(
     gold_question: str,
     llm: LLMClient,
 ) -> dict[str, Any]:
-    """Score a generated clarifying question using a 2-step Reasoning->Scoring pipeline.
-    
-    Step 1: Get detailed qualitative reasoning.
-    Step 2: Get strict quantitative JSON based on that reasoning.
-    """
+    """Score a generated clarifying question using a single LLM-as-judge call."""
+    import json as _json
+
     user_prompt = JUDGE_USER.format(
         query=query,
         gold_question=gold_question,
         candidate_question=generated_question,
     )
-    
-    # STEP 1: REASONING (No JSON yet, just thinking)
-    reasoning_sys = "You are a critical evaluator. Analyze the candidate question against the gold standard and the query. Identify specific strengths and weaknesses. Be thorough but concise (under 200 words)."
-    full_reasoning = llm.chat(
-        system_prompt=reasoning_sys,
-        user_prompt=user_prompt,
-        temperature=0.7, # Higher temp for better reasoning diversity
-        max_tokens=500,
-        strip_thinking=False,
-    )
-    
-    # STEP 2: SCORING (Strict JSON based on reasoning)
-    scoring_sys = f"You are a robotic scoring script. Based on the following reasoning, output ONLY the final objective metrics in JSON format.\n\nREASONING TO USE:\n{full_reasoning}"
-    
+
     judge_schema = {
         "type": "object",
         "properties": {
             "score": {"type": "integer", "minimum": 1, "maximum": 5},
-            "covers_interpretations": {"type": "boolean"}
+            "covers_interpretations": {"type": "boolean"},
+            "reasoning_summary": {"type": "string"},
         },
-        "required": ["score", "covers_interpretations"]
+        "required": ["score", "covers_interpretations"],
     }
-    
-    raw_json = llm.chat(
-        system_prompt=scoring_sys,
-        user_prompt="Output the JSON metrics now.",
+
+    raw = llm.chat(
+        system_prompt=JUDGE_SYSTEM,
+        user_prompt=user_prompt,
         temperature=0.0,
-        max_tokens=100,
-        format_schema=judge_schema
+        max_tokens=150,
+        format_schema=judge_schema,
     )
-    
-    # Combine results
-    import json
-    result: dict[str, Any] = {"raw": f"REASONING:\n{full_reasoning}\n\nRESULT:\n{raw_json}", "score": 0, "reasoning": full_reasoning, "covers": False}
+
+    result: dict[str, Any] = {"raw": raw, "score": 0, "covers": False}
     try:
-        data = json.loads(raw_json)
-        result["score"] = max(1, min(5, int(data.get("score", 0))))
+        data = _json.loads(raw)
+        result["score"] = min(5, max(1, int(data["score"])))
         result["covers"] = bool(data.get("covers_interpretations", False))
-    except (json.JSONDecodeError, ValueError):
+        result["reasoning"] = data.get("reasoning_summary", "")
+    except (_json.JSONDecodeError, ValueError, KeyError):
         pass
-        
+
     return result
 
 

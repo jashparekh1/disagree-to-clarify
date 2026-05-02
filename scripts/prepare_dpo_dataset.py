@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import random
@@ -10,9 +11,7 @@ from d2c.prompts import (
     RESOLUTION_JUDGE_SYSTEM, RESOLUTION_JUDGE_USER
 )
 
-# Use a high-quality model for simulation and judging (Teacher)
-TEACHER_MODEL = "qwen2.5:7b" 
-llm_teacher = LLMClient(model=TEACHER_MODEL)
+llm_teacher: LLMClient  # set in main()
 
 def extract_json(text):
     """Robust JSON extraction from a string."""
@@ -119,6 +118,17 @@ def process_item_dpo(item):
     }
 
 def main():
+    global llm_teacher
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="qwen2.5:7b")
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"])
+    parser.add_argument("--base-url", default=None)
+    parser.add_argument("--no-think", action="store_true")
+    args = parser.parse_args()
+
+    think = False if args.no_think else None
+    llm_teacher = LLMClient(model=args.model, backend=args.backend, base_url=args.base_url, think=think)
+
     print("Starting DPO Dataset Preparation (Modeling Future Turns)...")
     input_path = 'data/train_light.json'
     if not os.path.exists(input_path):
