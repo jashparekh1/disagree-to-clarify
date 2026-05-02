@@ -115,9 +115,17 @@ def main():
     plt.tight_layout()
     plt.savefig("disagreement_heatmap.png")
     
-    # 5. Save results
+    # 5. Statistical Significance Test (Chi-Square)
+    from scipy.stats import chi2_contingency
+    print("\n--- Statistical Significance (Chi-Square Test) ---")
+    for agent in ["Fact-Finder HOLD", "Facet-Finder HOLD", "Intent-Finder HOLD"]:
+        contingency = pd.crosstab(df["Ambiguity Type"], df[agent])
+        chi2, p, dof, ex = chi2_contingency(contingency)
+        print(f"{agent:<18} | Chi2: {chi2:>6.2f} | p-value: {p:>8.4f}")
+    
+    # 6. Save results
     df.to_csv("disagreement_dynamics.csv", index=False)
-    print("Analysis complete. Saved disagreement_heatmap.png and disagreement_dynamics.csv")
+    print("\nAnalysis complete. Saved disagreement_heatmap.png and disagreement_dynamics.csv")
 
 if __name__ == "__main__":
     main()
