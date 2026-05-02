@@ -14,7 +14,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 from d2c.llm import LLMClient
 from d2c.pipeline import run_d2c
-from d2c.baseline import run_vanilla_cqg
+from d2c.baseline import run_vanilla_cqg, VANILLA_SCHEMA
+from d2c.prompts import VANILLA_CQG_SYSTEM, VANILLA_CQG_USER
 from d2c.agents import Agent, AgentRole
 from d2c.dialogue import DialogueResult
 from d2c.synthesizer import synthesize
@@ -72,6 +73,29 @@ def run_mlx_model(query: str, adapter_path: str, model_type: str = "sft") -> str
     output = generate(model_ref, tokenizer_ref, prompt=prompt, max_tokens=150, verbose=False)
     return output.split("<|im_end|>")[0].strip()
 
+def run_self_consistency(query: str, llm: LLMClient, judge_llm: LLMClient, n: int = 3, context: str | None = None) -> str:
+    """Sample n vanilla questions sequentially at high temperature and return the best by judge score."""
+    user = VANILLA_CQG_USER.format(query=query)
+    if context:
+        user = f"CONTEXT:\n{context}\n\n{user}"
+    candidates = [
+        llm.chat(system_prompt=VANILLA_CQG_SYSTEM, user_prompt=user, temperature=0.7, max_tokens=300, format_schema=VANILLA_SCHEMA)
+        for _ in range(n)
+    ]
+    parsed = []
+    for raw in candidates:
+        try:
+            parsed.append(json.loads(raw).get("clarifying_question", raw).strip())
+        except Exception:
+            parsed.append(raw.strip())
+    best, best_score = parsed[0], -1
+    for q in parsed:
+        score = llm_judge_quality(query, q, "N/A", judge_llm).get("score", 0)
+        if score > best_score:
+            best, best_score = q, score
+    return best
+
+
 def run_parallel_baseline_full(query: str, model: str, llm: LLMClient, context: str | None = None) -> tuple[str, list[str]]:
     """Agents generate 1 round in parallel, then synthesize (No Dialogue)."""
     roles = [AgentRole.LOCUTIONARY, AgentRole.ILLOCUTIONARY, AgentRole.PERLOCUTIONARY]
@@ -96,6 +120,9 @@ def main():
     parser.add_argument("--adapter-path", default="adapters", help="Path to MLX SFT adapters")
     parser.add_argument("--rl-adapter-path", default="adapters_rl", help="Path to MLX RL/DPO adapters")
     parser.add_argument("--methods", nargs="+", help="Specific methods to run (vanilla, sft, rl, etc.)")
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"])
+    parser.add_argument("--base-url", default=None)
+    parser.add_argument("--no-think", action="store_true")
     args = parser.parse_args()
 
     import random
@@ -103,8 +130,9 @@ def main():
         args.seed = random.randint(0, 1000000)
     random.seed(args.seed)
 
-    llm = LLMClient(model=args.model, think=False)
-    judge_llm = LLMClient(model=args.judge_model, think=False)
+    think = False if args.no_think else None
+    llm = LLMClient(model=args.model, think=think, backend=args.backend, base_url=args.base_url)
+    judge_llm = LLMClient(model=args.judge_model, think=think, backend=args.backend, base_url=args.base_url)
 
     results_file = Path("paper_evaluation_results.txt")
     inspection_file = Path("variant_inspections.txt")
@@ -119,7 +147,7 @@ def main():
         f.write(f"Seed: {args.seed} | Generator: {args.model} | Judge: {args.judge_model}\n")
         f.write("="*120 + "\n\n")
 
-    available_methods = ["vanilla", "sft", "rl", "parallel", "madisse", "speech_act"]
+    available_methods = ["vanilla", "self_consistency", "sft", "rl", "parallel", "madisse", "speech_act"]
     methods = args.methods if args.methods else available_methods
     all_results = {m: {
         "scores": [], "sims": [], "preds": [], "golds": [], "rounds": [], "covers": [], "divs": []
@@ -157,6 +185,9 @@ def main():
                         res = run_vanilla_cqg(query, llm, max_tokens=300, context=context)
                         q_text = res.clarifying_question
                         rnd, div_score = 0, 0.0
+                    elif name == "self_consistency":
+                        q_text = run_self_consistency(query, llm, judge_llm, context=context)
+                        rnd, div_score = 0, 0.0
                     elif name == "sft":
                         q_text = run_mlx_model(query, adapter_path=args.adapter_path, model_type="sft")
                         rnd, div_score = 0, 0.0
@@ -167,7 +198,8 @@ def main():
                         q_text, interps = run_parallel_baseline_full(query, args.model, llm, context=context)
                         rnd, div_score = 1, internal_divergence_score(interps)
                     else: # madisse or speech_act
-                        res = run_d2c(query, variant=name, model=args.model, num_rounds=args.num_rounds, context=context)
+                        res = run_d2c(query, variant=name, model=args.model, num_rounds=args.num_rounds, context=context,
+                                      backend=args.backend, base_url=args.base_url)
                         q_text = res.synthesizer_result.clarifying_question
                         rnd = res.dialogue.rounds_completed
                         final_interps = [r.interpretation for r in res.dialogue.rounds[-1]]
