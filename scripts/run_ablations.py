@@ -19,7 +19,13 @@ from d2c.pipeline import run_d2c
 from d2c.agents import Agent, AgentRole
 from d2c.dialogue import DialogueResult
 from d2c.synthesizer import synthesize
-from eval.metrics import clarification_need_f1, llm_judge_quality, semantic_similarity
+from eval.metrics import (
+    clarification_need_f1, 
+    llm_judge_quality, 
+    llm_judge_quality_multi_ref,
+    semantic_similarity,
+    semantic_similarity_multi_ref
+)
 
 logger = logging.getLogger(__name__)
 
@@ -135,28 +141,48 @@ def main():
         query = item["query"]
         is_ambig = item["is_ambiguous"]
         gold_qs = item.get("gold_clarifying_questions", [])
+        context = item.get("context")
         
         with open(inspection_file, "a") as f_insp:
             f_insp.write(f"\nQuery: {query}\n")
 
-        for v in variants:
+        def run_variant(v):
             try:
-                q_text = run_ablation_variant(query, v, llm, item.get("context"))
+                q_text = run_ablation_variant(query, v, llm, context)
                 pred_ambig = "CLEAR" not in q_text.upper()
                 
-                results[v]["preds"].append(pred_ambig)
-                results[v]["golds"].append(is_ambig)
+                res = {
+                    "variant": v,
+                    "q_text": q_text,
+                    "pred": pred_ambig,
+                    "score": 0,
+                    "sim": 0.0
+                }
                 
                 if is_ambig:
-                    j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm, context=item.get("context"))
+                    j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm, context=context)
                     sim_score = semantic_similarity_multi_ref(q_text, gold_qs)
-                    results[v]["scores"].append(j_res["score"])
-                    results[v]["sims"].append(sim_score)
-                
-                with open(inspection_file, "a") as f_insp:
-                    f_insp.write(f"  [{v:<18}] -> {q_text[:100]}\n")
+                    res["score"] = j_res["score"]
+                    res["sim"] = sim_score
+                return res
             except Exception as e:
-                print(f"Error in variant {v}: {e}")
+                logger.error(f"Error in variant {v}: {e}")
+                return None
+
+        with ThreadPoolExecutor(max_workers=len(variants)) as executor:
+            futures = [executor.submit(run_variant, v) for v in variants]
+            for f in futures:
+                res = f.result()
+                if res:
+                    v = res["variant"]
+                    results[v]["preds"].append(res["pred"])
+                    results[v]["golds"].append(is_ambig)
+                    if is_ambig:
+                        results[v]["scores"].append(res["score"])
+                        results[v]["sims"].append(res["sim"])
+                    
+                    with open(inspection_file, "a") as f_insp:
+                        f_insp.write(f"  [{v:<18}] -> {res['q_text'][:100]}\n")
 
     # Final Summary Table
     print("\n" + "="*80)
