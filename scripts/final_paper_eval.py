@@ -245,9 +245,6 @@ def main():
                         print(msg)
                         with open(results_file, "a") as f: f.write(msg + "\n")
 
-                except Exception as e:
-                    print(f"    - {name:<10}: ERROR {str(e)}")
-
     # Final Master Table
     master_header = f"\n{'='*130}\n  FINAL MASTER EVALUATION RESULTS (N={total_samples})\n{'='*130}"
     header_row = f"{'Method':<12} | {'F1':<5} | {'Qual':<4} | {'Div':<4} | {'Sim':<6} | {'Cov%':<5} | {'Rnd':<4}"
