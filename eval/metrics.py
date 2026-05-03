@@ -66,12 +66,15 @@ def llm_judge_quality(
     generated_question: str,
     gold_question: str,
     llm: LLMClient,
+    context: str | None = None,
 ) -> dict[str, Any]:
     """Score a generated clarifying question using an optimized single-pass judge."""
+    context_block = f"CONTEXT (The story/background):\n{context}\n\n" if context else ""
     user_prompt = JUDGE_USER.format(
         query=query,
         gold_question=gold_question,
         candidate_question=generated_question,
+        context_block=context_block
     )
     
     judge_schema = {
@@ -109,6 +112,7 @@ def llm_judge_quality_multi_ref(
     generated_question: str,
     gold_questions: list[str],
     llm: LLMClient,
+    context: str | None = None,
 ) -> dict[str, Any]:
     """Score against all gold references and return the best result."""
     if not gold_questions:
@@ -116,7 +120,7 @@ def llm_judge_quality_multi_ref(
 
     best: dict[str, Any] = {"score": 0}
     for gold_q in gold_questions:
-        res = llm_judge_quality(query, generated_question, gold_q, llm)
+        res = llm_judge_quality(query, generated_question, gold_q, llm, context=context)
         if res["score"] > best["score"]:
             best = res
         if best["score"] == 5:

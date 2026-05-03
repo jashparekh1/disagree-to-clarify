@@ -96,11 +96,37 @@ def stats_clariq() -> None:
     print(f"  Train/Dev split: {split_counts.get('train', 0)}/{split_counts.get('dev', 0)}")
 
 
+def stats_abgcoqa() -> None:
+    print("\n" + "=" * 50)
+    print("Abg-CoQA")
+    print("=" * 50)
+    try:
+        items = load_dataset("abgcoqa")
+    except FileNotFoundError as e:
+        print(f"  {e}")
+        return
+
+    total = len(items)
+    amb = sum(1 for it in items if it.is_ambiguous)
+    unamb = total - amb
+    print(f"  Total examples: {total}")
+    print(f"  Ambiguous: {amb} ({amb/total*100:.1f}%)")
+    print(f"  Unambiguous: {unamb} ({unamb/total*100:.1f}%)")
+
+    contexts = [it.context for it in items]
+    queries = [it.query for it in items]
+    cqs = [it.gold_clarifying_question for it in items if it.gold_clarifying_question]
+    print(f"  Avg context length: {_avg_tokens(contexts):.1f} tokens")
+    print(f"  Avg query length: {_avg_tokens(queries):.1f} tokens")
+    print(f"  Avg clarifying question length: {_avg_tokens(cqs):.1f} tokens")
+
+
 def main() -> None:
     print("D2C Evaluation — Dataset Statistics")
     stats_clamber()
     stats_qulac()
     stats_clariq()
+    stats_abgcoqa()
     print()
 
 

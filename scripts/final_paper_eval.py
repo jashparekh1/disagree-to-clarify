@@ -205,7 +205,7 @@ def main():
                     
                     # MULTI-REFERENCE EVALUATION
                     if is_ambig:
-                        j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm)
+                        j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm, context=context)
                         sim_score = semantic_similarity_multi_ref(q_text, gold_qs)
                     else:
                         j_res = {"score": 5 if not pred_ambig else 1, "covers": False}

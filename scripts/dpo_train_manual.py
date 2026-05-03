@@ -47,16 +47,15 @@ def get_log_probs(logits, labels):
 
 def main():
     model_path = "mlx-community/Qwen2.5-1.5B-Instruct-4bit"
+    sft_adapter_path = "adapters"
     adapter_path = "adapters_rl"
     os.makedirs(adapter_path, exist_ok=True)
 
-    print("Loading model and tokenizer...")
-    model, tokenizer = load(model_path)
+    print(f"Loading model with SFT adapters from {sft_adapter_path}...")
+    model, tokenizer = load(model_path, adapter_path=sft_adapter_path)
     
-    # 1. Convert to LoRA
-    # We'll use 16 layers of LoRA by default
-    config = {"rank": 8, "alpha": 16, "dropout": 0.05, "scale": 2.0}
-    linear_to_lora_layers(model, num_layers=16, config=config)
+    # The model already has LoRA layers from the SFT adapter.
+    # We just need to ensure the optimizer targets those parameters.
     
     # Load dataset
     train_data = load_dpo_data("data/dpo/train.jsonl", tokenizer)

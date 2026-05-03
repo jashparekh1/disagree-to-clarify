@@ -121,12 +121,19 @@ def synthesize(
     llm: LLMClient,
     max_tokens: int = 300,
     variant: str = "speech_act",
+    context: str | None = None,
 ) -> SynthesizerResult:
     transcript = _format_transcript(dialogue)
     
+    context_block = f"CONTEXT (The story/background):\n{context}\n\n" if context else ""
+
     # 1. GATEKEEPER STEP (Binary Detection)
     # -----------------------------------------------------------------------
-    gatekeeper_prompt = GATEKEEPER_USER.format(query=query, transcript=transcript)
+    gatekeeper_prompt = GATEKEEPER_USER.format(
+        query=query, 
+        transcript=transcript,
+        context_block=context_block
+    )
     gate_raw = llm.chat(
         system_prompt=GATEKEEPER_SYSTEM,
         user_prompt=gatekeeper_prompt,
@@ -139,7 +146,11 @@ def synthesize(
 
     # 2. SYNTHESIS STEP (Question Generation)
     # -----------------------------------------------------------------------
-    user_prompt = SYNTHESIZER_USER.format(query=query, transcript=transcript)
+    user_prompt = SYNTHESIZER_USER.format(
+        query=query, 
+        transcript=transcript,
+        context_block=context_block
+    )
 
     if variant == "d2c":
         system_prompt = D2C_SYNTHESIZER_SYSTEM

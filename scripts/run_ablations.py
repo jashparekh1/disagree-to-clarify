@@ -148,7 +148,7 @@ def main():
                 results[v]["golds"].append(is_ambig)
                 
                 if is_ambig:
-                    j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm)
+                    j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm, context=item.get("context"))
                     sim_score = semantic_similarity_multi_ref(q_text, gold_qs)
                     results[v]["scores"].append(j_res["score"])
                     results[v]["sims"].append(sim_score)

@@ -74,58 +74,54 @@ def get_clamber_labels():
                 labels[item["query"]] = item.get("ambiguity_type", "Unknown")
     return labels
 
+import os
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 def main():
-    print("Analyzing Disagreement Dynamics...")
+    print("Generating Multi-Modal Disagreement Visualization...")
     
-    # 1. Parse stances from the actual run logs
-    stances = parse_stances("variant_inspections.txt")
-    if not stances:
-        print("No stances found. Ensure variant_inspections.txt exists and contains 'd2c' runs.")
+    if not os.path.exists("disagreement_topology.csv"):
+        print("Error: disagreement_topology.csv not found.")
         return
         
-    # 2. Get ground truth
-    clamber_labels = get_clamber_labels()
+    df = pd.read_csv("disagreement_topology.csv")
     
-    # 3. Merge
-    data = []
-    for s in stances:
-        label = clamber_labels.get(s["query"])
-        if label and label != "Unknown":
-            data.append({
-                "Ambiguity Type": label,
-                "Fact-Finder HOLD": 1 if s["fact_finder"] == "HOLD" else 0,
-                "Facet-Finder HOLD": 1 if s["facet_finder"] == "HOLD" else 0,
-                "Intent-Finder HOLD": 1 if s["intent_finder"] == "HOLD" else 0
-            })
-            
-    df = pd.DataFrame(data)
-    if df.empty:
-        print("No overlap found between logs and CLAMBER labels.")
-        return
-        
-    # 4. Generate Correlation Heatmap
-    # Group by Ambiguity Type and calculate mean HOLD frequency
-    analysis = df.groupby("Ambiguity Type").mean()
+    # 1. HEATMAP 1: SEMANTIC DIVERGENCE (IDS)
+    summary_ids = df.groupby("category")[[
+        "dist_lit_intent", "dist_lit_facet", "dist_facet_intent"
+    ]].mean()
+    summary_ids.columns = ["L-I Axis", "L-F Axis", "F-I Axis"]
     
     plt.figure(figsize=(10, 6))
-    sns.heatmap(analysis, annot=True, cmap="YlGnBu", fmt=".2f")
-    plt.title("Disagreement Signature vs. Ambiguity Type\n(Mean 'HOLD' Frequency per Agent)")
-    plt.ylabel("Ground Truth (CLAMBER)")
-    plt.xlabel("D2C Agent Stance")
+    sns.heatmap(summary_ids, annot=True, cmap="YlGnBu", fmt=".3f")
+    plt.title("Semantic Divergence Signature (Mean IDS)\n(Distance between initial interpretations)")
+    plt.ylabel("Ambiguity Type (CLAMBER)")
     plt.tight_layout()
-    plt.savefig("disagreement_heatmap.png")
+    plt.savefig("paper_heatmap_semantic.png")
     
-    # 5. Statistical Significance Test (Chi-Square)
-    from scipy.stats import chi2_contingency
-    print("\n--- Statistical Significance (Chi-Square Test) ---")
-    for agent in ["Fact-Finder HOLD", "Facet-Finder HOLD", "Intent-Finder HOLD"]:
-        contingency = pd.crosstab(df["Ambiguity Type"], df[agent])
-        chi2, p, dof, ex = chi2_contingency(contingency)
-        print(f"{agent:<18} | Chi2: {chi2:>6.2f} | p-value: {p:>8.4f}")
+    # 2. HEATMAP 2: SYMBOLIC PERSISTENCE (HOLD Frequency)
+    summary_holds = df.groupby("category")[[
+        "hold_fact", "hold_facet", "hold_intent"
+    ]].mean()
+    summary_holds.columns = ["Fact-Finder", "Facet-Finder", "Intent-Finder"]
     
-    # 6. Save results
-    df.to_csv("disagreement_dynamics.csv", index=False)
-    print("\nAnalysis complete. Saved disagreement_heatmap.png and disagreement_dynamics.csv")
+    plt.figure(figsize=(10, 6))
+    sns.heatmap(summary_holds, annot=True, cmap="OrRd", fmt=".2f")
+    plt.title("Symbolic Persistence Signature (Mean 'HOLD' Rate)\n(Frequency of refusing to concede in Round 1)")
+    plt.ylabel("Ambiguity Type (CLAMBER)")
+    plt.tight_layout()
+    plt.savefig("paper_heatmap_symbolic.png")
+    
+    # 3. DIAGNOSTIC ANALYSIS
+    print("\n=== Multi-Modal Topology Results ===")
+    for cat in summary_ids.index:
+        peak_ids = summary_ids.loc[cat].idxmax()
+        peak_hold = summary_holds.loc[cat].idxmax()
+        print(f"Category: {cat:<12} | Semantic Peak: {peak_ids} | Symbolic Peak: {peak_hold}")
+
+    print("\nVisualizations saved to paper_heatmap_semantic.png and paper_heatmap_symbolic.png")
 
 if __name__ == "__main__":
     main()

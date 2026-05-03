@@ -151,7 +151,7 @@ A query is "AMBIGUOUS" if:
 Respond ONLY with the word "CLEAR" or "AMBIGUOUS". No preamble.
 """
 
-GATEKEEPER_USER = """Original query: {query}
+GATEKEEPER_USER = """{context_block}Original query: {query}
 
 Dialogue transcript:
 {transcript}
@@ -162,13 +162,14 @@ SYNTHESIZER_SYSTEM = """You are a master synthesizer. Your goal is to resolve a 
 
 RULES:
 1. PRESENT THE CHOICE: Formulate a question that explicitly presents conflicting agent readings as a choice to the user.
-2. STRUCTURE: Use "Are you asking about [A], [B], or something else?"
-3. BE CONCISE: Under 25 words. No preamble or filler.
+2. CONTEXT RULE: If a background context (story) is provided, ensure your question only asks for information that is NOT already present in that context.
+3. STRUCTURE: Use "Are you asking about [A], [B], or something else?"
+4. BE CONCISE: Under 25 words. No preamble or filler.
 
 Output ONLY the specific clarifying question.\
 """
 
-SYNTHESIZER_USER = """Original query: {query}
+SYNTHESIZER_USER = """{context_block}Original query: {query}
 
 Dialogue transcript:
 {transcript}

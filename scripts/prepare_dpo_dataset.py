@@ -12,7 +12,7 @@ from d2c.prompts import (
 
 # Use a 4B model for simulation and judging (Balanced speed/quality)
 TEACHER_MODEL = "qwen3:4b" 
-llm_teacher = LLMClient(model=TEACHER_MODEL)
+llm_teacher = LLMClient(model=TEACHER_MODEL, think=False)
 
 def extract_json(text):
     """Robust JSON extraction from a string."""
@@ -27,23 +27,44 @@ def extract_json(text):
     except:
         return None
 
+CQG_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "clarifying_question": {"type": "string"}
+    },
+    "required": ["clarifying_question"]
+}
+
+RESOLUTION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "resolution_score": {"type": "number"},
+        "reasoning": {"type": "string"}
+    },
+    "required": ["resolution_score", "reasoning"]
+}
+
+# Use a better prompt for candidate generation (don't use the 'strict' vanilla prompt here)
+DPO_CANDIDATE_SYSTEM = "You are an expert at identifying ambiguity. Generate a concise clarifying question for the given query."
+DPO_CANDIDATE_USER = "Query: {query}\n\nOutput ONLY this JSON: {{\"clarifying_question\": \"<your question>\"}}"
+
 def generate_candidate(query, temp):
     """Generate a single candidate clarifying question."""
     try:
         raw = llm_teacher.chat(
-            system_prompt=VANILLA_CQG_SYSTEM,
-            user_prompt=VANILLA_CQG_USER.format(query=query),
+            system_prompt=DPO_CANDIDATE_SYSTEM,
+            user_prompt=DPO_CANDIDATE_USER.format(query=query),
             temperature=temp,
-            max_tokens=100
+            max_tokens=100,
+            format_schema=CQG_SCHEMA
         )
         data = extract_json(raw)
         if not data:
-             print(f"Failed to parse JSON from candidate: {raw[:100]}")
              return None
         q = data.get("clarifying_question", "CLEAR")
         return q if q != "CLEAR" else None
     except Exception as e:
-        print(f"Error generating candidate: {e}")
+        print(f"Error in generate_candidate: {e}")
         return None
 
 def score_trajectory(query, question, intent, all_intents):
@@ -70,16 +91,16 @@ def score_trajectory(query, question, intent, all_intents):
                 user_answer=answer,
                 all_interpretations=formatted_intents
             ),
-            temperature=0.0
+            temperature=0.0,
+            format_schema=RESOLUTION_SCHEMA
         )
 
         eval_data = extract_json(raw_eval)
         if not eval_data:
-            print(f"Failed to parse JSON from score: {raw_eval[:100]}")
             return 1.0
         return float(eval_data.get("resolution_score", 1.0))
     except Exception as e:
-        print(f"Error scoring: {e}")
+        print(f"Error in score_trajectory: {e}")
         return 1.0
 
 def process_item_dpo(item):
@@ -152,8 +173,8 @@ def main():
             clear.append(item)
     
     # Targeted mix for DPO
-    target_ambig = 400
-    target_clear = 100
+    target_ambig = 150
+    target_clear = 50
     
     sample = ambiguous[:target_ambig] + clear[:target_clear]
     random.shuffle(sample)
@@ -166,9 +187,11 @@ def main():
     
     train_count = 0
     valid_count = 0
+    target_count = len(sample)
     
     with open(train_path, 'w') as f_train, open(valid_path, 'w') as f_valid:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        # Increased max_workers to 4 for M1 Max
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             futures = [executor.submit(process_item_dpo, item) for item in sample]
             for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="Generating DPO Pairs"):
                 res = future.result()

@@ -25,8 +25,8 @@ SCORING:
 - 1: Irrelevant — fails to address the ambiguity.
 """
 
-JUDGE_USER = """Query: {query}
+JUDGE_USER = """{context_block}Query: {query}
 Gold clarifying question: {gold_question}
 Candidate clarifying question: {candidate_question}
 
-Evaluate the generated question based on how well it helps resolve the ambiguity between the possible interpretations (grounded by the gold standard)."""
+Evaluate the generated question based on how well it helps resolve the ambiguity between the possible interpretations (grounded by the gold standard and the provided context)."""
