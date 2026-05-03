@@ -114,7 +114,8 @@ def main():
     
     print(f"Running D2C analysis on {len(to_process)} queries with {model_name} (Parallel)...")
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+    # Using higher max_workers for H200
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
         futures = [executor.submit(process_item, item, model_name) for item in to_process]
         for f in tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
             res = f.result()
