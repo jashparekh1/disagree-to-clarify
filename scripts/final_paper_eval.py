@@ -171,12 +171,11 @@ def main():
             is_ambig = item.get("is_ambiguous", True)
             context = item.get("context")
             gold_qs = item.get("gold_clarifying_questions", [])
-            gold_q = gold_qs[0] if gold_qs else "N/A"
             
             msg = f"  [{total_samples}] Query: {query[:60]}..."
             print(msg)
             
-            for name in methods:
+            def run_method(name):
                 try:
                     if name == "vanilla":
                         res = run_vanilla_cqg(query, llm, max_tokens=300, context=context)
@@ -203,30 +202,48 @@ def main():
 
                     pred_ambig = "CLEAR" not in q_text.upper()
                     
-                    # MULTI-REFERENCE EVALUATION
                     if is_ambig:
                         j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm, context=context)
                         sim_score = semantic_similarity_multi_ref(q_text, gold_qs)
                     else:
-                        j_res = {"score": 5 if not pred_ambig else 1, "covers": False}
+                        j_res = {"score": 5 if not pred_ambig else 1, "covers": False, "reasoning": "Correctly identified clear query"}
                         sim_score = 0.0
                     
-                    all_results[name]["preds"].append(pred_ambig)
-                    all_results[name]["golds"].append(is_ambig)
-                    all_results[name]["rounds"].append(rnd)
-                    all_results[name]["divs"].append(div_score)
+                    return name, {
+                        "q_text": q_text,
+                        "score": j_res.get("score", 0),
+                        "sim": sim_score,
+                        "round": rnd,
+                        "div": div_score,
+                        "pred": pred_ambig,
+                        "covers": j_res.get("covers", False),
+                        "reasoning": j_res.get("reasoning", "")
+                    }
+                except Exception as e:
+                    logger.error(f"Error in method {name}: {str(e)}")
+                    return name, None
 
-                    if is_ambig:
-                        all_results[name]["scores"].append(j_res["score"])
-                        all_results[name]["sims"].append(sim_score)
-                        all_results[name]["covers"].append(1 if j_res.get("covers") else 0)
-                    
-                    with open(inspection_file, "a") as f_insp:
-                        f_insp.write(f"Query: {query}\nMethod: {name}\nOutput: {q_text}\nScore: {j_res.get('score')}\nReason: {j_res.get('reasoning')}\n---\n")
+            with ThreadPoolExecutor(max_workers=len(methods)) as executor:
+                future_to_method = {executor.submit(run_method, name): name for name in methods}
+                for future in future_to_method:
+                    name, m_res = future.result()
+                    if m_res:
+                        all_results[name]["preds"].append(m_res["pred"])
+                        all_results[name]["golds"].append(is_ambig)
+                        all_results[name]["rounds"].append(m_res["round"])
+                        all_results[name]["divs"].append(m_res["div"])
 
-                    msg = f"    - {name:<10}: Score={j_res['score'] if is_ambig else 'N/A'}, Sim={sim_score:.3f}, Round={rnd}"
-                    print(msg)
-                    with open(results_file, "a") as f: f.write(msg + "\n")
+                        if is_ambig:
+                            all_results[name]["scores"].append(m_res["score"])
+                            all_results[name]["sims"].append(m_res["sim"])
+                            all_results[name]["covers"].append(1 if m_res["covers"] else 0)
+                        
+                        with open(inspection_file, "a") as f_insp:
+                            f_insp.write(f"Query: {query}\nMethod: {name}\nOutput: {m_res['q_text']}\nScore: {m_res['score']}\nReason: {m_res['reasoning']}\n---\n")
+
+                        msg = f"    - {name:<10}: Score={m_res['score'] if is_ambig else 'N/A'}, Sim={m_res['sim']:.3f}, Round={m_res['round']}"
+                        print(msg)
+                        with open(results_file, "a") as f: f.write(msg + "\n")
 
                 except Exception as e:
                     print(f"    - {name:<10}: ERROR {str(e)}")
