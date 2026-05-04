@@ -109,18 +109,22 @@ def main():
     sample = pd.concat(sampled_dfs).reset_index(drop=True)
     to_process = sample["obj"].tolist()
     
-    model_name = "qwen2.5:1.5b"
+    model_name = "qwen3.5:4b"
     records = []
     
     print(f"Running D2C analysis on {len(to_process)} queries with {model_name} (Parallel)...")
     
-    # Using higher max_workers for H200
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+    # Using max_workers=1 because run_d2c already uses internal threads for agents.
+    # Total concurrency will be 3 agents at a time.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         futures = [executor.submit(process_item, item, model_name) for item in to_process]
-        for f in tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
-            res = f.result()
-            if res:
-                records.append(res)
+        for f in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="D2C Queries"):
+            try:
+                res = f.result()
+                if res:
+                    records.append(res)
+            except Exception as e:
+                logger.error(f"Worker failed: {e}")
 
     # 2. Analyze Correlations
     df = pd.DataFrame(records)

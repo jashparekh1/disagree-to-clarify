@@ -94,9 +94,13 @@ def main():
     ]].mean()
     summary_ids.columns = ["L-I Axis", "L-F Axis", "F-I Axis"]
     
+    # Apply column-wise normalization (Z-score) to highlight relative peaks
+    summary_ids_norm = (summary_ids - summary_ids.mean()) / summary_ids.std()
+    
     plt.figure(figsize=(10, 6))
-    sns.heatmap(summary_ids, annot=True, cmap="YlGnBu", fmt=".3f")
-    plt.title("Semantic Divergence Signature (Mean IDS)\n(Distance between initial interpretations)")
+    # Use Z-score for BOTH color and annotation
+    sns.heatmap(summary_ids_norm, annot=True, cmap="YlGnBu", fmt=".2f")
+    plt.title("Relative Semantic Divergence (Z-Score of Mean IDS)\n(Shows where each category 'over-performs' on an axis)")
     plt.ylabel("Ambiguity Type (CLAMBER)")
     plt.tight_layout()
     plt.savefig("paper_heatmap_semantic.png")
@@ -107,19 +111,23 @@ def main():
     ]].mean()
     summary_holds.columns = ["Fact-Finder", "Facet-Finder", "Intent-Finder"]
     
+    # Normalize holds as well
+    summary_holds_norm = (summary_holds - summary_holds.mean()) / summary_holds.std()
+    
     plt.figure(figsize=(10, 6))
-    sns.heatmap(summary_holds, annot=True, cmap="OrRd", fmt=".2f")
-    plt.title("Symbolic Persistence Signature (Mean 'HOLD' Rate)\n(Frequency of refusing to concede in Round 1)")
+    # Use Z-score for BOTH color and annotation
+    sns.heatmap(summary_holds_norm, annot=True, cmap="OrRd", fmt=".2f")
+    plt.title("Relative Symbolic Persistence (Z-Score of HOLD Rate)")
     plt.ylabel("Ambiguity Type (CLAMBER)")
     plt.tight_layout()
     plt.savefig("paper_heatmap_symbolic.png")
     
-    # 3. DIAGNOSTIC ANALYSIS
-    print("\n=== Multi-Modal Topology Results ===")
-    for cat in summary_ids.index:
-        peak_ids = summary_ids.loc[cat].idxmax()
-        peak_hold = summary_holds.loc[cat].idxmax()
-        print(f"Category: {cat:<12} | Semantic Peak: {peak_ids} | Symbolic Peak: {peak_hold}")
+    # 3. DIAGNOSTIC ANALYSIS (Using Normalized Peaks)
+    print("\n=== Multi-Modal Topology Results (Normalized) ===")
+    for cat in summary_ids_norm.index:
+        peak_ids = summary_ids_norm.loc[cat].idxmax()
+        peak_hold = summary_holds_norm.loc[cat].idxmax()
+        print(f"Category: {cat:<12} | Relative Semantic Peak: {peak_ids} | Relative Symbolic Peak: {peak_hold}")
 
     print("\nVisualizations saved to paper_heatmap_semantic.png and paper_heatmap_symbolic.png")
 
