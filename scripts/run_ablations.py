@@ -31,6 +31,19 @@ logger = logging.getLogger(__name__)
 
 DATASETS = ["clamber", "clariq", "qulac", "abgcoqa"]
 
+def run_parallel_baseline_full(query: str, llm: LLMClient, context: str | None = None) -> str:
+    """Agents generate 1 round in parallel, then synthesize (No Dialogue)."""
+    roles = [AgentRole.FACT_FINDER, AgentRole.FACET_FINDER, AgentRole.INTENT_FINDER]
+    agents = [Agent(role, llm, max_tokens=300) for role in roles]
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [executor.submit(agent.respond_initial, query, context) for agent in agents]
+        round_0 = [f.result() for f in futures]
+
+    dialogue = DialogueResult(query=query, rounds=[round_0], num_rounds=1, context=context)
+    synth = synthesize(query, dialogue, llm, max_tokens=300, variant="d2c")
+    return synth.clarifying_question
+
 # --- Generic prompts for Ablation 2 ---
 GENERIC_AGENT_SYSTEM = "You are an AI assistant. Analyze the user's query and identify any potential ambiguities. If it is clear, say CLEAR. If not, explain one specific interpretation. 1-2 sentences only."
 
@@ -50,7 +63,9 @@ def run_ablation_variant(query, variant_name, llm, context=None):
     Runs a modified version of the D2C pipeline based on the ablation type.
     """
     # Define Agents based on ablation
-    if variant_name == "no_fact_finder":
+    if variant_name == "parallel":
+        return run_parallel_baseline_full(query, llm, context)
+    elif variant_name == "no_fact_finder":
         roles = [AgentRole.FACET_FINDER, AgentRole.INTENT_FINDER]
     elif variant_name == "no_facet_finder":
         roles = [AgentRole.FACT_FINDER, AgentRole.INTENT_FINDER]
@@ -126,6 +141,7 @@ def main():
 
     variants = [
         "full_d2c",
+        "parallel",
         "no_fact_finder", 
         "no_facet_finder", 
         "no_intent_finder",
@@ -134,6 +150,24 @@ def main():
     ]
 
     results = {v: {"preds": [], "golds": [], "scores": [], "sims": []} for v in variants}
+
+    sample = []
+    for dataset in DATASETS:
+        all_items = load_full_test_set(dataset)
+        if not all_items: continue
+        
+        # BALANCED SAMPLING (Consistency with final_paper_eval.py)
+        ambig = [x for x in all_items if x.get("is_ambiguous", True)]
+        non_ambig = [x for x in all_items if not x.get("is_ambiguous", True)]
+        random.shuffle(ambig)
+        random.shuffle(non_ambig)
+        
+        n = args.n_per_dataset
+        n_non = min(len(non_ambig), n // 2)
+        n_amb = min(len(ambig), n - n_non)
+        items = ambig[:n_amb] + non_ambig[:n_non]
+        random.shuffle(items)
+        sample.extend(items)
 
     print(f"Starting Ablation Study on {len(sample)} items (Seed: {args.seed})...")
 

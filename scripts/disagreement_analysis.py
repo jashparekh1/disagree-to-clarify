@@ -109,14 +109,14 @@ def main():
     sample = pd.concat(sampled_dfs).reset_index(drop=True)
     to_process = sample["obj"].tolist()
     
-    model_name = "qwen3.5:4b"
+    model_name = "qwen2.5:7b"
     records = []
     
     print(f"Running D2C analysis on {len(to_process)} queries with {model_name} (Parallel)...")
     
-    # Using max_workers=1 because run_d2c already uses internal threads for agents.
-    # Total concurrency will be 3 agents at a time.
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+    # Using max_workers=3 to match OLLAMA_NUM_PARALLEL=8.
+    # Total concurrency will be 3 queries * 3 agents = 9 requests, which saturates 8 slots.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         futures = [executor.submit(process_item, item, model_name) for item in to_process]
         for f in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="D2C Queries"):
             try:
@@ -143,10 +143,6 @@ def main():
     
     print("\nCSV saved to disagreement_topology.csv and disagreement_heatmap_data.csv")
     print("You can now run 'python scripts/visualize_disagreement.py' to generate the paper plots.")
-
-if __name__ == "__main__":
-    main()
-
 
 if __name__ == "__main__":
     main()
