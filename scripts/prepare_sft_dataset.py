@@ -6,7 +6,7 @@ from tqdm import tqdm
 from d2c.llm import LLMClient
 
 # Use a high-quality model for distillation (Teacher)
-GOLD_MODEL = "qwen3:4b" 
+GOLD_MODEL = "llama3.1:8b" 
 llm = LLMClient(model=GOLD_MODEL)
 
 # This prompt "cheats" by showing the teacher the ground truth interpretations
@@ -108,8 +108,8 @@ def main():
 
     # Open files for incremental writing
     with open(train_path, 'w') as f_train, open(valid_path, 'w') as f_valid:
-        # Parallel generation for speed
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        # Parallel generation for speed - A100 can handle high concurrency
+        with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
             futures = [executor.submit(generate_gold_question, item) for item in sample]
             for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="Distilling Gold Qs"):
                 res = future.result()
