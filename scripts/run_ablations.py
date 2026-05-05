@@ -112,9 +112,10 @@ def run_ablation_variant(query, variant_name, llm, context=None):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--n-per-dataset", type=int, default=10)
-    parser.add_argument("--model", default="qwen2.5:1.5b")
-    parser.add_argument("--judge-model", default="qwen3:4b")
+    parser.add_argument("--model", default="qwen3:1.7b")
+    parser.add_argument("--judge-model", default="llama3.1:8b")
     parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--max-workers", type=int, default=10)
     args = parser.parse_args()
 
     if args.seed is None:
@@ -171,40 +172,42 @@ def main():
 
     print(f"Starting Ablation Study on {len(sample)} items (Seed: {args.seed})...")
 
-    for item in tqdm(sample):
-        query = item["query"]
-        is_ambig = item["is_ambiguous"]
-        gold_qs = item.get("gold_clarifying_questions", [])
-        context = item.get("context")
-        
-        with open(inspection_file, "a") as f_insp:
-            f_insp.write(f"\nQuery: {query}\n")
+    with ThreadPoolExecutor(max_workers=args.max_workers) as global_executor:
+        for item in tqdm(sample):
+            query = item["query"]
+            is_ambig = item["is_ambiguous"]
+            gold_qs = item.get("gold_clarifying_questions", [])
+            context = item.get("context")
+            
+            with open(inspection_file, "a") as f_insp:
+                f_insp.write(f"\nQuery: {query}\n")
 
-        def run_variant(v):
-            try:
-                q_text = run_ablation_variant(query, v, llm, context)
-                pred_ambig = "CLEAR" not in q_text.upper()
-                
-                res = {
-                    "variant": v,
-                    "q_text": q_text,
-                    "pred": pred_ambig,
-                    "score": 0,
-                    "sim": 0.0
-                }
-                
-                if is_ambig:
-                    j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm, context=context)
-                    sim_score = semantic_similarity_multi_ref(q_text, gold_qs)
-                    res["score"] = j_res["score"]
-                    res["sim"] = sim_score
-                return res
-            except Exception as e:
-                logger.error(f"Error in variant {v}: {e}")
-                return None
+            def run_variant(v):
+                try:
+                    q_text = run_ablation_variant(query, v, llm, context)
+                    pred_ambig = "CLEAR" not in q_text.upper()
+                    
+                    res = {
+                        "variant": v,
+                        "q_text": q_text,
+                        "pred": pred_ambig,
+                        "score": 0,
+                        "sim": 0.0
+                    }
+                    
+                    if is_ambig:
+                        j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm, context=context)
+                        sim_score = semantic_similarity_multi_ref(q_text, gold_qs)
+                        res["score"] = j_res["score"]
+                        res["sim"] = sim_score
+                    return res
+                except Exception as e:
+                    logger.error(f"Error in variant {v}: {e}")
+                    return None
 
-        with ThreadPoolExecutor(max_workers=len(variants)) as executor:
-            futures = [executor.submit(run_variant, v) for v in variants]
+            # We can still run variants in parallel for each item, or just rely on global_executor
+            # To maximize Ollama's OLLAMA_NUM_PARALLEL, we want many requests in flight.
+            futures = [global_executor.submit(run_variant, v) for v in variants]
             for f in futures:
                 res = f.result()
                 if res:
@@ -217,6 +220,7 @@ def main():
                     
                     with open(inspection_file, "a") as f_insp:
                         f_insp.write(f"  [{v:<18}] -> {res['q_text'][:100]}\n")
+
 
     # Final Summary Table
     print("\n" + "="*80)

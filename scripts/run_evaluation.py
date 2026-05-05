@@ -73,15 +73,13 @@ def _summary_line(label: str, matches: list[int]) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--dataset", required=True, choices=["clariq", "qulac", "clamber"]
-    )
+    parser.add_argument("--dataset", required=True, choices=["clariq", "qulac", "clamber"])
     parser.add_argument("--n", type=int, default=None, help="Cap queries")
-    parser.add_argument("--model", default="qwen3:4b", help="D2C + vanilla model")
+    parser.add_argument("--model", default="qwen3:1.7b", help="D2C + vanilla model")
     parser.add_argument(
         "--judge-model",
-        default="gemma:7b",
-        help="Judge LLM — must be DIFFERENT from --model to avoid self-judging bias.",
+        default="llama3.1:8b",
+        help="Judge LLM",
     )
     parser.add_argument("--rounds", type=int, default=3)
     parser.add_argument("--max-tokens", type=int, default=2048)
@@ -101,6 +99,7 @@ def main() -> None:
         action="store_true",
         help="Skip queries already in the output file.",
     )
+    parser.add_argument("--max-workers", type=int, default=1, help="Parallel workers")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -134,7 +133,7 @@ def main() -> None:
     print(
         f"Eval: dataset={args.dataset} n={len(test_set)} "
         f"model={args.model} judge={args.judge_model} "
-        f"variant={args.variant} think={'on' if args.think else 'OFF'}"
+        f"variant={args.variant} think={'on' if args.think else 'OFF'} workers={args.max_workers}"
     )
     print(f"Writing per-query rows to {out_path}")
     print()
@@ -148,73 +147,76 @@ def main() -> None:
     convergence = 0
     d2c_fail_rates: list[float] = []
 
+    def process_item(item):
+        query = item["query"]
+        golds = item.get("gold_clarifying_questions", [])
+        category = item.get("ambiguity_type") or "uncategorized"
+
+        # D2C prediction.
+        d2c_res = run_d2c(
+            query,
+            model=args.model,
+            num_rounds=args.rounds,
+            max_tokens=args.max_tokens,
+            variant=args.variant,
+            think=True if args.think else False,
+            base_url=args.base_url,
+            backend=args.backend,
+        )
+        d2c_pred = d2c_res.synthesizer_result.clarifying_question
+        d2c_fail = d2c_res.dialogue.format_failure_rate
+
+        # Vanilla baseline.
+        vanilla_llm = LLMClient(model=args.model, think=False, base_url=args.base_url, backend=args.backend)
+        vanilla_res = run_vanilla_cqg(query, vanilla_llm, max_tokens=300)
+        vanilla_pred = vanilla_res.clarifying_question
+
+        # Judge both.
+        d2c_judge = binary_judge(query, d2c_pred, golds, judge_llm)
+        vanilla_judge = binary_judge(query, vanilla_pred, golds, judge_llm)
+
+        return {
+            "example_id": item.get("example_id"),
+            "dataset": args.dataset,
+            "query": query,
+            "ambiguity_type": category,
+            "gold_clarifying_questions": golds,
+            "d2c_question": d2c_pred,
+            "vanilla_question": vanilla_pred,
+            "d2c_match": d2c_judge.match,
+            "d2c_judge_reason": d2c_judge.reason,
+            "vanilla_match": vanilla_judge.match,
+            "vanilla_judge_reason": vanilla_judge.reason,
+            "d2c_converged": d2c_res.dialogue.converged,
+            "d2c_converged_at_round": d2c_res.dialogue.converged_at_round,
+            "d2c_format_failure_rate": d2c_fail,
+            "vanilla_format_failed": vanilla_res.format_failed,
+            "model": args.model,
+            "judge_model": args.judge_model,
+        }
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from tqdm import tqdm
+
     try:
-        for idx, item in enumerate(test_set):
-            if item.get("example_id") in done_ids:
-                continue
+        to_process = [it for it in test_set if it.get("example_id") not in done_ids]
+        with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
+            futures = [executor.submit(process_item, item) for item in to_process]
+            for future in tqdm(as_completed(futures), total=len(futures), desc="Eval"):
+                row = future.result()
+                
+                d2c_matches.append(row["d2c_match"])
+                vanilla_matches.append(row["vanilla_match"])
+                per_category[row["ambiguity_type"]].append((row["d2c_match"], row["vanilla_match"]))
+                d2c_fail_rates.append(row["d2c_format_failure_rate"])
+                if row["d2c_converged"]:
+                    convergence += 1
 
-            query = item["query"]
-            golds = item.get("gold_clarifying_questions", [])
-            category = item.get("ambiguity_type") or "uncategorized"
-
-            # D2C prediction.
-            d2c_res = run_d2c(
-                query,
-                model=args.model,
-                num_rounds=args.rounds,
-                max_tokens=args.max_tokens,
-                variant=args.variant,
-                think=True if args.think else False,
-                base_url=args.base_url,
-                backend=args.backend,
-            )
-            d2c_pred = d2c_res.synthesizer_result.clarifying_question
-            d2c_fail = d2c_res.dialogue.format_failure_rate
-            d2c_fail_rates.append(d2c_fail)
-            if d2c_res.dialogue.converged:
-                convergence += 1
-
-            # Vanilla baseline.
-            vanilla_llm = LLMClient(model=args.model, think=False, base_url=args.base_url, backend=args.backend)
-            vanilla_res = run_vanilla_cqg(query, vanilla_llm, max_tokens=300)
-            vanilla_pred = vanilla_res.clarifying_question
-
-            # Judge both.
-            d2c_judge = binary_judge(query, d2c_pred, golds, judge_llm)
-            vanilla_judge = binary_judge(query, vanilla_pred, golds, judge_llm)
-
-            d2c_matches.append(d2c_judge.match)
-            vanilla_matches.append(vanilla_judge.match)
-            per_category[category].append((d2c_judge.match, vanilla_judge.match))
-
-            row = {
-                "example_id": item.get("example_id"),
-                "dataset": args.dataset,
-                "query": query,
-                "ambiguity_type": category,
-                "gold_clarifying_questions": golds,
-                "d2c_question": d2c_pred,
-                "vanilla_question": vanilla_pred,
-                "d2c_match": d2c_judge.match,
-                "d2c_judge_reason": d2c_judge.reason,
-                "vanilla_match": vanilla_judge.match,
-                "vanilla_judge_reason": vanilla_judge.reason,
-                "d2c_converged": d2c_res.dialogue.converged,
-                "d2c_converged_at_round": d2c_res.dialogue.converged_at_round,
-                "d2c_format_failure_rate": d2c_fail,
-                "vanilla_format_failed": vanilla_res.format_failed,
-                "model": args.model,
-                "judge_model": args.judge_model,
-            }
-            f_out.write(json.dumps(row, ensure_ascii=False) + "\n")
-            f_out.flush()
-
-            print(
-                f"[{idx+1}/{len(test_set)}] d2c={d2c_judge.match} vanilla={vanilla_judge.match}  "
-                f"q: {query[:60]!r}  d2c_pred: {d2c_pred[:80]!r}"
-            )
+                f_out.write(json.dumps(row, ensure_ascii=False) + "\n")
+                f_out.flush()
     finally:
         f_out.close()
+
 
     # ---- Summary -------------------------------------------------------------
     print()

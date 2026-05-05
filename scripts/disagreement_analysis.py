@@ -7,6 +7,7 @@ import logging
 import pandas as pd
 import numpy as np
 import concurrent.futures
+import argparse
 from pathlib import Path
 from tqdm import tqdm
 from sentence_transformers import SentenceTransformer
@@ -91,6 +92,11 @@ def process_item(item, model_name):
         return None
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max-workers", type=int, default=8, help="Max parallel workers")
+    parser.add_argument("--model", default="qwen3:1.7b", help="Model name")
+    args = parser.parse_args()
+
     # 1. Load CLAMBER dataset using the official loader
     print("Loading CLAMBER dataset...")
     items = load_clamber()
@@ -109,14 +115,13 @@ def main():
     sample = pd.concat(sampled_dfs).reset_index(drop=True)
     to_process = sample["obj"].tolist()
     
-    model_name = "qwen2.5:7b"
+    model_name = args.model
     records = []
     
-    print(f"Running D2C analysis on {len(to_process)} queries with {model_name} (Parallel)...")
+    print(f"Running D2C analysis on {len(to_process)} queries with {model_name} (Parallel, workers={args.max_workers})...")
     
-    # Using max_workers=3 to match OLLAMA_NUM_PARALLEL=8.
-    # Total concurrency will be 3 queries * 3 agents = 9 requests, which saturates 8 slots.
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+    # Using max_workers to match OLLAMA_NUM_PARALLEL.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_workers) as executor:
         futures = [executor.submit(process_item, item, model_name) for item in to_process]
         for f in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="D2C Queries"):
             try:

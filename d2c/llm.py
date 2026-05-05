@@ -40,6 +40,7 @@ class LLMClient:
         else:
             self.base_url = _OLLAMA_DEFAULT_URL
         self.think = think
+        self.session = requests.Session()
 
     def chat(
         self,
@@ -135,7 +136,7 @@ class LLMClient:
         last_err: Exception | None = None
         for attempt in range(2):
             try:
-                resp = requests.post(url, json=payload, timeout=300)
+                resp = self.session.post(url, json=payload, timeout=300)
                 resp.raise_for_status()
                 content = extract(resp.json())
                 if strip_thinking:
@@ -149,3 +150,4 @@ class LLMClient:
                     time.sleep(1)
 
         raise RuntimeError(f"LLM call failed after 2 attempts: {last_err}")
+

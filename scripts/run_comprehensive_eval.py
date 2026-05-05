@@ -18,11 +18,13 @@ import subprocess
 import pandas as pd
 import matplotlib.pyplot as plt
 import logging
+import argparse
 
 # Configuration
 EVAL_N = 100  # Full robust run
-MODEL_OLLAMA = "qwen3:4b"
-MODEL_MLX_BASE = "mlx-community/Qwen2.5-1.5B-Instruct-4bit"
+MODEL_OLLAMA = "qwen3:1.7b"
+MODEL_JUDGE = "llama3.1:8b"
+MODEL_CUDA_BASE = "Qwen/Qwen3-1.7B-Instruct"
 ADAPTER_PATH = "adapters/"
 DATA_DIR = "data"
 OUTPUT_DIR = "outputs"
@@ -78,38 +80,39 @@ def ensure_infrastructure():
         logger.info("Adapters not found. Starting SFT pipeline...")
         # Dataset
         run_cmd("PYTHONPATH=. python3 scripts/prepare_sft_dataset.py", "Preparing SFT Dataset")
-        # Training (200 iters for 1.5B is reasonable)
+        # Training (CUDA)
         run_cmd(
-            f"python3 -m mlx_lm.lora --model {MODEL_MLX_BASE} --train --data {SFT_DATA_DIR} --iters 200 --adapter-path {ADAPTER_PATH}",
-            "Training SFT LoRA Model"
+            f"PYTHONPATH=. python3 trainers/cuda/sft_train.py",
+            "Training SFT Model (CUDA)"
         )
 
-def run_evaluations():
+def run_evaluations(max_workers: int):
     eval_input = os.path.join(DATA_DIR, f"eval_master_{EVAL_N}.jsonl")
     
     # A. Vanilla & Parallel
     run_cmd(
-        f"PYTHONPATH=. python3 scripts/run_baselines.py --input {eval_input} --output-prefix {OUTPUT_DIR}/master_baselines --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA}",
+        f"PYTHONPATH=. python3 scripts/run_baselines.py --input {eval_input} --output-prefix {OUTPUT_DIR}/master_baselines --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA} --max-workers {max_workers}",
         "Running Vanilla and Parallel Baselines"
     )
     
     # B. D2C (Your System)
     run_cmd(
-        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA} --variant original",
+        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA} --variant original --max-workers {max_workers}",
         "Running D2C (Dialogue) System - Original"
     )
 
     # B2. D2C (Speech Act)
     run_cmd(
-        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c_speech_act.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA} --variant speech_act",
+        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c_speech_act.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA} --variant speech_act --max-workers {max_workers}",
         "Running D2C (Dialogue) System - Speech Act"
     )
     
-    # C. SFT
+    # C. SFT (CUDA)
     run_cmd(
-        f"PYTHONPATH=. python3 scripts/run_eval_sft.py --input {eval_input} --output {OUTPUT_DIR}/master_sft.jsonl --model {MODEL_MLX_BASE} --adapter {ADAPTER_PATH} --judge-model {MODEL_OLLAMA}",
-        "Running SFT-Tuned Baseline"
+        f"PYTHONPATH=. python3 scripts/run_eval_sft_cuda.py --input {eval_input} --output {OUTPUT_DIR}/master_sft.jsonl --model {ADAPTER_PATH} --judge-model {MODEL_OLLAMA}",
+        "Running SFT-Tuned Baseline (CUDA)"
     )
+
 
 def aggregate_and_report():
     logger.info("Aggregating results...")
@@ -168,9 +171,14 @@ def aggregate_and_report():
     logger.info(f"Plot saved to {plot_path}")
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max-workers", type=int, default=4, help="Max parallel workers for LLM calls")
+    args = parser.parse_args()
+
     ensure_infrastructure()
-    run_evaluations()
+    run_evaluations(args.max_workers)
     aggregate_and_report()
 
 if __name__ == "__main__":
     main()
+
