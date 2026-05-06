@@ -91,6 +91,9 @@ def run_d2c_batch(
     max_workers: int = 4,
     max_tokens: int = 2048,
     variant: str = "speech_act",
+    backend: str = "ollama",
+    base_url: str | None = None,
+    think: bool | None = None,
 ) -> None:
     """Run D2C on a list of query dicts, save results as JSONL.
 
@@ -120,7 +123,17 @@ def run_d2c_batch(
             query = item["query"]
             context = item.get("context")
             try:
-                result = run_d2c(query, model=model, num_rounds=num_rounds, max_tokens=max_tokens, variant=variant, context=context)
+                result = run_d2c(
+                    query,
+                    model=model,
+                    num_rounds=num_rounds,
+                    max_tokens=max_tokens,
+                    variant=variant,
+                    context=context,
+                    backend=backend,
+                    base_url=base_url,
+                    think=think,
+                )
                 record = result.to_dict()
                 for k, v in item.items():
                     if k != "query":

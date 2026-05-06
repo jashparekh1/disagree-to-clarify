@@ -98,7 +98,15 @@ def run_ablation_variant(query, variant_name, llm, context=None):
         return res.clarifying_question
     else:
         # Full D2C (1 round for fair comparison)
-        res = run_d2c(query, variant="d2c", model=llm.model, num_rounds=1, context=context)
+        res = run_d2c(
+            query, 
+            variant="d2c", 
+            model=llm.model, 
+            num_rounds=1, 
+            context=context,
+            backend=llm.backend,
+            base_url=llm.base_url
+        )
         return res.synthesizer_result.clarifying_question
 
     # Default logic for "no_X_finder"
@@ -116,14 +124,18 @@ def main():
     parser.add_argument("--judge-model", default="llama3.1:8b")
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--max-workers", type=int, default=10)
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"],
+                        help="LLM backend: ollama (default) or openai (vLLM / any OpenAI-compatible server)")
+    parser.add_argument("--base-url", default=None,
+                        help="Override LLM server URL")
     args = parser.parse_args()
 
     if args.seed is None:
         args.seed = random.randint(0, 1000000)
     random.seed(args.seed)
 
-    llm = LLMClient(model=args.model, think=False)
-    judge_llm = LLMClient(model=args.judge_model, think=False)
+    llm = LLMClient(model=args.model, think=False, backend=args.backend, base_url=args.base_url)
+    judge_llm = LLMClient(model=args.judge_model, think=False, backend=args.backend, base_url=args.base_url)
 
     sample = []
     for dataset in DATASETS:

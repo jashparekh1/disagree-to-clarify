@@ -73,7 +73,7 @@ def run_cuda_inference(query: str, model, tokenizer) -> str:
     prompt = f"<|im_start|>user\n{query}<|im_end|>\n<|im_start|>assistant\n"
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
     
-    with torch.no_grad():
+    with torch.inference_mode():
         outputs = model.generate(**inputs, max_new_tokens=150, do_sample=False)
     
     generated_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True).strip()
@@ -102,14 +102,32 @@ def main():
     parser.add_argument("--adapter-path", default="adapters", help="Path to CUDA SFT adapters")
     parser.add_argument("--rl-adapter-path", default="adapters_rl", help="Path to CUDA RL adapters")
     parser.add_argument("--max-workers", type=int, default=10, help="Global parallel workers")
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"],
+                        help="LLM backend: ollama (default) or openai (vLLM / any OpenAI-compatible server)")
+    parser.add_argument("--base-url", default=None,
+                        help="Override generator LLM server URL")
+    parser.add_argument("--judge-base-url", default=None,
+                        help="Override judge LLM server URL")
     args = parser.parse_args()
 
     if args.seed is None:
         args.seed = random.randint(0, 1000000)
     random.seed(args.seed)
 
-    llm = LLMClient(model=args.model, think=False)
-    judge_llm = LLMClient(model=args.judge_model, think=False)
+    # Initialize backend-aware clients
+    gen_url = args.base_url or ("http://localhost:8000" if args.backend == "openai" else "http://localhost:11434")
+    judge_url = args.judge_base_url or ("http://localhost:8001" if args.backend == "openai" else gen_url)
+
+    llm = LLMClient(
+        model=args.model, 
+        backend=args.backend, 
+        base_url=gen_url
+    )
+    judge_llm = LLMClient(
+        model=args.judge_model, 
+        backend=args.backend, 
+        base_url=judge_url
+    )
 
     # 1. PRE-LOAD ALL MODELS ONCE
     print("Initializing environment...")
@@ -179,7 +197,15 @@ def main():
                 q_text, interps = run_parallel_baseline_serial(query, llm, context=context)
                 rnd, div_score = 1, internal_divergence_score(interps)
             elif method_name == "d2c":
-                res = run_d2c(query, variant="d2c", model=args.model, num_rounds=args.num_rounds, context=context)
+                res = run_d2c(
+                    query, 
+                    variant="d2c", 
+                    model=args.model, 
+                    num_rounds=args.num_rounds, 
+                    context=context,
+                    backend=args.backend,
+                    base_url=gen_url
+                )
                 q_text = res.synthesizer_result.clarifying_question
                 rnd = res.dialogue.rounds_completed
                 final_interps = [r.interpretation for r in res.dialogue.rounds[-1]]

@@ -86,24 +86,28 @@ def ensure_infrastructure():
             "Training SFT Model (CUDA)"
         )
 
-def run_evaluations(max_workers: int):
+def run_evaluations(max_workers: int, backend: str = "ollama", base_url: str | None = None):
     eval_input = os.path.join(DATA_DIR, f"eval_master_{EVAL_N}.jsonl")
     
+    extra_args = f"--backend {backend}"
+    if base_url:
+        extra_args += f" --base-url {base_url}"
+
     # A. Vanilla & Parallel
     run_cmd(
-        f"PYTHONPATH=. python3 scripts/run_baselines.py --input {eval_input} --output-prefix {OUTPUT_DIR}/master_baselines --model {MODEL_OLLAMA} --judge-model {MODEL_JUDGE} --max-workers {max_workers}",
+        f"PYTHONPATH=. python3 scripts/run_baselines.py --input {eval_input} --output-prefix {OUTPUT_DIR}/master_baselines --model {MODEL_OLLAMA} --judge-model {MODEL_JUDGE} --max-workers {max_workers} {extra_args}",
         "Running Vanilla and Parallel Baselines"
     )
     
     # B. D2C (Your System)
     run_cmd(
-        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_JUDGE} --variant original --max-workers {max_workers}",
+        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_JUDGE} --variant original --max-workers {max_workers} {extra_args}",
         "Running D2C (Dialogue) System - Original"
     )
 
     # B2. D2C (Speech Act)
     run_cmd(
-        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c_speech_act.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_JUDGE} --variant speech_act --max-workers {max_workers}",
+        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c_speech_act.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_JUDGE} --variant speech_act --max-workers {max_workers} {extra_args}",
         "Running D2C (Dialogue) System - Speech Act"
     )
     
@@ -173,10 +177,14 @@ def aggregate_and_report():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--max-workers", type=int, default=4, help="Max parallel workers for LLM calls")
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"],
+                        help="LLM backend: ollama (default) or openai (vLLM / any OpenAI-compatible server)")
+    parser.add_argument("--base-url", default=None,
+                        help="Override LLM server URL (default: localhost:11434 for ollama, localhost:8000 for openai)")
     args = parser.parse_args()
 
     ensure_infrastructure()
-    run_evaluations(args.max_workers)
+    run_evaluations(args.max_workers, backend=args.backend, base_url=args.base_url)
     aggregate_and_report()
 
 if __name__ == "__main__":

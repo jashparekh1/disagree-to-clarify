@@ -23,6 +23,11 @@ def main() -> None:
     parser.add_argument("--resume", action="store_true", help="Skip queries already in the output file")
     parser.add_argument("--max-workers", type=int, default=4, help="Number of parallel query workers")
     parser.add_argument("--max-tokens", type=int, default=2048, help="Max tokens per LLM call")
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"],
+                        help="LLM backend: ollama (default) or openai (vLLM / any OpenAI-compatible server)")
+    parser.add_argument("--base-url", default=None,
+                        help="Override LLM server URL (default: localhost:11434 for ollama, localhost:8000 for openai)")
+    parser.add_argument("--think", action="store_true", help="Enable thinking mode")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -36,7 +41,7 @@ def main() -> None:
                 queries.append(json.loads(line))
 
     print(f"Loaded {len(queries)} queries from {args.input}")
-    print(f"Model: {args.model} | Rounds: {args.rounds} | Resume: {args.resume}")
+    print(f"Model: {args.model} | Rounds: {args.rounds} | Backend: {args.backend} | Resume: {args.resume}")
 
     run_d2c_batch(
         queries=queries,
@@ -46,6 +51,9 @@ def main() -> None:
         resume=args.resume,
         max_workers=args.max_workers,
         max_tokens=args.max_tokens,
+        backend=args.backend,
+        base_url=args.base_url,
+        think=args.think,
     )
 
     print(f"\nResults written to {args.output}")

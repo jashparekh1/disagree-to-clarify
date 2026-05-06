@@ -92,14 +92,15 @@ def simulate_and_score(query: str, question: str, target_intent: str, all_intent
     except:
         return 1.0
 
-def process_query_rl(item: dict, n_candidates: int, gen_model: str, sim_model: str, judge_model: str) -> dict:
+def process_query_rl(item: dict, n_candidates: int, gen_model: str, sim_model: str, judge_model: str,
+                     backend: str = "ollama", base_url: str | None = None) -> dict:
     query, interpretations = parse_ambigqa_item(item)
     if not query or len(interpretations) < 2:
         return {"query": query, "status": "skipped"}
 
-    gen_llm = LLMClient(model=gen_model)
-    sim_llm = LLMClient(model=sim_model)
-    judge_llm = LLMClient(model=judge_model)
+    gen_llm = LLMClient(model=gen_model, backend=backend, base_url=base_url)
+    sim_llm = LLMClient(model=sim_model, backend=backend, base_url=base_url)
+    judge_llm = LLMClient(model=judge_model, backend=backend, base_url=base_url)
 
     try:
         # 1. Generate Candidates
@@ -143,6 +144,10 @@ def main():
     parser.add_argument("--judge-model", default="qwen3:4b")
     parser.add_argument("--n-candidates", type=int, default=3)
     parser.add_argument("--max-workers", type=int, default=2) # Lower because each item does many calls
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"],
+                        help="LLM backend: ollama (default) or openai (vLLM / any OpenAI-compatible server)")
+    parser.add_argument("--base-url", default=None,
+                        help="Override LLM server URL (default: localhost:11434 for ollama, localhost:8000 for openai)")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -157,7 +162,8 @@ def main():
     results = []
     with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
         futures = [
-            executor.submit(process_query_rl, item, args.n_candidates, args.gen_model, args.sim_model, args.judge_model)
+            executor.submit(process_query_rl, item, args.n_candidates, args.gen_model, args.sim_model, args.judge_model,
+                            backend=args.backend, base_url=args.base_url)
             for item in items
         ]
         

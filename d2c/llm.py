@@ -123,7 +123,9 @@ class LLMClient:
             payload["max_tokens"] = max_tokens
 
         if format_schema is not None:
-            payload["response_format"] = {"type": "json_object"}
+            # vLLM supports guided_json for strict schema adherence via the OpenAI-compatible endpoint.
+            # This is more robust than the generic "json_object" format.
+            payload["guided_json"] = format_schema
 
         if think is False:
             payload["chat_template_kwargs"] = {"enable_thinking": False}
@@ -133,7 +135,7 @@ class LLMClient:
 
     def _post(self, url: str, payload: dict, extract: object, strip_thinking: bool) -> str:
         last_err: Exception | None = None
-        for attempt in range(2):
+        for attempt in range(5): # Increase to 5 attempts
             try:
                 resp = self.session.post(url, json=payload, timeout=300)
                 resp.raise_for_status()
@@ -144,9 +146,11 @@ class LLMClient:
                 return content
             except (requests.RequestException, KeyError) as e:
                 last_err = e
-                if attempt == 0:
-                    logger.warning("LLM call failed (attempt 1), retrying: %s", e)
-                    time.sleep(1)
+                # Exponential backoff: 2s, 4s, 8s...
+                sleep_time = 2 ** (attempt + 1)
+                if attempt < 4:
+                    logger.warning("LLM call failed (attempt %d), retrying in %ds: %s", attempt + 1, sleep_time, e)
+                    time.sleep(sleep_time)
 
-        raise RuntimeError(f"LLM call failed after 2 attempts: {last_err}")
+        raise RuntimeError(f"LLM call failed after 5 attempts: {last_err}")
 

@@ -37,7 +37,8 @@ def parse_ambigqa_item(item: dict) -> tuple[str, list[str]]:
     return query, interpretations
 
 
-def process_query(item: dict, model: str, rounds: int, max_tokens: int, judge_model: str, variant: str) -> dict:
+def process_query(item: dict, model: str, rounds: int, max_tokens: int, judge_model: str, variant: str,
+                  backend: str = "ollama", base_url: str | None = None, think: bool | None = None) -> dict:
     """Run D2C and then judge the result."""
     query, interpretations = parse_ambigqa_item(item)
     if not query:
@@ -48,11 +49,20 @@ def process_query(item: dict, model: str, rounds: int, max_tokens: int, judge_mo
 
     try:
         # 1. Run D2C
-        result = run_d2c(query, model=model, num_rounds=rounds, max_tokens=max_tokens, variant=variant)
+        result = run_d2c(
+            query, 
+            model=model, 
+            num_rounds=rounds, 
+            max_tokens=max_tokens, 
+            variant=variant,
+            backend=backend,
+            base_url=base_url,
+            think=think
+        )
         clarifying_question = result.synthesizer_result.clarifying_question
         
         # 2. Judge
-        judge_llm = LLMClient(model=judge_model)
+        judge_llm = LLMClient(model=judge_model, backend=backend, base_url=base_url)
         eval_result = llm_judge_score(query, interpretations, clarifying_question, judge_llm)
         
         # 3. Combine
@@ -80,6 +90,11 @@ def main() -> None:
     parser.add_argument("--max-tokens", type=int, default=2048, help="Max tokens per D2C call")
     parser.add_argument("--max-workers", type=int, default=4, help="Parallel workers")
     parser.add_argument("--variant", default="speech_act", choices=["original", "speech_act"], help="D2C agent variant (default: SAT-grounded; use 'original' for the pre-theory ablation)")
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"],
+                        help="LLM backend: ollama (default) or openai (vLLM / any OpenAI-compatible server)")
+    parser.add_argument("--base-url", default=None,
+                        help="Override LLM server URL (default: localhost:11434 for ollama, localhost:8000 for openai)")
+    parser.add_argument("--think", action="store_true", help="Enable thinking mode")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -97,7 +112,8 @@ def main() -> None:
     results = []
     with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
         futures = [
-            executor.submit(process_query, item, args.model, args.rounds, args.max_tokens, args.judge_model, args.variant)
+            executor.submit(process_query, item, args.model, args.rounds, args.max_tokens, args.judge_model, args.variant,
+                            backend=args.backend, base_url=args.base_url, think=args.think)
             for item in items
         ]
         

@@ -44,14 +44,22 @@ TAXONOMY_MAP = {
     "Aleatoric Output/none": "Clear"
 }
 
-def process_item(item, model_name):
+def process_item(item, model_name, backend: str = "ollama", base_url: str | None = None):
     query = item.query
     context = item.context
     category = TAXONOMY_MAP.get(item.ambiguity_type, "Unknown")
     
     try:
         # Run D2C with 2 rounds to allow for Stance transitions
-        res = run_d2c(query, variant="d2c", model=model_name, num_rounds=2, context=context)
+        res = run_d2c(
+            query, 
+            variant="d2c", 
+            model=model_name, 
+            num_rounds=2, 
+            context=context,
+            backend=backend,
+            base_url=base_url
+        )
         
         # 1. Semantic Distance (Initial Divergence)
         round_0 = res.dialogue.rounds[0]
@@ -95,6 +103,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--max-workers", type=int, default=8, help="Max parallel workers")
     parser.add_argument("--model", default="qwen2.5:3b", help="Model name")
+    parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"],
+                        help="LLM backend: ollama (default) or openai (vLLM / any OpenAI-compatible server)")
+    parser.add_argument("--base-url", default=None,
+                        help="Override LLM server URL")
     args = parser.parse_args()
 
     # 1. Load CLAMBER dataset using the official loader
@@ -122,7 +134,7 @@ def main():
     
     # Using max_workers to match OLLAMA_NUM_PARALLEL.
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_workers) as executor:
-        futures = [executor.submit(process_item, item, model_name) for item in to_process]
+        futures = [executor.submit(process_item, item, model_name, backend=args.backend, base_url=args.base_url) for item in to_process]
         for f in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="D2C Queries"):
             try:
                 res = f.result()
