@@ -32,7 +32,8 @@ start() {
         --model $GEN_MODEL \
         --port 8000 \
         --gpu-memory-utilization 0.20 \
-        --max-model-len 2048 > gen_server.log 2>&1 &
+        --max-model-len 2048 \
+        --enforce-eager > gen_server.log 2>&1 &
     wait_for_port 8000 "Generator" || exit 1
 
     # 2. Judge (Port 8001)
@@ -41,7 +42,8 @@ start() {
         --model $JUDGE_MODEL \
         --port 8001 \
         --gpu-memory-utilization 0.35 \
-        --max-model-len 2048 > judge_server.log 2>&1 &
+        --max-model-len 2048 \
+        --enforce-eager > judge_server.log 2>&1 &
     wait_for_port 8001 "Judge" || exit 1
 
     # 3. SFT Baseline (Port 8002)
@@ -52,7 +54,8 @@ start() {
         --lora-modules sft-lora=$SFT_ADAPTER \
         --port 8002 \
         --gpu-memory-utilization 0.10 \
-        --max-model-len 1024 > sft_server.log 2>&1 &
+        --max-model-len 1024 \
+        --enforce-eager > sft_server.log 2>&1 &
     wait_for_port 8002 "SFT" || exit 1
 
     # 4. RL Baseline (Port 8003)
@@ -63,7 +66,8 @@ start() {
         --lora-modules rl-lora=$RL_ADAPTER \
         --port 8003 \
         --gpu-memory-utilization 0.10 \
-        --max-model-len 1024 > rl_server.log 2>&1 &
+        --max-model-len 1024 \
+        --enforce-eager > rl_server.log 2>&1 &
     wait_for_port 8003 "RL" || exit 1
 
     echo "------------------------------------------------"
