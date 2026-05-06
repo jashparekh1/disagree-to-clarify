@@ -48,7 +48,7 @@ def run_cuda_model(query: str, adapter_path: str) -> str:
     
     if adapter_path not in _CUDA_MODELS:
         try:
-            tokenizer = AutoTokenizer.from_pretrained(adapter_path)
+            tokenizer = AutoTokenizer.from_pretrained(adapter_path, use_fast=False)
             model = AutoModelForCausalLM.from_pretrained(
                 adapter_path,
                 torch_dtype=torch.bfloat16,
