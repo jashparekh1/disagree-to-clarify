@@ -10,9 +10,13 @@ from d2c.prompts import (
     RESOLUTION_JUDGE_SYSTEM, RESOLUTION_JUDGE_USER
 )
 
-# Use the 8B model for simulation and judging as requested
-TEACHER_MODEL = "llama3.1:8b" 
-llm_teacher = LLMClient(model=TEACHER_MODEL, think=False)
+# Use the vLLM endpoint for simulation and judging
+TEACHER_MODEL = "meta-llama/Llama-3.1-8B-Instruct" 
+llm_teacher = LLMClient(
+    model=TEACHER_MODEL, 
+    backend="openai", 
+    base_url="http://localhost:8001"
+)
 
 def extract_json(text):
     """Robust JSON extraction from a string."""

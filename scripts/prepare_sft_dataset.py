@@ -6,8 +6,12 @@ from tqdm import tqdm
 from d2c.llm import LLMClient
 
 # Use a high-quality model for distillation (Teacher)
-GOLD_MODEL = "llama3.1:8b" 
-llm = LLMClient(model=GOLD_MODEL)
+GOLD_MODEL = "meta-llama/Llama-3.1-8B-Instruct" 
+llm = LLMClient(
+    model=GOLD_MODEL, 
+    backend="openai", 
+    base_url="http://localhost:8001"
+)
 
 # This prompt "cheats" by showing the teacher the ground truth interpretations
 PROMPT_TEMPLATE = """You are an expert at creating clarifying questions for ambiguous queries.
