@@ -91,19 +91,19 @@ def run_evaluations(max_workers: int):
     
     # A. Vanilla & Parallel
     run_cmd(
-        f"PYTHONPATH=. python3 scripts/run_baselines.py --input {eval_input} --output-prefix {OUTPUT_DIR}/master_baselines --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA} --max-workers {max_workers}",
+        f"PYTHONPATH=. python3 scripts/run_baselines.py --input {eval_input} --output-prefix {OUTPUT_DIR}/master_baselines --model {MODEL_OLLAMA} --judge-model {MODEL_JUDGE} --max-workers {max_workers}",
         "Running Vanilla and Parallel Baselines"
     )
     
     # B. D2C (Your System)
     run_cmd(
-        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA} --variant original --max-workers {max_workers}",
+        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_JUDGE} --variant original --max-workers {max_workers}",
         "Running D2C (Dialogue) System - Original"
     )
 
     # B2. D2C (Speech Act)
     run_cmd(
-        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c_speech_act.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_OLLAMA} --variant speech_act --max-workers {max_workers}",
+        f"PYTHONPATH=. python3 scripts/run_eval_ambigqa.py --input {eval_input} --output {OUTPUT_DIR}/master_d2c_speech_act.jsonl --model {MODEL_OLLAMA} --judge-model {MODEL_JUDGE} --variant speech_act --max-workers {max_workers}",
         "Running D2C (Dialogue) System - Speech Act"
     )
     

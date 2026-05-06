@@ -128,6 +128,23 @@ def llm_judge_quality_multi_ref(
     return best
 
 
+def llm_judge_score(
+    query: str,
+    interpretations: list[str],
+    generated_question: str,
+    llm: LLMClient,
+) -> dict[str, Any]:
+    """Compatibility wrapper for AmbigQA evaluation. Uses the interpretations as the reference."""
+    # AmbigQA uses multiple interpretations. We'll join them to form a 'gold reference' for the quality judge.
+    ref = " | ".join(interpretations)
+    res = llm_judge_quality(query, generated_question, ref, llm)
+    return {
+        "score": res["score"],
+        "covers_interpretations": res["covers"],
+        "reasoning": res["reasoning"]
+    }
+
+
 # ---------------------------------------------------------------------------
 # Metric 3: Semantic Similarity (Embedding-based)
 # ---------------------------------------------------------------------------
