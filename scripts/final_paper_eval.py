@@ -64,6 +64,7 @@ def run_cuda_model(query: str, adapter_path: str) -> str:
             )
             # Load LoRA adapter
             model = PeftModel.from_pretrained(base_model, adapter_path)
+            model.to(torch.bfloat16) # Force consistency to avoid mat1/mat2 dtype error
             _CUDA_MODELS[adapter_path] = (model, tokenizer)
         except Exception as e:
             return f"ERROR loading CUDA model: {e}"
