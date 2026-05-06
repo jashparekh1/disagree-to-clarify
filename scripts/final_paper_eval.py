@@ -9,6 +9,7 @@ import statistics
 import random
 import torch
 import threading
+import os
 from pathlib import Path
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -29,13 +30,12 @@ from eval.metrics import (
     internal_divergence_score
 )
 
+# Set environment variables for stability
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 logger = logging.getLogger(__name__)
 
 DATASETS = ["clamber", "clariq", "qulac", "abgcoqa"]
-
-# CUDA Model Cache and Lock
-_CUDA_MODELS = {} # path -> (model, tokenizer)
-_MODEL_LOCK = threading.Lock()
 
 def load_full_test_set(dataset: str) -> list[dict]:
     path = Path("test_sets") / f"{dataset}_test.jsonl"
@@ -43,39 +43,32 @@ def load_full_test_set(dataset: str) -> list[dict]:
     with open(path) as f:
         return [json.loads(line) for line in f if line.strip()]
 
-def run_cuda_model(query: str, adapter_path: str) -> str:
-    """Runs a fine-tuned model using Transformers (CUDA) with PEFT support."""
-    global _CUDA_MODELS
+def load_lora_model(adapter_path: str):
+    """Utility to load a LoRA model safely in bfloat16."""
     from transformers import AutoModelForCausalLM, AutoTokenizer
     from peft import PeftModel
     
     BASE_MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
-
-    with _MODEL_LOCK:
-        if adapter_path not in _CUDA_MODELS:
-            try:
-                # Check if directory is empty
-                if not any(Path(adapter_path).iterdir()):
-                    return "ERROR: Adapter directory is empty"
-
-                print(f"Loading base model and adapter for {adapter_path}...")
-                tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
-                base_model = AutoModelForCausalLM.from_pretrained(
-                    BASE_MODEL_NAME,
-                    torch_dtype=torch.bfloat16,
-                    device_map="auto"
-                )
-                # Load LoRA adapter
-                model = PeftModel.from_pretrained(base_model, adapter_path)
-                model.to(torch.bfloat16) # Force consistency to avoid mat1/mat2 dtype error
-                _CUDA_MODELS[adapter_path] = (model, tokenizer)
-            except Exception as e:
-                return f"ERROR loading CUDA model: {e}"
-
-    model, tokenizer = _CUDA_MODELS[adapter_path]
     
-    if query == "warmup":
-        return "warmup"
+    if not Path(adapter_path).exists() or not any(Path(adapter_path).iterdir()):
+        return None, None
+
+    print(f"Loading base model and adapter from {adapter_path}...")
+    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
+    base_model = AutoModelForCausalLM.from_pretrained(
+        BASE_MODEL_NAME,
+        torch_dtype=torch.bfloat16,
+        device_map="auto"
+    )
+    model = PeftModel.from_pretrained(base_model, adapter_path)
+    model.to(torch.bfloat16)
+    model.eval()
+    return model, tokenizer
+
+def run_cuda_inference(query: str, model, tokenizer) -> str:
+    """Performs inference using a pre-loaded model object."""
+    if model is None:
+        return "ADAPTER_MISSING"
 
     prompt = f"<|im_start|>user\n{query}<|im_end|>\n<|im_start|>assistant\n"
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
@@ -86,15 +79,13 @@ def run_cuda_model(query: str, adapter_path: str) -> str:
     generated_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True).strip()
     return generated_text
 
-def run_parallel_baseline_full(query: str, model: str, llm: LLMClient, context: str | None = None) -> tuple[str, list[str]]:
-    """Agents generate 1 round in parallel, then synthesize (No Dialogue)."""
+def run_parallel_baseline_serial(query: str, llm: LLMClient, context: str | None = None) -> tuple[str, list[str]]:
+    """Agents generate 1 round in sequence (to avoid thread-storm), then synthesize."""
     roles = [AgentRole.FACT_FINDER, AgentRole.FACET_FINDER, AgentRole.INTENT_FINDER]
     agents = [Agent(role, llm, max_tokens=300) for role in roles]
     
-    # Nested parallelism for agents
-    with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = [executor.submit(agent.respond_initial, query, context) for agent in agents]
-        round_0 = [f.result() for f in futures]
+    # Run serially within the worker to keep the A100 queue clean
+    round_0 = [agent.respond_initial(query, context) for agent in agents]
 
     dialogue = DialogueResult(query=query, rounds=[round_0], num_rounds=1, context=context)
     synth = synthesize(query, dialogue, llm, max_tokens=300, variant="d2c")
@@ -110,7 +101,7 @@ def main():
     parser.add_argument("--judge-model", default="llama3.1:8b")
     parser.add_argument("--adapter-path", default="adapters", help="Path to CUDA SFT adapters")
     parser.add_argument("--rl-adapter-path", default="adapters_rl", help="Path to CUDA RL adapters")
-    parser.add_argument("--max-workers", type=int, default=16, help="Global parallel workers")
+    parser.add_argument("--max-workers", type=int, default=10, help="Global parallel workers")
     args = parser.parse_args()
 
     if args.seed is None:
@@ -120,27 +111,22 @@ def main():
     llm = LLMClient(model=args.model, think=False)
     judge_llm = LLMClient(model=args.judge_model, think=False)
 
-    # Pre-load embedding model once to avoid thread deadlocks during lazy loading
+    # 1. PRE-LOAD ALL MODELS ONCE
+    print("Initializing environment...")
     print("Pre-loading embedding model for metrics...")
     semantic_similarity("warmup", "warmup") 
 
-    # Pre-load SFT and RL models once to avoid CUDA allocation crashes in threads
-    if Path(args.adapter_path).exists() and any(Path(args.adapter_path).iterdir()):
-        print(f"Pre-loading SFT model from {args.adapter_path}...")
-        run_cuda_model("warmup", args.adapter_path)
-    if Path(args.rl_adapter_path).exists() and any(Path(args.rl_adapter_path).iterdir()):
-        print(f"Pre-loading RL model from {args.rl_adapter_path}...")
-        run_cuda_model("warmup", args.rl_adapter_path)
+    sft_model, sft_tokenizer = load_lora_model(args.adapter_path)
+    rl_model, rl_tokenizer = load_lora_model(args.rl_adapter_path)
 
     results_file = Path("paper_evaluation_results.txt")
     inspection_file = Path("variant_inspections.txt")
     
     with open(results_file, "w") as f:
-        f.write(f"PAPER-READY MASTER EVALUATION (CUDA OPTIMIZED)\n")
+        f.write(f"PAPER-READY MASTER EVALUATION (A100 OPTIMIZED)\n")
         f.write(f"Seed: {args.seed} | Generator: {args.model} | Judge: {args.judge_model}\n")
         f.write("="*120 + "\n\n")
 
-    # Clear and initialize inspection log
     with open(inspection_file, "w") as f:
         f.write(f"VARIANT INSPECTION LOG\nSeed: {args.seed}\n" + "="*80 + "\n")
 
@@ -165,8 +151,6 @@ def main():
         n_non = min(len(non_ambig), n // 2)
         n_amb = min(len(ambig), n - n_non)
         items = ambig[:n_amb] + non_ambig[:n_non]
-        for it in items:
-            it["_dataset"] = dataset
         sample.extend(items)
 
     total_tasks = len(sample) * len(methods)
@@ -186,19 +170,13 @@ def main():
                 q_text = res.clarifying_question
                 rnd, div_score = 0, 0.0
             elif method_name == "sft":
-                if not Path(args.adapter_path).exists():
-                    q_text = "ADAPTER_MISSING"
-                else:
-                    q_text = run_cuda_model(query, args.adapter_path)
+                q_text = run_cuda_inference(query, sft_model, sft_tokenizer)
                 rnd, div_score = 0, 0.0
             elif method_name == "rl":
-                if not Path(args.rl_adapter_path).exists():
-                    q_text = "RL_ADAPTER_MISSING"
-                else:
-                    q_text = run_cuda_model(query, args.rl_adapter_path)
+                q_text = run_cuda_inference(query, rl_model, rl_tokenizer)
                 rnd, div_score = 0, 0.0
             elif method_name == "parallel":
-                q_text, interps = run_parallel_baseline_full(query, args.model, llm, context=context)
+                q_text, interps = run_parallel_baseline_serial(query, llm, context=context)
                 rnd, div_score = 1, internal_divergence_score(interps)
             elif method_name == "d2c":
                 res = run_d2c(query, variant="d2c", model=args.model, num_rounds=args.num_rounds, context=context)
