@@ -139,83 +139,98 @@ def main():
             it["_dataset"] = dataset
         sample.extend(items)
 
-    print(f"Starting Paper Evaluation on {len(sample)} items using {args.max_workers} workers...")
+    total_tasks = len(sample) * len(methods)
+    print(f"Starting Paper Evaluation on {len(sample)} items ({total_tasks} tasks) using {args.max_workers} workers...")
 
-    def process_item(item):
+    pbar = tqdm(total=total_tasks, desc="Evaluating")
+
+    def process_task(item, method_name):
         query = item["query"]
         is_ambig = item.get("is_ambiguous", True)
         context = item.get("context")
         gold_qs = item.get("gold_clarifying_questions", [])
         
-        item_results = {}
-        
-        for name in methods:
-            try:
-                if name == "vanilla":
-                    res = run_vanilla_cqg(query, llm, max_tokens=300, context=context)
-                    q_text = res.clarifying_question
-                    rnd, div_score = 0, 0.0
-                elif name == "sft":
-                    if not Path(args.adapter_path).exists():
-                        q_text = "ADAPTER_MISSING"
-                    else:
-                        q_text = run_cuda_model(query, args.adapter_path)
-                    rnd, div_score = 0, 0.0
-                elif name == "parallel":
-                    q_text, interps = run_parallel_baseline_full(query, args.model, llm, context=context)
-                    rnd, div_score = 1, internal_divergence_score(interps)
-                elif name == "d2c":
-                    res = run_d2c(query, variant="d2c", model=args.model, num_rounds=args.num_rounds, context=context)
-                    q_text = res.synthesizer_result.clarifying_question
-                    rnd = res.dialogue.rounds_completed
-                    final_interps = [r.interpretation for r in res.dialogue.rounds[-1]]
-                    div_score = internal_divergence_score(final_interps)
-
-                pred_ambig = "CLEAR" not in q_text.upper()
-                
-                if is_ambig:
-                    j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm, context=context)
-                    sim_score = semantic_similarity_multi_ref(q_text, gold_qs)
+        try:
+            if method_name == "vanilla":
+                res = run_vanilla_cqg(query, llm, max_tokens=300, context=context)
+                q_text = res.clarifying_question
+                rnd, div_score = 0, 0.0
+            elif method_name == "sft":
+                if not Path(args.adapter_path).exists():
+                    q_text = "ADAPTER_MISSING"
                 else:
-                    j_res = {"score": 5 if not pred_ambig else 1, "covers": False, "reasoning": "Correctly identified clear query"}
-                    sim_score = 0.0
-                
-                item_results[name] = {
-                    "q_text": q_text,
-                    "score": j_res.get("score", 0),
-                    "sim": sim_score,
-                    "round": rnd,
-                    "div": div_score,
-                    "pred": pred_ambig,
-                    "covers": j_res.get("covers", False),
-                    "reasoning": j_res.get("reasoning", ""),
-                    "is_ambig": is_ambig
-                }
-            except Exception as e:
-                logger.error(f"Error in method {name} for query {query[:50]}: {e}")
-        
-        return query, item_results
+                    q_text = run_cuda_model(query, args.adapter_path)
+                rnd, div_score = 0, 0.0
+            elif method_name == "rl":
+                if not Path(args.rl_adapter_path).exists():
+                    q_text = "RL_ADAPTER_MISSING"
+                else:
+                    q_text = run_cuda_model(query, args.rl_adapter_path)
+                rnd, div_score = 0, 0.0
+            elif method_name == "parallel":
+                q_text, interps = run_parallel_baseline_full(query, args.model, llm, context=context)
+                rnd, div_score = 1, internal_divergence_score(interps)
+            elif method_name == "d2c":
+                res = run_d2c(query, variant="d2c", model=args.model, num_rounds=args.num_rounds, context=context)
+                q_text = res.synthesizer_result.clarifying_question
+                rnd = res.dialogue.rounds_completed
+                final_interps = [r.interpretation for r in res.dialogue.rounds[-1]]
+                div_score = internal_divergence_score(final_interps)
+
+            pred_ambig = "CLEAR" not in q_text.upper()
+            
+            if is_ambig:
+                j_res = llm_judge_quality_multi_ref(query, q_text, gold_qs, judge_llm, context=context)
+                sim_score = semantic_similarity_multi_ref(q_text, gold_qs)
+            else:
+                j_res = {"score": 5 if not pred_ambig else 1, "covers": False, "reasoning": "Correctly identified clear query"}
+                sim_score = 0.0
+            
+            res_dict = {
+                "method": method_name,
+                "q_text": q_text,
+                "score": j_res.get("score", 0),
+                "sim": sim_score,
+                "round": rnd,
+                "div": div_score,
+                "pred": pred_ambig,
+                "covers": j_res.get("covers", False),
+                "reasoning": j_res.get("reasoning", ""),
+                "is_ambig": is_ambig
+            }
+            return query, res_dict
+        except Exception as e:
+            logger.error(f"Error in method {method_name} for query {query[:50]}: {e}")
+            return query, None
 
     with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
-        futures = [executor.submit(process_item, it) for it in sample]
-        for future in tqdm(as_completed(futures), total=len(futures), desc="Paper Eval"):
-            query, item_res = future.result()
+        futures = []
+        for it in sample:
+            for m in methods:
+                futures.append(executor.submit(process_task, it, m))
+        
+        for future in as_completed(futures):
+            result = future.result()
+            pbar.update(1)
+            if not result: continue
+            
+            query, m_res = result
+            name = m_res["method"]
+            
+            all_results[name]["preds"].append(m_res["pred"])
+            all_results[name]["golds"].append(m_res["is_ambig"])
+            all_results[name]["rounds"].append(m_res["round"])
+            all_results[name]["divs"].append(m_res["div"])
+
+            if m_res["is_ambig"]:
+                all_results[name]["scores"].append(m_res["score"])
+                all_results[name]["sims"].append(m_res["sim"])
+                all_results[name]["covers"].append(1 if m_res["covers"] else 0)
             
             with open(inspection_file, "a") as f_insp:
-                f_insp.write(f"\nQUERY: {query}\n" + "-"*40 + "\n")
+                f_insp.write(f"\nQUERY: {query}\nMethod: {name}\nScore: {m_res['score']}\nOutput: {m_res['q_text']}\n---\n")
 
-            for name, m_res in item_res.items():
-                all_results[name]["preds"].append(m_res["pred"])
-                all_results[name]["golds"].append(m_res["is_ambig"])
-                all_results[name]["rounds"].append(m_res["round"])
-                all_results[name]["divs"].append(m_res["div"])
-
-                if m_res["is_ambig"]:
-                    all_results[name]["scores"].append(m_res["score"])
-                    all_results[name]["sims"].append(m_res["sim"])
-                    all_results[name]["covers"].append(1 if m_res["covers"] else 0)
-                
-                f_insp.write(f"[{name:^10}] Score: {m_res['score']} | {m_res['q_text']}\n")
+    pbar.close()
 
     # Final Master Table
     print(f"\n{'='*130}\n  FINAL MASTER EVALUATION RESULTS (N={len(sample)})\n{'='*130}")

@@ -99,10 +99,6 @@ class LLMClient:
         if max_tokens is not None:
             payload["options"]["num_predict"] = max_tokens
 
-        effective_think = think if think is not None else self.think
-        if effective_think is not None:
-            payload["think"] = effective_think
-
         if format_schema is not None:
             payload["format"] = format_schema
 

@@ -10,8 +10,8 @@ from d2c.prompts import (
     RESOLUTION_JUDGE_SYSTEM, RESOLUTION_JUDGE_USER
 )
 
-# Use a 4B model for simulation and judging (Balanced speed/quality)
-TEACHER_MODEL = "qwen3:4b" 
+# Use the 8B model for simulation and judging as requested
+TEACHER_MODEL = "llama3.1:8b" 
 llm_teacher = LLMClient(model=TEACHER_MODEL, think=False)
 
 def extract_json(text):
