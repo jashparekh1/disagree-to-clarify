@@ -22,7 +22,7 @@ def load_dpo_data(path: str) -> Dataset:
 
 
 def main():
-    base_model = "Qwen/Qwen2.5-1.5B-Instruct"
+    base_model = "Qwen/Qwen2.5-3B-Instruct"
     adapter_path = "adapters_rl"
     os.makedirs(adapter_path, exist_ok=True)
 
@@ -61,12 +61,12 @@ def main():
     training_args = DPOConfig(
         output_dir=adapter_path,
         num_train_epochs=3,
-        per_device_train_batch_size=2,
-        gradient_accumulation_steps=4,
+        per_device_train_batch_size=16,
+        gradient_accumulation_steps=1,
         learning_rate=2e-5,
         beta=0.1,
         max_length=512,
-        logging_steps=10,
+        logging_steps=5,
         save_strategy="epoch",
         bf16=True,
         report_to="none",

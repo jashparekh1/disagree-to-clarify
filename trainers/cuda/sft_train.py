@@ -60,10 +60,10 @@ def main():
     training_args = SFTConfig(
         output_dir=adapter_path,
         num_train_epochs=3,
-        per_device_train_batch_size=4,
-        gradient_accumulation_steps=2,
+        per_device_train_batch_size=16,
+        gradient_accumulation_steps=1,
         learning_rate=1e-5,
-        logging_steps=10,
+        logging_steps=5,
         save_strategy="epoch",
         bf16=True,
         report_to="none",
