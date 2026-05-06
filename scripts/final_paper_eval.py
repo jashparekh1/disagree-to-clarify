@@ -45,25 +45,32 @@ def load_full_test_set(dataset: str) -> list[dict]:
 
 def load_lora_model(adapter_path: str):
     """Utility to load a LoRA model safely in bfloat16."""
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-    from peft import PeftModel
+    try:
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from peft import PeftModel
+    except ImportError:
+        return None, None
     
     BASE_MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
     
     if not Path(adapter_path).exists() or not any(Path(adapter_path).iterdir()):
         return None, None
 
-    print(f"Loading base model and adapter from {adapter_path}...")
-    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
-    base_model = AutoModelForCausalLM.from_pretrained(
-        BASE_MODEL_NAME,
-        torch_dtype=torch.bfloat16,
-        device_map="auto"
-    )
-    model = PeftModel.from_pretrained(base_model, adapter_path)
-    model.to(torch.bfloat16)
-    model.eval()
-    return model, tokenizer
+    try:
+        print(f"Loading base model and adapter from {adapter_path}...")
+        tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
+        base_model = AutoModelForCausalLM.from_pretrained(
+            BASE_MODEL_NAME,
+            torch_dtype=torch.bfloat16,
+            device_map="auto"
+        )
+        model = PeftModel.from_pretrained(base_model, adapter_path)
+        model.to(torch.bfloat16)
+        model.eval()
+        return model, tokenizer
+    except Exception as e:
+        logger.warning(f"Could not load local adapter from {adapter_path}: {e}")
+        return None, None
 
 def run_cuda_inference(query: str, model, tokenizer) -> str:
     """Performs inference using a pre-loaded model object."""
@@ -78,6 +85,15 @@ def run_cuda_inference(query: str, model, tokenizer) -> str:
     
     generated_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True).strip()
     return generated_text
+
+def run_vllm_inference(query: str, client: LLMClient) -> str:
+    """Performs inference using a vLLM client."""
+    return client.chat(
+        system_prompt="You are a helpful assistant.",
+        user_prompt=query,
+        max_tokens=150,
+        temperature=0.0
+    )
 
 def run_parallel_baseline_serial(query: str, llm: LLMClient, context: str | None = None) -> tuple[str, list[str]]:
     """Agents generate 1 round in sequence (to avoid thread-storm), then synthesize."""
@@ -108,6 +124,8 @@ def main():
                         help="Override generator LLM server URL")
     parser.add_argument("--judge-base-url", default=None,
                         help="Override judge LLM server URL")
+    parser.add_argument("--sft-base-url", default=None, help="vLLM endpoint for SFT baseline")
+    parser.add_argument("--rl-base-url", default=None, help="vLLM endpoint for RL baseline")
     args = parser.parse_args()
 
     if args.seed is None:
@@ -128,6 +146,9 @@ def main():
         backend=args.backend, 
         base_url=judge_url
     )
+
+    sft_llm = LLMClient(model=args.model, backend=args.backend, base_url=args.sft_base_url) if args.sft_base_url else None
+    rl_llm = LLMClient(model=args.model, backend=args.backend, base_url=args.rl_base_url) if args.rl_base_url else None
 
     # 1. PRE-LOAD ALL MODELS ONCE
     print("Initializing environment...")
@@ -188,10 +209,16 @@ def main():
                 q_text = res.clarifying_question
                 rnd, div_score = 0, 0.0
             elif method_name == "sft":
-                q_text = run_cuda_inference(query, sft_model, sft_tokenizer)
+                if sft_llm:
+                    q_text = run_vllm_inference(query, sft_llm)
+                else:
+                    q_text = run_cuda_inference(query, sft_model, sft_tokenizer)
                 rnd, div_score = 0, 0.0
             elif method_name == "rl":
-                q_text = run_cuda_inference(query, rl_model, rl_tokenizer)
+                if rl_llm:
+                    q_text = run_vllm_inference(query, rl_llm)
+                else:
+                    q_text = run_cuda_inference(query, rl_model, rl_tokenizer)
                 rnd, div_score = 0, 0.0
             elif method_name == "parallel":
                 q_text, interps = run_parallel_baseline_serial(query, llm, context=context)
