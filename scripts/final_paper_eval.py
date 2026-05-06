@@ -42,18 +42,28 @@ def load_full_test_set(dataset: str) -> list[dict]:
 _CUDA_MODELS = {} # path -> (model, tokenizer)
 
 def run_cuda_model(query: str, adapter_path: str) -> str:
-    """Runs a fine-tuned model using Transformers (CUDA)."""
+    """Runs a fine-tuned model using Transformers (CUDA) with PEFT support."""
     global _CUDA_MODELS
     from transformers import AutoModelForCausalLM, AutoTokenizer
+    from peft import PeftModel
     
+    BASE_MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
+
     if adapter_path not in _CUDA_MODELS:
         try:
-            tokenizer = AutoTokenizer.from_pretrained(adapter_path, use_fast=False)
-            model = AutoModelForCausalLM.from_pretrained(
-                adapter_path,
+            # Check if directory is empty
+            if not any(Path(adapter_path).iterdir()):
+                return "ERROR: Adapter directory is empty"
+
+            print(f"Loading base model and adapter for {adapter_path}...")
+            tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
+            base_model = AutoModelForCausalLM.from_pretrained(
+                BASE_MODEL_NAME,
                 torch_dtype=torch.bfloat16,
                 device_map="auto"
             )
+            # Load LoRA adapter
+            model = PeftModel.from_pretrained(base_model, adapter_path)
             _CUDA_MODELS[adapter_path] = (model, tokenizer)
         except Exception as e:
             return f"ERROR loading CUDA model: {e}"
