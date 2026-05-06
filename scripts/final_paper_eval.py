@@ -28,18 +28,21 @@ from eval.metrics import (
     internal_divergence_score
 )
 
+import threading
+
 logger = logging.getLogger(__name__)
 
 DATASETS = ["clamber", "clariq", "qulac", "abgcoqa"]
+
+# CUDA Model Cache and Lock
+_CUDA_MODELS = {} # path -> (model, tokenizer)
+_MODEL_LOCK = threading.Lock()
 
 def load_full_test_set(dataset: str) -> list[dict]:
     path = Path("test_sets") / f"{dataset}_test.jsonl"
     if not path.exists(): return []
     with open(path) as f:
         return [json.loads(line) for line in f if line.strip()]
-
-# CUDA Model Cache
-_CUDA_MODELS = {} # path -> (model, tokenizer)
 
 def run_cuda_model(query: str, adapter_path: str) -> str:
     """Runs a fine-tuned model using Transformers (CUDA) with PEFT support."""
@@ -49,25 +52,26 @@ def run_cuda_model(query: str, adapter_path: str) -> str:
     
     BASE_MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
 
-    if adapter_path not in _CUDA_MODELS:
-        try:
-            # Check if directory is empty
-            if not any(Path(adapter_path).iterdir()):
-                return "ERROR: Adapter directory is empty"
+    with _MODEL_LOCK:
+        if adapter_path not in _CUDA_MODELS:
+            try:
+                # Check if directory is empty
+                if not any(Path(adapter_path).iterdir()):
+                    return "ERROR: Adapter directory is empty"
 
-            print(f"Loading base model and adapter for {adapter_path}...")
-            tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
-            base_model = AutoModelForCausalLM.from_pretrained(
-                BASE_MODEL_NAME,
-                torch_dtype=torch.bfloat16,
-                device_map="auto"
-            )
-            # Load LoRA adapter
-            model = PeftModel.from_pretrained(base_model, adapter_path)
-            model.to(torch.bfloat16) # Force consistency to avoid mat1/mat2 dtype error
-            _CUDA_MODELS[adapter_path] = (model, tokenizer)
-        except Exception as e:
-            return f"ERROR loading CUDA model: {e}"
+                print(f"Loading base model and adapter for {adapter_path}...")
+                tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
+                base_model = AutoModelForCausalLM.from_pretrained(
+                    BASE_MODEL_NAME,
+                    torch_dtype=torch.bfloat16,
+                    device_map="auto"
+                )
+                # Load LoRA adapter
+                model = PeftModel.from_pretrained(base_model, adapter_path)
+                model.to(torch.bfloat16) # Force consistency to avoid mat1/mat2 dtype error
+                _CUDA_MODELS[adapter_path] = (model, tokenizer)
+            except Exception as e:
+                return f"ERROR loading CUDA model: {e}"
 
     model, tokenizer = _CUDA_MODELS[adapter_path]
     prompt = f"<|im_start|>user\n{query}<|im_end|>\n<|im_start|>assistant\n"
@@ -261,6 +265,14 @@ def main():
             cov_mean = (sum(all_results[name]["covers"]) / len(all_results[name]["covers"]) * 100) if all_results[name]["covers"] else 0.0
             div_avg = statistics.mean(all_results[name]["divs"]) if all_results[name]["divs"] else 0.0
             rnd_avg = statistics.mean(all_results[name]["rounds"]) if all_results[name]["rounds"] else 0.0
+            
+            row = f"{name:<12} | {det['f1']:>5.2f} | {q_mean:>4.1f} | {div_avg:>4.2f} | {sim_mean:>6.3f} | {cov_mean:>5.1f} | {rnd_avg:>4.1f}"
+            print(row)
+            f.write(row + "\n")
+
+if __name__ == "__main__":
+    main()
+] else 0.0
             
             row = f"{name:<12} | {det['f1']:>5.2f} | {q_mean:>4.1f} | {div_avg:>4.2f} | {sim_mean:>6.3f} | {cov_mean:>5.1f} | {rnd_avg:>4.1f}"
             print(row)
