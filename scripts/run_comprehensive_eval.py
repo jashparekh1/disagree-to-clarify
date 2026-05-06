@@ -22,9 +22,9 @@ import argparse
 
 # Configuration
 EVAL_N = 100  # Full robust run
-MODEL_OLLAMA = "qwen3:1.7b"
+MODEL_OLLAMA = "qwen2.5:3b"
 MODEL_JUDGE = "llama3.1:8b"
-MODEL_CUDA_BASE = "Qwen/Qwen3-1.7B-Instruct"
+MODEL_CUDA_BASE = "Qwen/Qwen2.5-3B-Instruct"
 ADAPTER_PATH = "adapters/"
 DATA_DIR = "data"
 OUTPUT_DIR = "outputs"

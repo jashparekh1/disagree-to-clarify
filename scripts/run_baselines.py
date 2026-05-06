@@ -94,7 +94,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run Baselines on AmbigQA")
     parser.add_argument("--input", required=True, help="Input JSONL file")
     parser.add_argument("--output-prefix", required=True, help="Prefix for output JSONL files")
-    parser.add_argument("--model", default="qwen3:1.7b", help="Model name")
+    parser.add_argument("--model", default="qwen2.5:3b", help="Model name")
     parser.add_argument("--judge-model", default="llama3.1:8b", help="Judge model name")
     parser.add_argument("--max-workers", type=int, default=4)
     parser.add_argument("--backend", default="ollama", choices=["ollama", "openai"],

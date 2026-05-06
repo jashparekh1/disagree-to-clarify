@@ -112,7 +112,7 @@ def run_ablation_variant(query, variant_name, llm, context=None):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--n-per-dataset", type=int, default=10)
-    parser.add_argument("--model", default="qwen3:1.7b")
+    parser.add_argument("--model", default="qwen2.5:3b")
     parser.add_argument("--judge-model", default="llama3.1:8b")
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--max-workers", type=int, default=10)

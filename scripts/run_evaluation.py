@@ -75,7 +75,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", required=True, choices=["clariq", "qulac", "clamber"])
     parser.add_argument("--n", type=int, default=None, help="Cap queries")
-    parser.add_argument("--model", default="qwen3:1.7b", help="D2C + vanilla model")
+    parser.add_argument("--model", default="qwen2.5:3b", help="D2C + vanilla model")
     parser.add_argument(
         "--judge-model",
         default="llama3.1:8b",

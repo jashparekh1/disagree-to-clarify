@@ -94,7 +94,7 @@ def process_item(item, model_name):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--max-workers", type=int, default=8, help="Max parallel workers")
-    parser.add_argument("--model", default="qwen3:1.7b", help="Model name")
+    parser.add_argument("--model", default="qwen2.5:3b", help="Model name")
     args = parser.parse_args()
 
     # 1. Load CLAMBER dataset using the official loader

@@ -23,7 +23,7 @@ def load_sft_data(path: str, tokenizer) -> Dataset:
 
 
 def main():
-    base_model = "Qwen/Qwen3-1.7B-Instruct"
+    base_model = "Qwen/Qwen2.5-3B-Instruct"
     adapter_path = "adapters"
     os.makedirs(adapter_path, exist_ok=True)
 
