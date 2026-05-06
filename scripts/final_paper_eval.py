@@ -32,6 +32,12 @@ logger = logging.getLogger(__name__)
 
 DATASETS = ["clamber", "clariq", "qulac", "abgcoqa"]
 
+def load_full_test_set(dataset: str) -> list[dict]:
+    path = Path("test_sets") / f"{dataset}_test.jsonl"
+    if not path.exists(): return []
+    with open(path) as f:
+        return [json.loads(line) for line in f if line.strip()]
+
 # CUDA Model Cache
 _CUDA_MODELS = {} # path -> (model, tokenizer)
 
