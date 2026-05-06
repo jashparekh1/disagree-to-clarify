@@ -192,10 +192,11 @@ def main():
         items = ambig[:n_amb] + non_ambig[:n_non]
         sample.extend(items)
 
-    total_tasks = len(sample) * len(methods)
     print(f"Starting Paper Evaluation on {len(sample)} items ({total_tasks} tasks) using {args.max_workers} workers...")
 
-    pbar = tqdm(total=total_tasks, desc="Evaluating")
+    pbar = tqdm(total=len(sample), desc="Evaluating Queries")
+    from collections import defaultdict
+    query_task_counter = defaultdict(int)
 
     def process_task(item, method_name):
         query = item["query"]
@@ -272,11 +273,15 @@ def main():
         
         for future in as_completed(futures):
             result = future.result()
-            pbar.update(1)
             if not result: continue
             
             query, m_res = result
             name = m_res["method"]
+
+            # Track progress by query completion
+            query_task_counter[query] += 1
+            if query_task_counter[query] == len(methods):
+                pbar.update(1)
             
             all_results[name]["preds"].append(m_res["pred"])
             all_results[name]["golds"].append(m_res["is_ambig"])
