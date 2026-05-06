@@ -91,7 +91,10 @@ class LLMClient:
             "model": self.model,
             "messages": messages,
             "stream": False,
-            "options": {"temperature": temperature},
+            "options": {
+                "temperature": temperature,
+                "num_ctx": 4096
+            },
         }
         if max_tokens is not None:
             payload["options"]["num_predict"] = max_tokens
