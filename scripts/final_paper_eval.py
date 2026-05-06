@@ -8,6 +8,7 @@ import logging
 import statistics
 import random
 import torch
+import threading
 from pathlib import Path
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -27,8 +28,6 @@ from eval.metrics import (
     clarification_need_f1,
     internal_divergence_score
 )
-
-import threading
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +73,10 @@ def run_cuda_model(query: str, adapter_path: str) -> str:
                 return f"ERROR loading CUDA model: {e}"
 
     model, tokenizer = _CUDA_MODELS[adapter_path]
+    
+    if query == "warmup":
+        return "warmup"
+
     prompt = f"<|im_start|>user\n{query}<|im_end|>\n<|im_start|>assistant\n"
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
     
@@ -106,6 +109,7 @@ def main():
     parser.add_argument("--model", default="qwen2.5:3b")
     parser.add_argument("--judge-model", default="llama3.1:8b")
     parser.add_argument("--adapter-path", default="adapters", help="Path to CUDA SFT adapters")
+    parser.add_argument("--rl-adapter-path", default="adapters_rl", help="Path to CUDA RL adapters")
     parser.add_argument("--max-workers", type=int, default=16, help="Global parallel workers")
     args = parser.parse_args()
 
@@ -118,8 +122,15 @@ def main():
 
     # Pre-load embedding model once to avoid thread deadlocks during lazy loading
     print("Pre-loading embedding model for metrics...")
-    from eval.metrics import semantic_similarity
     semantic_similarity("warmup", "warmup") 
+
+    # Pre-load SFT and RL models once to avoid CUDA allocation crashes in threads
+    if Path(args.adapter_path).exists() and any(Path(args.adapter_path).iterdir()):
+        print(f"Pre-loading SFT model from {args.adapter_path}...")
+        run_cuda_model("warmup", args.adapter_path)
+    if Path(args.rl_adapter_path).exists() and any(Path(args.rl_adapter_path).iterdir()):
+        print(f"Pre-loading RL model from {args.rl_adapter_path}...")
+        run_cuda_model("warmup", args.rl_adapter_path)
 
     results_file = Path("paper_evaluation_results.txt")
     inspection_file = Path("variant_inspections.txt")
@@ -133,7 +144,7 @@ def main():
     with open(inspection_file, "w") as f:
         f.write(f"VARIANT INSPECTION LOG\nSeed: {args.seed}\n" + "="*80 + "\n")
 
-    methods = ["vanilla", "parallel", "sft", "d2c"]
+    methods = ["vanilla", "parallel", "sft", "rl", "d2c"]
     all_results = {m: {
         "scores": [], "sims": [], "preds": [], "golds": [], "rounds": [], "covers": [], "divs": []
     } for m in methods}
@@ -252,8 +263,9 @@ def main():
     pbar.close()
 
     # Final Master Table
-    print(f"\n{'='*130}\n  FINAL MASTER EVALUATION RESULTS (N={len(sample)})\n{'='*130}")
+    master_header = f"\n{'='*130}\n  FINAL MASTER EVALUATION RESULTS (N={len(sample)})\n{'='*130}"
     header_row = f"{'Method':<12} | {'F1':<5} | {'Qual':<4} | {'Div':<4} | {'Sim':<6} | {'Cov%':<5} | {'Rnd':<4}"
+    print(master_header)
     print(header_row)
     
     with open(results_file, "a") as f:
@@ -265,14 +277,6 @@ def main():
             cov_mean = (sum(all_results[name]["covers"]) / len(all_results[name]["covers"]) * 100) if all_results[name]["covers"] else 0.0
             div_avg = statistics.mean(all_results[name]["divs"]) if all_results[name]["divs"] else 0.0
             rnd_avg = statistics.mean(all_results[name]["rounds"]) if all_results[name]["rounds"] else 0.0
-            
-            row = f"{name:<12} | {det['f1']:>5.2f} | {q_mean:>4.1f} | {div_avg:>4.2f} | {sim_mean:>6.3f} | {cov_mean:>5.1f} | {rnd_avg:>4.1f}"
-            print(row)
-            f.write(row + "\n")
-
-if __name__ == "__main__":
-    main()
-] else 0.0
             
             row = f"{name:<12} | {det['f1']:>5.2f} | {q_mean:>4.1f} | {div_avg:>4.2f} | {sim_mean:>6.3f} | {cov_mean:>5.1f} | {rnd_avg:>4.1f}"
             print(row)
