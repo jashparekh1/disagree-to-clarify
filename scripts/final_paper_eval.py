@@ -101,6 +101,11 @@ def main():
     llm = LLMClient(model=args.model, think=False)
     judge_llm = LLMClient(model=args.judge_model, think=False)
 
+    # Pre-load embedding model once to avoid thread deadlocks during lazy loading
+    print("Pre-loading embedding model for metrics...")
+    from eval.metrics import semantic_similarity
+    semantic_similarity("warmup", "warmup") 
+
     results_file = Path("paper_evaluation_results.txt")
     inspection_file = Path("variant_inspections.txt")
     
