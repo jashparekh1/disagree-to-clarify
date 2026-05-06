@@ -114,6 +114,10 @@ def main():
         f.write(f"Seed: {args.seed} | Generator: {args.model} | Judge: {args.judge_model}\n")
         f.write("="*120 + "\n\n")
 
+    # Clear and initialize inspection log
+    with open(inspection_file, "w") as f:
+        f.write(f"VARIANT INSPECTION LOG\nSeed: {args.seed}\n" + "="*80 + "\n")
+
     methods = ["vanilla", "parallel", "sft", "d2c"]
     all_results = {m: {
         "scores": [], "sims": [], "preds": [], "golds": [], "rounds": [], "covers": [], "divs": []
