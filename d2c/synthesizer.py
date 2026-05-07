@@ -121,6 +121,7 @@ def synthesize(
     llm: LLMClient,
     max_tokens: int = 300,
     variant: str = "speech_act",
+    system_prompt_override: str | None = None,
 ) -> SynthesizerResult:
     transcript = _format_transcript(dialogue)
     
@@ -141,7 +142,9 @@ def synthesize(
     # -----------------------------------------------------------------------
     user_prompt = SYNTHESIZER_USER.format(query=query, transcript=transcript)
 
-    if variant == "madisse":
+    if system_prompt_override is not None:
+        system_prompt = system_prompt_override
+    elif variant == "madisse":
         system_prompt = MADISSE_SYNTHESIZER_SYSTEM
     elif variant == "taxonomy":
         system_prompt = IR_HACK_SYNTHESIZER_SYSTEM

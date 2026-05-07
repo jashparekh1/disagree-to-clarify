@@ -243,6 +243,7 @@ def _format_others_turn(
     latest_round: list[AgentResponse],
     own_role: AgentRole,
     conceded_roles: set,
+    stance_instructions: str = _STANCE_INSTRUCTIONS,
 ) -> str:
     """Build the user-turn content showing other agents' latest responses."""
     parts = ["Other agents' latest readings:"]
@@ -259,7 +260,7 @@ def _format_others_turn(
     if dropped:
         parts.append(f"\n(Dropped out — conceded previously: {', '.join(dropped)})")
 
-    parts.append(f"\n{_STANCE_INSTRUCTIONS}")
+    parts.append(f"\n{stance_instructions}")
     return "\n".join(parts)
 
 
@@ -274,6 +275,7 @@ class Agent:
         self.system_prompt = _ROLE_TO_SYSTEM_PROMPT[role]
         self.max_tokens = max_tokens
         self.messages: list[dict] = []
+        self.stance_instructions_override: str | None = None  # replaces _STANCE_INSTRUCTIONS when set
 
     def respond_initial(self, query: str, context: str | None = None) -> AgentResponse:
         user_msg = query
@@ -301,8 +303,10 @@ class Agent:
         conceded_roles: set | None = None,
         context: str | None = None,
     ) -> AgentResponse:
+        stance_instr = self.stance_instructions_override if self.stance_instructions_override is not None else _STANCE_INSTRUCTIONS
         others_text = _format_others_turn(
-            all_prior_rounds[-1], self.role, conceded_roles or set()
+            all_prior_rounds[-1], self.role, conceded_roles or set(),
+            stance_instructions=stance_instr,
         )
         
         # If it's the first time we see context in the dialogue (Round 1), inject it
