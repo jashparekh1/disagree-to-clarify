@@ -1,6 +1,6 @@
 # D2C — Disagree to Clarify
 
-**A conversational-AI approach to clarification as a grounding move.** When a user asks an ambiguous query, D2C treats the gap between interpretations as missing *common ground* between the user and the system. Three LLM agents with distinct interpretive lenses read the query independently, compare readings over multiple rounds, and — where their readings diverge — surface the divergence to a synthesizer, which produces a single clarifying question aimed at re-establishing common ground before any answer is attempted.
+**A conversational-AI approach to clarification as a grounding move.** When a user asks an ambiguous query, D2C treats the gap between interpretations as missing *common ground* between the user and the system. Three LLM agents with distinct interpretive lenses read the query independently, compare readings over multiple rounds, and — where their readings diverge — surface the divergence to a synthesizer, which produces a single clarifying question aimed at re-establishing common ground before any answer is attempted. For a full description of the system, experiments, and results, see the [technical report](report/d2c_final_report.pdf).
 
 ## Framing: clarification as grounding, not debate-to-consensus
 
